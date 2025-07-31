@@ -1,25 +1,55 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu, Eye } from "lucide-react";
+import { Users, Shield, User, Menu, Eye, Edit, Save, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 
 export default function UsersPage() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
+  const [newPlayerNumber, setNewPlayerNumber] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["/api/admin/users"],
     enabled: user?.isAdmin,
+  });
+
+  // Player number update mutation
+  const updatePlayerNumberMutation = useMutation({
+    mutationFn: async ({ userId, playerNumber }: { userId: string; playerNumber: string }) => {
+      const response = await apiRequest("PUT", `/api/admin/players/${userId}/player-number`, { playerNumber });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setEditingPlayerNumber(null);
+      setNewPlayerNumber("");
+      toast({
+        title: "Player number updated",
+        description: "The player number has been successfully updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update player number",
+        variant: "destructive",
+      });
+    },
   });
 
   // Loading state or not authenticated
@@ -137,6 +167,61 @@ export default function UsersPage() {
                         
                         <div className="text-xs text-muted-foreground">
                           Joined: {new Date(userData.createdAt).toLocaleDateString()}
+                        </div>
+                        
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Player Number: {editingPlayerNumber === userData.id ? (
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Input
+                                value={newPlayerNumber}
+                                onChange={(e) => setNewPlayerNumber(e.target.value)}
+                                placeholder="FL07310001"
+                                className="h-6 text-xs max-w-[120px]"
+                              />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  if (newPlayerNumber.trim()) {
+                                    updatePlayerNumberMutation.mutate({ 
+                                      userId: userData.id, 
+                                      playerNumber: newPlayerNumber.trim() 
+                                    });
+                                  }
+                                }}
+                                disabled={updatePlayerNumberMutation.isPending || !newPlayerNumber.trim()}
+                              >
+                                <Save className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setEditingPlayerNumber(null);
+                                  setNewPlayerNumber("");
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="flex items-center space-x-1">
+                              <span>{userData.playerNumber || "Not assigned"}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-4 w-4 p-0 ml-1"
+                                onClick={() => {
+                                  setEditingPlayerNumber(userData.id);
+                                  setNewPlayerNumber(userData.playerNumber || "");
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </span>
+                          )}
                         </div>
                       </div>
                       
