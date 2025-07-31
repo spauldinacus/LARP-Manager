@@ -276,6 +276,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Candle management routes
+  app.get("/api/users/:id/candles", requireAdmin, async (req, res) => {
+    try {
+      const balance = await storage.getCandleBalance(req.params.id);
+      const transactions = await storage.getCandleTransactionHistory(req.params.id);
+      res.json({ balance, transactions });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get candle data" });
+    }
+  });
+
+  app.post("/api/users/:id/candles", requireAdmin, async (req, res) => {
+    try {
+      const { amount, reason } = req.body;
+      if (!amount || !reason) {
+        return res.status(400).json({ message: "Amount and reason are required" });
+      }
+
+      const transaction = await storage.createCandleTransaction({
+        userId: req.params.id,
+        amount: parseInt(amount),
+        reason,
+        adminId: req.session.userId!,
+      });
+
+      res.json(transaction);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create candle transaction" });
+    }
+  });
+
+  // Get attendance-based XP for character
+  app.get("/api/characters/:id/attendance-xp", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const attendanceXP = await storage.calculateEventAttendanceXP(req.params.id);
+      res.json({ attendanceXP });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to calculate attendance XP" });
+    }
+  });
+
   // Event routes
   app.get("/api/events", requireAuth, async (req, res) => {
     try {

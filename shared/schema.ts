@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   playerNumber: text("player_number").unique(),
   chapterId: uuid("chapter_id").references(() => chapters.id),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  candles: integer("candles").default(0).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
@@ -89,6 +90,16 @@ export const systemSettings = pgTable("system_settings", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+// Candle transaction tracking
+export const candleTransactions = pgTable("candle_transactions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  amount: integer("amount").notNull(), // positive for awarded, negative for spent
+  reason: text("reason").notNull(),
+  adminId: uuid("admin_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const chaptersRelations = relations(chapters, ({ one, many }) => ({
   createdBy: one(users, {
@@ -107,6 +118,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   createdEvents: many(events),
   awardedExperience: many(experienceEntries),
   createdChapters: many(chapters),
+  candleTransactions: many(candleTransactions),
 }));
 
 export const charactersRelations = relations(characters, ({ one, many }) => ({
@@ -216,3 +228,21 @@ export type ExperienceEntry = typeof experienceEntries.$inferSelect;
 export type InsertExperienceEntry = z.infer<typeof insertExperienceEntrySchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+export type CandleTransaction = typeof candleTransactions.$inferSelect;
+export type InsertCandleTransaction = z.infer<typeof insertCandleTransactionSchema>;
+
+export const insertCandleTransactionSchema = createInsertSchema(candleTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const candleTransactionsRelations = relations(candleTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [candleTransactions.userId],
+    references: [users.id],
+  }),
+  admin: one(users, {
+    fields: [candleTransactions.adminId],
+    references: [users.id],
+  }),
+}));

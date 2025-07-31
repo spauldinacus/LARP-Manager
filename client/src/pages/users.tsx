@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu, Eye, Edit, Save, X } from "lucide-react";
+import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
@@ -21,6 +24,10 @@ export default function UsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
+  const [showCandleModal, setShowCandleModal] = useState(false);
+  const [selectedUserForCandles, setSelectedUserForCandles] = useState<string | null>(null);
+  const [candleAmount, setCandleAmount] = useState("");
+  const [candleReason, setCandleReason] = useState("");
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
@@ -41,6 +48,32 @@ export default function UsersPage() {
       toast({
         title: "Player number updated",
         description: "The player number has been successfully updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update player number",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Candle transaction mutation
+  const candleTransactionMutation = useMutation({
+    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
+      const response = await apiRequest("POST", `/api/users/${userId}/candles`, { amount, reason });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setShowCandleModal(false);
+      setSelectedUserForCandles(null);
+      setCandleAmount("");
+      setCandleReason("");
+      toast({
+        title: "Candle transaction completed",
+        description: "The candle balance has been updated successfully.",
       });
     },
     onError: (error: any) => {
@@ -263,6 +296,75 @@ export default function UsersPage() {
         onClose={() => setSelectedUserId(null)}
         userId={selectedUserId}
       />
+
+      {/* Candle Management Modal */}
+      <Dialog open={showCandleModal} onOpenChange={setShowCandleModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Flame className="h-5 w-5 text-orange-600" />
+              <span>Manage Candles</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="candle-amount">Amount</Label>
+              <Input
+                id="candle-amount"
+                type="number"
+                placeholder="Enter positive or negative amount..."
+                value={candleAmount}
+                onChange={(e) => setCandleAmount(e.target.value)}
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                Use positive numbers to award candles, negative to spend them.
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="candle-reason">Reason</Label>
+              <Textarea
+                id="candle-reason"
+                placeholder="Explain why candles are being awarded or spent..."
+                value={candleReason}
+                onChange={(e) => setCandleReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => {
+                  if (candleAmount && candleReason && selectedUserForCandles) {
+                    candleTransactionMutation.mutate({
+                      userId: selectedUserForCandles,
+                      amount: parseInt(candleAmount),
+                      reason: candleReason,
+                    });
+                  }
+                }}
+                disabled={!candleAmount || !candleReason || candleTransactionMutation.isPending}
+                className="flex-1"
+              >
+                {candleTransactionMutation.isPending ? "Processing..." : "Update Candles"}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCandleModal(false);
+                  setSelectedUserForCandles(null);
+                  setCandleAmount("");
+                  setCandleReason("");
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

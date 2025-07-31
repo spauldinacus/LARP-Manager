@@ -6,6 +6,7 @@ import {
   eventRsvps,
   experienceEntries,
   systemSettings,
+  candleTransactions,
   type Chapter,
   type InsertChapter,
   type User,
@@ -20,6 +21,8 @@ import {
   type InsertExperienceEntry,
   type SystemSetting,
   type InsertSystemSetting,
+  type CandleTransaction,
+  type InsertCandleTransaction,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -468,6 +471,61 @@ export class DatabaseStorage implements IStorage {
         experience: totalExp
       });
     }
+  }
+
+  // Calculate XP based on events attended (attendance-based progression)
+  async calculateEventAttendanceXP(characterId: string): Promise<number> {
+    // Count total events attended by character
+    const attendedEventsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(eventRsvps)
+      .where(and(
+        eq(eventRsvps.characterId, characterId),
+        eq(eventRsvps.attended, true)
+      ));
+
+    const eventCount = attendedEventsCount[0]?.count || 0;
+
+    // Progressive XP system based on events attended
+    // First event: 3 XP, Second: 4 XP, Third: 5 XP, then 6 XP for all subsequent events
+    let baseXP = 0;
+    if (eventCount >= 1) baseXP += 3;
+    if (eventCount >= 2) baseXP += 4;
+    if (eventCount >= 3) baseXP += 5;
+    if (eventCount >= 4) baseXP += (eventCount - 3) * 6;
+
+    return baseXP;
+  }
+
+  // Candle management methods
+  async getCandleBalance(userId: string): Promise<number> {
+    const user = await this.getUser(userId);
+    return user?.candles || 0;
+  }
+
+  async createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction> {
+    // Create transaction record
+    const [created] = await db.insert(candleTransactions).values(transaction).returning();
+    
+    // Update user's candle balance
+    const user = await this.getUser(transaction.userId);
+    if (user) {
+      const newBalance = (user.candles || 0) + transaction.amount;
+      await db
+        .update(users)
+        .set({ candles: Math.max(0, newBalance) }) // Ensure non-negative balance
+        .where(eq(users.id, transaction.userId));
+    }
+    
+    return created;
+  }
+
+  async getCandleTransactionHistory(userId: string): Promise<CandleTransaction[]> {
+    return await db
+      .select()
+      .from(candleTransactions)
+      .where(eq(candleTransactions.userId, userId))
+      .orderBy(desc(candleTransactions.createdAt));
   }
 
   // Event RSVP methods

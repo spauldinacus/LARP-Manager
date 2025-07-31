@@ -248,6 +248,7 @@ export default function CharacterSheetModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
       queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "attendance-xp"] });
       setSelectedEvent("");
       setXpAmount(3);
       setShowAddEvent(false);
@@ -263,6 +264,12 @@ export default function CharacterSheetModal({
         variant: "destructive",
       });
     },
+  });
+
+  // Fetch attendance-based XP calculation
+  const { data: attendanceXP } = useQuery({
+    queryKey: ["/api/characters", characterId, "attendance-xp"],
+    enabled: !!characterId,
   });
 
   // Admin remove experience entry mutation
@@ -887,14 +894,22 @@ export default function CharacterSheetModal({
                           </div>
                           <div>
                             <Label htmlFor="xp-amount">Experience Points Awarded</Label>
-                            <Input
-                              id="xp-amount"
-                              type="number"
-                              min="0"
-                              max="20"
-                              value={xpAmount}
-                              onChange={(e) => setXpAmount(parseInt(e.target.value) || 0)}
-                            />
+                            <div className="space-y-2">
+                              <Input
+                                id="xp-amount"
+                                type="number"
+                                min="0"
+                                max="20"
+                                value={xpAmount}
+                                onChange={(e) => setXpAmount(parseInt(e.target.value) || 0)}
+                              />
+                              <div className="text-sm text-muted-foreground">
+                                <div>Base XP by attendance: {(attendanceXP as any)?.attendanceXP || 0} XP</div>
+                                <div className="text-xs">
+                                  • 1st event: 3 XP • 2nd event: 4 XP • 3rd event: 5 XP • 4+ events: 6 XP each
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           <div className="flex space-x-2">
                             <Button
