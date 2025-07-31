@@ -391,6 +391,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCharacter(id: string): Promise<void> {
+    // First delete all related records in the correct order
+    // Delete experience entries
+    await db.delete(experienceEntries).where(eq(experienceEntries.characterId, id));
+    
+    // Delete event RSVPs for this character
+    await db.delete(eventRsvps).where(eq(eventRsvps.characterId, id));
+    
+    // Finally delete the character
     await db.delete(characters).where(eq(characters.id, id));
   }
 
