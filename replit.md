@@ -11,6 +11,15 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 31, 2025
+- **CRITICAL FIX: Events attended tracking now shows actual attendance**
+  - Fixed XP progression page to track only events marked as attended by admins, not just RSVPs
+  - Added new `getAttendedEventsCount` storage method to count only `attended = true` events
+  - Updated API endpoint to return both attendance XP and actual events attended count
+  - Events attended counter now displays accurate progression data based on real attendance
+- **FIXED: User settings save functionality restored**
+  - Fixed authentication hook to properly expose refetch function for settings updates
+  - User settings (player name, chapter assignment) now save successfully
+  - Authentication context properly updates after settings changes
 - **CRITICAL FIX: Admin RSVP XP purchase updates now sync to character sheets**
   - Fixed React Query cache invalidation to refresh character data when admin modifies RSVP XP purchases
   - Experience entries and character totals now update immediately across all UI components

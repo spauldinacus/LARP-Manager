@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, playerName: string, email: string, password: string, chapterId?: string) => Promise<void>;
   logout: () => Promise<void>;
+  refetch: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: currentUser, isLoading } = useQuery({
+  const { data: currentUser, isLoading, refetch } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: () => authApi.getCurrentUser(),
     retry: false,
@@ -104,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
+        refetch,
       }}
     >
       {children}
