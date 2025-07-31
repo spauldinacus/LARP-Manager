@@ -127,6 +127,7 @@ export default function UsersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       setShowCandleModal(false);
       setSelectedUserForCandles(null);
       setCandleAmount("");
