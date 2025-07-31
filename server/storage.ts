@@ -380,12 +380,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Experience methods
-  async getExperienceByCharacterId(characterId: string): Promise<ExperienceEntry[]> {
-    return await db
-      .select()
+  async getExperienceByCharacterId(characterId: string): Promise<any[]> {
+    const experienceWithEvents = await db
+      .select({
+        id: experienceEntries.id,
+        characterId: experienceEntries.characterId,
+        amount: experienceEntries.amount,
+        reason: experienceEntries.reason,
+        eventId: experienceEntries.eventId,
+        rsvpId: experienceEntries.rsvpId,
+        awardedBy: experienceEntries.awardedBy,
+        createdAt: experienceEntries.createdAt,
+        updatedAt: experienceEntries.updatedAt,
+        event: {
+          id: events.id,
+          name: events.name,
+          eventDate: events.eventDate,
+        }
+      })
       .from(experienceEntries)
+      .leftJoin(events, eq(experienceEntries.eventId, events.id))
       .where(eq(experienceEntries.characterId, characterId))
       .orderBy(desc(experienceEntries.createdAt));
+
+    return experienceWithEvents;
   }
 
   async createExperienceEntry(insertEntry: InsertExperienceEntry): Promise<ExperienceEntry> {
