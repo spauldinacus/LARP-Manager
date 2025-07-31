@@ -426,8 +426,8 @@ export default function CharacterCreationModal({
                     <p className="text-sm text-muted-foreground">XP Remaining</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-500">1</p>
-                    <p className="text-sm text-muted-foreground">Level</p>
+                    <p className="text-2xl font-bold text-green-500">25</p>
+                    <p className="text-sm text-muted-foreground">XP Spent</p>
                   </div>
                 </div>
               </div>

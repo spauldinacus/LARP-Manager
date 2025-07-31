@@ -277,30 +277,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateTotalXpSpent(characterId: string): Promise<number> {
-    const character = await this.getCharacter(characterId);
-    if (!character) return 0;
+    // Get all negative experience entries (spent XP)
+    const spentEntries = await db
+      .select({ amount: experienceEntries.amount })
+      .from(experienceEntries)
+      .where(and(
+        eq(experienceEntries.characterId, characterId),
+        sql`${experienceEntries.amount} < 0`
+      ));
 
-    let totalSpent = 0;
-
-    // Calculate XP spent on skills (based on skill costs from constants)
-    if (character.skills && character.skills.length > 0) {
-      for (const skill of character.skills) {
-        // This would need to reference the skill costs from your constants
-        // For now, assume primary skills cost 5, secondary 10, others 20
-        totalSpent += 10; // Average cost estimate
-      }
-    }
-
-    // Calculate XP spent on body increases (heritage base + increases)
-    // This would need heritage base values from constants
-    const bodyIncreases = Math.max(0, character.body - 10); // Assuming 10 is average base
-    totalSpent += bodyIncreases * 1; // 1 XP per body point
-
-    // Calculate XP spent on stamina increases
-    const staminaIncreases = Math.max(0, character.stamina - 10); // Assuming 10 is average base
-    totalSpent += staminaIncreases * 1; // 1 XP per stamina point
-
-    return totalSpent;
+    // Sum all spent XP (convert negative to positive)
+    const totalSpent = spentEntries.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+    
+    // Add initial 25 XP that every character starts with (considered "spent" on creation)
+    return totalSpent + 25;
   }
 
   // Event RSVP methods

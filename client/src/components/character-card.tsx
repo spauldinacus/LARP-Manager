@@ -15,7 +15,7 @@ interface Character {
   body: number;
   stamina: number;
   experience: number;
-  level: number;
+  totalXpSpent: number;
   isActive: boolean;
   createdAt: string;
 }
@@ -64,8 +64,8 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                 <p className="text-xs text-muted-foreground">XP</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-green-600">{character.level}</p>
-                <p className="text-xs text-muted-foreground">Level</p>
+                <p className="text-sm font-medium text-green-600">{character.totalXpSpent || 25}</p>
+                <p className="text-xs text-muted-foreground">XP Spent</p>
               </div>
             </div>
 

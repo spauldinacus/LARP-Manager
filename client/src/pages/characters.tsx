@@ -132,8 +132,8 @@ export default function CharactersPage() {
                         <p className="font-semibold">{character.experience} XP</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Level</p>
-                        <p className="font-semibold">{character.level}</p>
+                        <p className="text-muted-foreground">XP Spent</p>
+                        <p className="font-semibold">{character.totalXpSpent || 25}</p>
                       </div>
                     </div>
 

@@ -27,6 +27,13 @@ Preferred communication style: Simple, everyday language.
   - Experience is now exclusively managed through events and RSVP purchases
   - Updated navigation to remove experience page link
   - Cleaned up dashboard quick actions to focus on event-based XP management
+  - Updated all character displays to show "XP Spent" instead of "Level"
+  - XP Spent calculation includes initial 25 XP plus all experience point expenditures
+- **Enhanced dashboard statistics**
+  - Replaced static percentages with dynamic real-time calculations
+  - Added historical data comparison for growth tracking
+  - Implemented actual next event countdown with event names
+  - All dashboard metrics now reflect authentic data from the database
 - **Enhanced chapter management system**
   - Added complete chapter management with database schema and API endpoints
   - Implemented player number generation system (format: FL07310001)
