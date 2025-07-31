@@ -330,7 +330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { skill, cost } = req.body;
       
-      if (!skill || !cost || cost <= 0) {
+      console.log("Admin add skill request body:", req.body);
+      console.log("Skill:", skill, "Cost:", cost, "Type of cost:", typeof cost);
+      
+      if (!skill || cost === undefined || cost === null || cost <= 0) {
         return res.status(400).json({ message: "Invalid skill or cost" });
       }
 
