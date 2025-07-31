@@ -2,8 +2,8 @@ export const HERITAGES = [
   {
     id: "ar-nura",
     name: "Ar-Nura",
-    body: 1,
-    stamina: 3,
+    body: 2,
+    stamina: 4,
     icon: "zap",
     description: "Masters of arcane energies, born of magical bloodlines",
     primarySkills: ["Arcane Lore", "Mysticism"],
@@ -12,8 +12,8 @@ export const HERITAGES = [
   {
     id: "human",
     name: "Human",
-    body: 2,
-    stamina: 2,
+    body: 3,
+    stamina: 3,
     icon: "user",
     description: "Adaptable and versatile, the most common heritage",
     primarySkills: ["Any Two Skills"],
@@ -22,8 +22,8 @@ export const HERITAGES = [
   {
     id: "stoneborn",
     name: "Stoneborn",
-    body: 3,
-    stamina: 1,
+    body: 4,
+    stamina: 2,
     icon: "mountain",
     description: "Hardy and resilient, carved from the mountain itself",
     primarySkills: ["Smithing", "Stoneworking"],
@@ -32,7 +32,7 @@ export const HERITAGES = [
   {
     id: "ughol",
     name: "Ughol",
-    body: 2,
+    body: 4,
     stamina: 2,
     icon: "leaf",
     description: "Connected to nature, with bestial features",
@@ -43,7 +43,7 @@ export const HERITAGES = [
     id: "rystarri",
     name: "Rystarri",
     body: 1,
-    stamina: 3,
+    stamina: 5,
     icon: "moon",
     description: "Ethereal and mystical, touched by otherworldly forces",
     primarySkills: ["Spirit Lore", "Astrology"],
@@ -70,18 +70,6 @@ export const CULTURES = {
       name: "Drakmoran",
       primarySkills: ["Stealth", "Information"],
       secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
-    },
-    { 
-      id: "freehold", 
-      name: "Freehold",
-      primarySkills: ["Crafting", "Innovation"],
-      secondarySkills: ["Engineering", "Invention", "Repair"]
-    },
-    { 
-      id: "nomad", 
-      name: "Nomad",
-      primarySkills: ["Survival", "Navigation"],
-      secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
     }
   ],
   "human": [
@@ -110,106 +98,70 @@ export const CULTURES = {
       secondarySkills: ["Engineering", "Invention", "Repair"]
     },
     { 
-      id: "nomad", 
-      name: "Nomad",
+      id: "northern", 
+      name: "Northern",
       primarySkills: ["Survival", "Navigation"],
       secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
     }
   ],
   "stoneborn": [
     { 
-      id: "araean", 
-      name: "Araean",
-      primarySkills: ["Politics", "Trade"],
-      secondarySkills: ["Etiquette", "Law", "Economics"]
+      id: "mountain-clan", 
+      name: "Mountain Clan",
+      primarySkills: ["Smithing", "Mining"],
+      secondarySkills: ["Stoneworking", "Engineering", "Tunneling"]
     },
     { 
-      id: "caldoran", 
-      name: "Caldoran",
-      primarySkills: ["Military Tactics", "Leadership"],
-      secondarySkills: ["Strategy", "Intimidation", "Command"]
+      id: "forge-born", 
+      name: "Forge Born",
+      primarySkills: ["Smithing", "Metalworking"],
+      secondarySkills: ["Armorcrafting", "Weaponsmithing", "Enchantment"]
     },
     { 
-      id: "drakmoran", 
-      name: "Drakmoran",
-      primarySkills: ["Stealth", "Information"],
-      secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
-    },
-    { 
-      id: "freehold", 
-      name: "Freehold",
-      primarySkills: ["Crafting", "Innovation"],
-      secondarySkills: ["Engineering", "Invention", "Repair"]
-    },
-    { 
-      id: "nomad", 
-      name: "Nomad",
-      primarySkills: ["Survival", "Navigation"],
-      secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
+      id: "stone-guard", 
+      name: "Stone Guard",
+      primarySkills: ["Shield Use", "Tactics"],
+      secondarySkills: ["Formation Fighting", "Defense", "Vigilance"]
     }
   ],
   "ughol": [
     { 
-      id: "araean", 
-      name: "Araean",
-      primarySkills: ["Politics", "Trade"],
-      secondarySkills: ["Etiquette", "Law", "Economics"]
+      id: "forest-dweller", 
+      name: "Forest Dweller",
+      primarySkills: ["Tracking", "Herbalism"],
+      secondarySkills: ["Animal Handling", "Camouflage", "Tree Climbing"]
     },
     { 
-      id: "caldoran", 
-      name: "Caldoran",
-      primarySkills: ["Military Tactics", "Leadership"],
-      secondarySkills: ["Strategy", "Intimidation", "Command"]
+      id: "plains-walker", 
+      name: "Plains Walker",
+      primarySkills: ["Survival", "Animal Handling"],
+      secondarySkills: ["Weather Sense", "Hunting", "Navigation"]
     },
     { 
-      id: "drakmoran", 
-      name: "Drakmoran",
-      primarySkills: ["Stealth", "Information"],
-      secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
-    },
-    { 
-      id: "freehold", 
-      name: "Freehold",
-      primarySkills: ["Crafting", "Innovation"],
-      secondarySkills: ["Engineering", "Invention", "Repair"]
-    },
-    { 
-      id: "nomad", 
-      name: "Nomad",
-      primarySkills: ["Survival", "Navigation"],
-      secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
+      id: "river-folk", 
+      name: "River Folk",
+      primarySkills: ["Swimming", "Fishing"],
+      secondarySkills: ["Boat Building", "Water Navigation", "River Lore"]
     }
   ],
   "rystarri": [
     { 
-      id: "araean", 
-      name: "Araean",
-      primarySkills: ["Politics", "Trade"],
-      secondarySkills: ["Etiquette", "Law", "Economics"]
+      id: "moon-touched", 
+      name: "Moon Touched",
+      primarySkills: ["Astrology", "Divination"],
+      secondarySkills: ["Night Vision", "Lunar Magic", "Dream Walking"]
     },
     { 
-      id: "caldoran", 
-      name: "Caldoran",
-      primarySkills: ["Military Tactics", "Leadership"],
-      secondarySkills: ["Strategy", "Intimidation", "Command"]
+      id: "star-born", 
+      name: "Star Born",
+      primarySkills: ["Navigation", "Mysticism"],
+      secondarySkills: ["Stellar Magic", "Prophecy", "Cosmic Lore"]
     },
     { 
-      id: "drakmoran", 
-      name: "Drakmoran",
-      primarySkills: ["Stealth", "Information"],
-      secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
-    },
-    { 
-      id: "freehold", 
-      name: "Freehold",
-      primarySkills: ["Crafting", "Innovation"],
-      secondarySkills: ["Engineering", "Invention", "Repair"]
-    },
-    { 
-      id: "nomad", 
-      name: "Nomad",
-      primarySkills: ["Survival", "Navigation"],
-      secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
+      id: "void-walker", 
+      name: "Void Walker",
+      primarySkills: ["Spirit Lore", "Ethereal Sight"],
+      secondarySkills: ["Banishment", "Spirit Communication", "Otherworld Travel"]
     }
   ]
 } as const;

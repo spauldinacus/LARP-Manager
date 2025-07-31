@@ -8,6 +8,16 @@ This is a modern full-stack web application built with React frontend and Expres
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### January 31, 2025
+- Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
+- Corrected heritage body/stamina values: Ar-Nura (2/4), Human (3/3), Stoneborn (4/2), Ughol (4/2), Rystarri (1/5)
+- Implemented heritage-specific culture restrictions as per rulebook
+- Added comprehensive skill display system showing primary/secondary skills for heritage, culture, and archetype
+- Set starting experience to 25 XP for all new characters
+- Enhanced admin functionality with user character management modal
+
 ## System Architecture
 
 ### Frontend Architecture
