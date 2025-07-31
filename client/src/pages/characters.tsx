@@ -141,7 +141,7 @@ export default function CharactersPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">

@@ -278,15 +278,15 @@ export default function ChaptersPage() {
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
-          <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Chapter Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage LARP chapters and player registration codes
-          </p>
-        </div>
+        <div className="flex-1 overflow-auto p-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">Chapter Management</h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Manage LARP chapters and player registration codes
+                </p>
+              </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button>

@@ -352,8 +352,8 @@ export default function EventsPage() {
             </div>
           )}
 
-          <div className="flex-1 overflow-auto">
-            <div className="container mx-auto py-8">
+          <div className="flex-1 overflow-auto p-6">
+            <div className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
                   <Card key={i} className="animate-pulse">
@@ -414,15 +414,15 @@ export default function EventsPage() {
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
-          <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Events</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            LARP events and RSVP management with XP purchases
-          </p>
-        </div>
+        <div className="flex-1 overflow-auto p-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">Events</h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  LARP events and RSVP management with XP purchases
+                </p>
+              </div>
         {user?.isAdmin && (
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
