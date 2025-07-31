@@ -129,9 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
-      req.session.userRole = user.role || 'user';
+      req.session.userRole = user.roleId || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, role: user.role || 'user', candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
@@ -140,9 +140,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = loginSchema.parse(req.body);
+      const loginSchema = z.object({
+        username: z.string(),
+        password: z.string(),
+      });
+      const { username, password } = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByEmail(email);
+      const user = await storage.getUserByUsername(username);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -154,9 +158,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
-      req.session.userRole = user.role || 'user';
+      req.session.userRole = user.roleId || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, role: user.role || 'user', candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
@@ -182,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userWithoutPassword } = user;
       const userResponse = {
         ...userWithoutPassword,
-        role: user.role || 'user',
+        roleId: user.roleId || 'user',
         candles: user.candles || 0
       };
       res.json({ user: userResponse });
@@ -986,31 +990,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Role management endpoints (admin only)
-  app.get("/api/roles", requireAdmin, (req, res) => {
-    const { rolePermissions } = require("@shared/schema");
-    res.json(Object.keys(rolePermissions));
+  app.get("/api/roles", requireAdmin, async (req, res) => {
+    try {
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get roles" });
+    }
   });
 
-  app.get("/api/permissions", requireAdmin, (req, res) => {
-    const { rolePermissions } = require("@shared/schema");
-    res.json(rolePermissions);
+  app.post("/api/roles", requireAdmin, async (req, res) => {
+    try {
+      const role = await storage.createRole(req.body);
+      res.status(201).json(role);
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create role" });
+    }
+  });
+
+  app.patch("/api/roles/:id", requireAdmin, async (req, res) => {
+    try {
+      const role = await storage.updateRole(req.params.id, req.body);
+      res.json(role);
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update role" });
+    }
+  });
+
+  app.delete("/api/roles/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteRole(req.params.id);
+      res.json({ message: "Role deleted successfully" });
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to delete role" });
+    }
+  });
+
+  app.get("/api/permissions", requireAdmin, async (req, res) => {
+    try {
+      const permissions = await storage.getAllPermissions();
+      res.json(permissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get permissions" });
+    }
+  });
+
+  app.get("/api/roles/:id/permissions", requireAdmin, async (req, res) => {
+    try {
+      const permissions = await storage.getRolePermissions(req.params.id);
+      res.json(permissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get role permissions" });
+    }
   });
 
   app.patch("/api/users/:id/role", requireAdmin, async (req, res) => {
     try {
-      const { role } = req.body;
-      const { rolePermissions } = require("@shared/schema");
+      const { roleId } = req.body;
       
-      if (!Object.keys(rolePermissions).includes(role)) {
-        return res.status(400).json({ message: "Invalid role" });
-      }
-
       // Prevent users from demoting themselves
-      if (req.params.id === req.session.userId && role !== 'admin' && role !== 'super_admin') {
-        return res.status(400).json({ message: "Cannot demote yourself" });
+      if (req.params.id === req.session.userId) {
+        return res.status(400).json({ message: "Cannot change your own role" });
       }
 
-      const user = await storage.updateUserRole(req.params.id, role);
+      const user = await storage.updateUserRole(req.params.id, roleId);
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {

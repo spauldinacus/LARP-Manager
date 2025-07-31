@@ -7,6 +7,10 @@ import {
   experienceEntries,
   systemSettings,
   candleTransactions,
+  roles,
+  permissions,
+  rolePermissions,
+  defaultPermissions,
   type Chapter,
   type InsertChapter,
   type User,
@@ -23,6 +27,12 @@ import {
   type InsertSystemSetting,
   type CandleTransaction,
   type InsertCandleTransaction,
+  type Role,
+  type InsertRole,
+  type Permission,
+  type InsertPermission,
+  type RolePermission,
+  type InsertRolePermission,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -44,7 +54,24 @@ export interface IStorage {
   updateUser(id: string, user: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
-  updateUserRole(id: string, role: string): Promise<User>;
+  updateUserRole(id: string, roleId: string): Promise<User>;
+
+  // Role management methods
+  getAllRoles(): Promise<Role[]>;
+  getRole(id: string): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: string, role: Partial<Role>): Promise<Role>;
+  deleteRole(id: string): Promise<void>;
+  getRolePermissions(roleId: string): Promise<Permission[]>;
+  setRolePermissions(roleId: string, permissionIds: string[]): Promise<void>;
+
+  // Permission management methods
+  getAllPermissions(): Promise<Permission[]>;
+  getPermission(id: string): Promise<Permission | undefined>;
+  createPermission(permission: InsertPermission): Promise<Permission>;
+  
+  // System initialization
+  initializeDefaultRolesAndPermissions(): Promise<void>;
 
   // Character methods
   getCharacter(id: string): Promise<Character | undefined>;
@@ -221,10 +248,10 @@ export class DatabaseStorage implements IStorage {
     return usersWithCharacterCounts;
   }
 
-  async updateUserRole(id: string, role: string): Promise<User> {
+  async updateUserRole(id: string, roleId: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ role })
+      .set({ roleId })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -709,6 +736,91 @@ export class DatabaseStorage implements IStorage {
     }
     
     return created;
+  }
+
+  // Role management methods
+  async getAllRoles(): Promise<Role[]> {
+    return await db.select().from(roles).orderBy(roles.name);
+  }
+
+  async getRole(id: string): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    return role || undefined;
+  }
+
+  async createRole(insertRole: InsertRole): Promise<Role> {
+    const [role] = await db.insert(roles).values(insertRole).returning();
+    return role;
+  }
+
+  async updateRole(id: string, updateData: Partial<Role>): Promise<Role> {
+    const [role] = await db
+      .update(roles)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(roles.id, id))
+      .returning();
+    return role;
+  }
+
+  async deleteRole(id: string): Promise<void> {
+    // Check if it's a system role
+    const role = await this.getRole(id);
+    if (role?.isSystemRole) {
+      throw new Error("Cannot delete system roles");
+    }
+    
+    // Move users to default User role before deleting
+    const defaultRole = await db.select().from(roles).where(eq(roles.name, "User")).limit(1);
+    if (defaultRole.length > 0) {
+      await db.update(users).set({ roleId: defaultRole[0].id }).where(eq(users.roleId, id));
+    }
+    
+    await db.delete(roles).where(eq(roles.id, id));
+  }
+
+  async getRolePermissions(roleId: string): Promise<Permission[]> {
+    const result = await db
+      .select({ permission: permissions })
+      .from(rolePermissions)
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .where(eq(rolePermissions.roleId, roleId));
+    
+    return result.map(r => r.permission);
+  }
+
+  async setRolePermissions(roleId: string, permissionIds: string[]): Promise<void> {
+    // Remove existing permissions
+    await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
+    
+    // Add new permissions
+    if (permissionIds.length > 0) {
+      const permissionData = permissionIds.map(permissionId => ({
+        roleId,
+        permissionId,
+      }));
+      await db.insert(rolePermissions).values(permissionData);
+    }
+  }
+
+  // Permission management methods
+  async getAllPermissions(): Promise<Permission[]> {
+    return await db.select().from(permissions).orderBy(permissions.category, permissions.name);
+  }
+
+  async getPermission(id: string): Promise<Permission | undefined> {
+    const [permission] = await db.select().from(permissions).where(eq(permissions.id, id));
+    return permission || undefined;
+  }
+
+  async createPermission(insertPermission: InsertPermission): Promise<Permission> {
+    const [permission] = await db.insert(permissions).values(insertPermission).returning();
+    return permission;
+  }
+
+  // System initialization
+  async initializeDefaultRolesAndPermissions(): Promise<void> {
+    // This method is implemented via SQL above
+    // Could be enhanced to check and ensure all defaults exist
   }
 
   // Refresh character XP values (utility function)

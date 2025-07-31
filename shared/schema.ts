@@ -14,16 +14,49 @@ export const chapters = pgTable("chapters", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-// Define role permissions
-export const rolePermissions = {
-  user: [],
-  moderator: ['manage_characters', 'manage_events', 'view_users'],
-  admin: ['manage_characters', 'manage_events', 'view_users', 'manage_users', 'manage_chapters', 'manage_roles', 'manage_system'],
-  super_admin: ['*'] // All permissions
-} as const;
+// Role and permission tables
+export const roles = pgTable("roles", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  color: text("color").default("#6B7280").notNull(), // Default gray color
+  isSystemRole: boolean("is_system_role").default(false).notNull(), // Cannot be deleted
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
 
-export type Role = keyof typeof rolePermissions;
-export type Permission = 'manage_characters' | 'manage_events' | 'view_users' | 'manage_users' | 'manage_chapters' | 'manage_roles' | 'manage_system';
+export const permissions = pgTable("permissions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // e.g., "users", "characters", "events", "system"
+});
+
+export const rolePermissions = pgTable("role_permissions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  roleId: uuid("role_id").references(() => roles.id, { onDelete: "cascade" }).notNull(),
+  permissionId: uuid("permission_id").references(() => permissions.id, { onDelete: "cascade" }).notNull(),
+});
+
+// Default permissions
+export const defaultPermissions = [
+  { name: "view_users", description: "View user list and details", category: "users" },
+  { name: "edit_users", description: "Edit user information and settings", category: "users" },
+  { name: "delete_users", description: "Delete user accounts", category: "users" },
+  { name: "view_characters", description: "View character information", category: "characters" },
+  { name: "edit_characters", description: "Edit character details and stats", category: "characters" },
+  { name: "create_characters", description: "Create new characters", category: "characters" },
+  { name: "delete_characters", description: "Delete characters", category: "characters" },
+  { name: "view_events", description: "View events and RSVPs", category: "events" },
+  { name: "create_events", description: "Create new events", category: "events" },
+  { name: "edit_events", description: "Edit event details", category: "events" },
+  { name: "delete_events", description: "Delete events", category: "events" },
+  { name: "manage_roles", description: "Create and edit roles and permissions", category: "system" },
+  { name: "manage_chapters", description: "Manage LARP chapters", category: "system" },
+  { name: "manage_candles", description: "Award and spend player candles", category: "system" },
+  { name: "view_admin_stats", description: "View administrative statistics", category: "system" },
+] as const;
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -34,7 +67,7 @@ export const users = pgTable("users", {
   playerNumber: text("player_number").unique(),
   chapterId: uuid("chapter_id").references(() => chapters.id),
   isAdmin: boolean("is_admin").default(false).notNull(),
-  role: text("role").default("user").notNull(), // user, moderator, admin, super_admin
+  roleId: uuid("role_id").references(() => roles.id),
   candles: integer("candles").default(0).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
@@ -122,17 +155,7 @@ export const chaptersRelations = relations(chapters, ({ one, many }) => ({
   users: many(users),
 }));
 
-export const usersRelations = relations(users, ({ one, many }) => ({
-  chapter: one(chapters, {
-    fields: [users.chapterId],
-    references: [chapters.id],
-  }),
-  characters: many(characters),
-  createdEvents: many(events),
-  awardedExperience: many(experienceEntries),
-  createdChapters: many(chapters),
-  candleTransactions: many(candleTransactions),
-}));
+// Users relations moved to end of file to include role relationship
 
 export const charactersRelations = relations(characters, ({ one, many }) => ({
   user: one(users, {
@@ -243,10 +266,30 @@ export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 export type CandleTransaction = typeof candleTransactions.$inferSelect;
 export type InsertCandleTransaction = z.infer<typeof insertCandleTransactionSchema>;
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 
 export const insertCandleTransactionSchema = createInsertSchema(candleTransactions).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPermissionSchema = createInsertSchema(permissions).omit({
+  id: true,
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
 });
 
 export const candleTransactionsRelations = relations(candleTransactions, ({ one }) => ({
@@ -258,6 +301,43 @@ export const candleTransactionsRelations = relations(candleTransactions, ({ one 
     fields: [candleTransactions.createdBy],
     references: [users.id],
   }),
+}));
+
+export const rolesRelations = relations(roles, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [roles.createdBy],
+    references: [users.id],
+  }),
+  permissions: many(rolePermissions),
+  users: many(users),
+}));
+
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  roles: many(rolePermissions),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(roles, {
+    fields: [rolePermissions.roleId],
+    references: [roles.id],
+  }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  role: one(roles, {
+    fields: [users.roleId],
+    references: [roles.id],
+  }),
+  chapter: one(chapters, {
+    fields: [users.chapterId],
+    references: [chapters.id],
+  }),
+  characters: many(characters),
+  candleTransactions: many(candleTransactions),
 }));
 
 // Heritage, Culture, and Archetype data for skill cost calculations

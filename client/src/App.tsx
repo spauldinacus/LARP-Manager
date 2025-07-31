@@ -13,6 +13,7 @@ import EventsPage from "@/pages/events";
 import PlayersPage from "@/pages/players";
 
 import UsersPage from "@/pages/users";
+import RolesPage from "@/pages/roles";
 import SettingsPage from "@/pages/settings";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/events" component={EventsPage} />
       <Route path="/players" component={PlayersPage} />
       <Route path="/users" component={UsersPage} />
+      <Route path="/roles" component={RolesPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>

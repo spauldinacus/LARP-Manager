@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   Building2,
+  Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -53,6 +54,12 @@ const navigationItems = [
     href: "/users",
     icon: UserCog,
     label: "User Management",
+    adminOnly: true,
+  },
+  {
+    href: "/roles",
+    icon: Shield,
+    label: "Role Management",
     adminOnly: true,
   },
   {
