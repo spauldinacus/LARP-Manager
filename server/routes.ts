@@ -153,7 +153,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         characters = await storage.getCharactersByUserId(req.session.userId!);
       }
-      res.json(characters);
+      
+      // Add total XP spent to each character
+      const charactersWithXp = await Promise.all(
+        characters.map(async (character) => {
+          const totalXpSpent = await storage.calculateTotalXpSpent(character.id);
+          return { ...character, totalXpSpent };
+        })
+      );
+      
+      res.json(charactersWithXp);
     } catch (error) {
       res.status(500).json({ message: "Failed to get characters" });
     }
@@ -171,7 +180,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(character);
+      // Calculate total XP spent including initial 25 XP
+      const totalXpSpent = await storage.calculateTotalXpSpent(req.params.id);
+      
+      res.json({ ...character, totalXpSpent });
     } catch (error) {
       res.status(500).json({ message: "Failed to get character" });
     }
