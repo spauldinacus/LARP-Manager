@@ -308,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.params.id,
         amount: parseInt(amount),
         reason,
-        adminId: req.session.userId!,
+        createdBy: req.session.userId!,
       });
 
       res.json(transaction);
