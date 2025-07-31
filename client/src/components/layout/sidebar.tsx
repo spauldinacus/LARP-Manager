@@ -81,7 +81,7 @@ export default function Sidebar({ user, currentPath }: SidebarProps) {
   const { logout } = useAuth();
 
   const visibleItems = navigationItems.filter(
-    (item) => !item.adminOnly || user.isAdmin
+    (item) => !item.adminOnly || user?.isAdmin
   );
 
   return (
@@ -121,15 +121,15 @@ export default function Sidebar({ user, currentPath }: SidebarProps) {
         <div className="flex items-center space-x-3 mb-3">
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
             <span className="text-sm font-medium text-primary-foreground">
-              {user.username.charAt(0).toUpperCase()}
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user.username}
+              {user?.username || 'Loading...'}
             </p>
             <p className="text-xs text-sidebar-foreground/70">
-              {user.isAdmin ? "Administrator" : "Player"}
+              {user?.isAdmin ? "Administrator" : "Player"}
             </p>
           </div>
         </div>

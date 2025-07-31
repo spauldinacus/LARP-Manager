@@ -426,12 +426,12 @@ export default function XPProgressionTracker({
                   Manage custom achievements. Database achievements will appear below static ones.
                 </CardDescription>
               </CardHeader>
-              {customAchievements.length > 0 && (
+              {(customAchievements as any[])?.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Achievements ({customAchievements.length})</h4>
+                    <h4 className="font-medium text-sm">Custom Achievements ({(customAchievements as any[])?.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {customAchievements.map((achievement: any) => (
+                      {(customAchievements as any[])?.map((achievement: any) => (
                         <div key={achievement.id} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{achievement.title}</p>
@@ -524,12 +524,12 @@ export default function XPProgressionTracker({
                   Manage custom milestones. Database milestones will appear below static ones.
                 </CardDescription>
               </CardHeader>
-              {customMilestones.length > 0 && (
+              {(customMilestones as any[])?.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Milestones ({customMilestones.length})</h4>
+                    <h4 className="font-medium text-sm">Custom Milestones ({(customMilestones as any[])?.length})</h4>
                     <div className="space-y-2">
-                      {customMilestones.map((milestone: any) => (
+                      {(customMilestones as any[])?.map((milestone: any) => (
                         <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{milestone.title}</p>
@@ -618,9 +618,9 @@ export default function XPProgressionTracker({
               <CardDescription>Track your character's XP gains and expenditures</CardDescription>
             </CardHeader>
             <CardContent>
-              {experienceHistory.length > 0 ? (
+              {(experienceHistory as any[])?.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {(experienceHistory as any[]).map((entry: any) => (
+                  {(experienceHistory as any[])?.map((entry: any) => (
                     <div key={entry.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-full ${entry.amount > 0 ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400"}`}>
