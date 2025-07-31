@@ -973,7 +973,7 @@ export default function CharacterSheetModal({
                                   </p>
                                   <div className="flex items-center space-x-2">
                                     <Badge variant="outline">
-                                      +{entry.amount} XP
+                                      {entry.amount > 0 ? '+' : ''}{entry.amount} XP
                                     </Badge>
                                     {user?.isAdmin && (
                                       <Button
@@ -1045,7 +1045,7 @@ export default function CharacterSheetModal({
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <p className="text-sm font-medium">
-                                  +{entry.amount} Experience Points
+                                  {entry.amount > 0 ? '+' : ''}{entry.amount} Experience Points
                                 </p>
                                 <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                   <Calendar className="h-3 w-3" />
