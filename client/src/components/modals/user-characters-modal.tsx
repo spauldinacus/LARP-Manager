@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   Dialog,
   DialogContent,
@@ -10,8 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,10 +21,7 @@ import CharacterSheetModal from "./character-sheet-modal";
 import { 
   User, 
   Users, 
-  Star, 
   Edit, 
-  Save, 
-  X, 
   Plus,
   Trash2,
   Shield,
@@ -39,12 +33,7 @@ interface UserCharactersModalProps {
   userId: string | null;
 }
 
-const experienceSchema = z.object({
-  amount: z.number().min(1, "Experience must be at least 1"),
-  reason: z.string().min(1, "Reason is required"),
-});
 
-type ExperienceForm = z.infer<typeof experienceSchema>;
 
 export default function UserCharactersModal({
   isOpen,
@@ -52,7 +41,6 @@ export default function UserCharactersModal({
   userId,
 }: UserCharactersModalProps) {
   const [editingCharacter, setEditingCharacter] = useState<string | null>(null);
-  const [showExperienceForm, setShowExperienceForm] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch user details
@@ -67,37 +55,9 @@ export default function UserCharactersModal({
     enabled: isOpen && !!userId,
   });
 
-  // Experience form
-  const experienceForm = useForm<ExperienceForm>({
-    resolver: zodResolver(experienceSchema),
-    defaultValues: {
-      amount: 1,
-      reason: "",
-    },
-  });
 
-  // Award experience mutation
-  const awardExperienceMutation = useMutation({
-    mutationFn: async ({ characterId, data }: { characterId: string; data: ExperienceForm }) => {
-      return apiRequest(`/api/characters/${characterId}/experience`, "POST", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId, "characters"] });
-      setShowExperienceForm(null);
-      experienceForm.reset();
-      toast({
-        title: "Experience awarded",
-        description: "Experience points have been successfully awarded.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to award experience",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+
+
 
   // Delete character mutation
   const deleteCharacterMutation = useMutation({
@@ -119,14 +79,7 @@ export default function UserCharactersModal({
     },
   });
 
-  const handleAwardExperience = (data: ExperienceForm) => {
-    if (showExperienceForm) {
-      awardExperienceMutation.mutate({
-        characterId: showExperienceForm,
-        data,
-      });
-    }
-  };
+
 
   if (!userId) return null;
 
@@ -248,84 +201,29 @@ export default function UserCharactersModal({
 
                         <Separator />
 
-                        {/* Experience Form */}
-                        {showExperienceForm === character.id ? (
-                          <form onSubmit={experienceForm.handleSubmit(handleAwardExperience)} className="space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1">
-                                <Label htmlFor="amount">Experience Points</Label>
-                                <Input
-                                  id="amount"
-                                  type="number"
-                                  min="1"
-                                  {...experienceForm.register("amount", { valueAsNumber: true })}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label htmlFor="reason">Reason</Label>
-                                <Input
-                                  id="reason"
-                                  placeholder="Session participation"
-                                  {...experienceForm.register("reason")}
-                                />
-                              </div>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button
-                                type="submit"
-                                size="sm"
-                                disabled={awardExperienceMutation.isPending}
-                              >
-                                <Save className="h-3 w-3 mr-1" />
-                                Award
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setShowExperienceForm(null);
-                                  experienceForm.reset();
-                                }}
-                              >
-                                <X className="h-3 w-3 mr-1" />
-                                Cancel
-                              </Button>
-                            </div>
-                          </form>
-                        ) : (
-                          /* Action Buttons */
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setShowExperienceForm(character.id)}
-                            >
-                              <Star className="h-3 w-3 mr-1" />
-                              Award XP
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditingCharacter(character.id)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => {
-                                if (confirm(`Are you sure you want to delete ${character.name}?`)) {
-                                  deleteCharacterMutation.mutate(character.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        )}
+                        {/* Action Buttons */}
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingCharacter(character.id)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete ${character.name}?`)) {
+                                deleteCharacterMutation.mutate(character.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
