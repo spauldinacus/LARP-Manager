@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
+import CharacterSheetModal from "./character-sheet-modal";
 import { 
   User, 
   Users, 
@@ -130,6 +131,7 @@ export default function UserCharactersModal({
   if (!userId) return null;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
@@ -344,5 +346,13 @@ export default function UserCharactersModal({
         </ScrollArea>
       </DialogContent>
     </Dialog>
+
+    {/* Character Sheet Modal for editing */}
+    <CharacterSheetModal
+      isOpen={!!editingCharacter}
+      onClose={() => setEditingCharacter(null)}
+      characterId={editingCharacter}
+    />
+  </>
   );
 }
