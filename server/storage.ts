@@ -290,6 +290,15 @@ export class DatabaseStorage implements IStorage {
 
   async createCharacter(insertCharacter: InsertCharacter): Promise<Character> {
     const [character] = await db.insert(characters).values(insertCharacter).returning();
+    
+    // Create initial experience entry for character creation (25 XP)
+    await this.createExperienceEntry({
+      characterId: character.id,
+      amount: 25,
+      reason: "Character creation",
+      awardedBy: insertCharacter.userId, // Character creator awards themselves the initial XP
+    });
+    
     return character;
   }
 
