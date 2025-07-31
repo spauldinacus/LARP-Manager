@@ -110,9 +110,19 @@ export interface IStorage {
   // Dashboard stats
   getStats(): Promise<{
     totalCharacters: number;
+    totalCharactersLastMonth: number;
     activePlayers: number;
+    activePlayersLastWeek: number;
     totalExperience: number;
+    totalExperienceLastMonth: number;
     upcomingEvents: number;
+    nextEvent: { name: string; date: Date; daysUntil: number } | null;
+  }>;
+
+  // Public upcoming events stats for all users
+  getUpcomingEventsStats(): Promise<{
+    count: number;
+    nextEvent: { name: string; date: Date; daysUntil: number } | null;
   }>;
 }
 
@@ -983,6 +993,48 @@ export class DatabaseStorage implements IStorage {
       totalExperienceLastMonth: totalExpLastMonth,
       upcomingEvents: eventCount?.count || 0,
       nextEvent: nextEventInfo,
+    };
+  }
+
+  async getUpcomingEventsStats(): Promise<{
+    count: number;
+    nextEvent: { name: string; date: Date; daysUntil: number } | null;
+  }> {
+    const now = new Date();
+
+    // Upcoming events count
+    const [eventCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(events)
+      .where(and(eq(events.isActive, true), sql`${events.eventDate} >= now()`));
+
+    // Next upcoming event
+    const [nextEvent] = await db
+      .select({
+        name: events.name,
+        eventDate: events.eventDate,
+      })
+      .from(events)
+      .where(and(eq(events.isActive, true), sql`${events.eventDate} >= now()`))
+      .orderBy(events.eventDate)
+      .limit(1);
+
+    let nextEventInfo = null;
+    if (nextEvent) {
+      const eventDate = new Date(nextEvent.eventDate);
+      const timeDiff = eventDate.getTime() - now.getTime();
+      const daysUntil = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      nextEventInfo = {
+        name: nextEvent.name,
+        date: eventDate,
+        daysUntil: Math.max(0, daysUntil)
+      };
+    }
+
+    return {
+      count: eventCount?.count || 0,
+      nextEvent: nextEventInfo
     };
   }
 }

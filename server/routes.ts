@@ -401,6 +401,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Event routes
+  // Public upcoming events endpoint for all users
+  app.get("/api/events/upcoming", requireAuth, async (req, res) => {
+    try {
+      const upcomingEventsStats = await storage.getUpcomingEventsStats();
+      res.json(upcomingEventsStats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get upcoming events" });
+    }
+  });
+
   app.get("/api/events", requireAuth, async (req, res) => {
     try {
       const events = await storage.getAllEvents();
