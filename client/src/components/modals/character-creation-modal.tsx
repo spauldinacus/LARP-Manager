@@ -68,6 +68,8 @@ export default function CharacterCreationModal({
   const [selectedHeritage, setSelectedHeritage] = useState<Heritage | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<SelectedSkill[]>([]);
   const [availableExperience, setAvailableExperience] = useState(25);
+  const [additionalBody, setAdditionalBody] = useState(0);
+  const [additionalStamina, setAdditionalStamina] = useState(0);
 
   const form = useForm<CharacterForm>({
     resolver: zodResolver(characterSchema),
@@ -80,6 +82,29 @@ export default function CharacterCreationModal({
       selectedSkills: [],
     },
   });
+
+  // Helper function to calculate body/stamina cost
+  const getAttributeCost = (currentValue: number, increaseAmount: number): number => {
+    let totalCost = 0;
+    let currentVal = currentValue;
+    
+    for (let i = 0; i < increaseAmount; i++) {
+      if (currentVal < 20) totalCost += 1;
+      else if (currentVal < 40) totalCost += 2;
+      else if (currentVal < 60) totalCost += 3;
+      else if (currentVal < 80) totalCost += 4;
+      else if (currentVal < 100) totalCost += 5;
+      else if (currentVal < 120) totalCost += 6;
+      else if (currentVal < 140) totalCost += 7;
+      else if (currentVal < 160) totalCost += 8;
+      else if (currentVal < 180) totalCost += 9;
+      else totalCost += 10;
+      
+      currentVal++;
+    }
+    
+    return totalCost;
+  };
 
   // Helper functions for skill management
   const getSkillCost = (skill: Skill, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
@@ -158,7 +183,6 @@ export default function CharacterCreationModal({
     };
 
     setSelectedSkills([...selectedSkills, newSkill]);
-    setAvailableExperience(availableExperience - skillData.cost);
     form.setValue("selectedSkills", [...selectedSkills, newSkill].map(s => s.name));
   };
 
@@ -168,9 +192,29 @@ export default function CharacterCreationModal({
 
     const updatedSkills = selectedSkills.filter(s => s.name !== skill);
     setSelectedSkills(updatedSkills);
-    setAvailableExperience(availableExperience + skillToRemove.cost);
     form.setValue("selectedSkills", updatedSkills.map(s => s.name));
   };
+
+  // Calculate used experience including body/stamina costs
+  const usedExperience = selectedSkills.reduce((total, skill) => {
+    const { heritage, culture, archetype } = form.getValues();
+    const { cost } = getSkillCost(skill.skill, heritage, culture, archetype);
+    return total + cost;
+  }, 0);
+
+  // Get base body/stamina from heritage
+  const baseBody = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage.id)?.body || 0 : 0;
+  const baseStamina = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage.id)?.stamina || 0 : 0;
+  
+  // Calculate attribute costs
+  const bodyCost = getAttributeCost(baseBody, additionalBody);
+  const staminaCost = getAttributeCost(baseStamina, additionalStamina);
+  const totalAttributeCost = bodyCost + staminaCost;
+
+  // Update available experience when skills, attributes, or selections change
+  useEffect(() => {
+    setAvailableExperience(25 - usedExperience - totalAttributeCost);
+  }, [usedExperience, totalAttributeCost]);
 
   const createCharacterMutation = useMutation({
     mutationFn: async (data: CharacterForm) => {
@@ -179,8 +223,8 @@ export default function CharacterCreationModal({
 
       const characterData = {
         ...data,
-        body: heritage.body,
-        stamina: heritage.stamina,
+        body: heritage.body + additionalBody,
+        stamina: heritage.stamina + additionalStamina,
         experience: availableExperience, // Remaining experience after skill purchases
         skills: selectedSkills.map(s => s.name), // Add selected skills
       };
@@ -197,6 +241,10 @@ export default function CharacterCreationModal({
       });
       onClose();
       form.reset();
+      setSelectedSkills([]);
+      setAdditionalBody(0);
+      setAdditionalStamina(0);
+      setAvailableExperience(25);
     },
     onError: (error: Error) => {
       toast({
@@ -361,16 +409,22 @@ export default function CharacterCreationModal({
                 <h4 className="font-medium mb-3">Character Statistics</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{selectedHeritageData.body}</p>
+                    <p className="text-2xl font-bold text-primary">{baseBody + additionalBody}</p>
                     <p className="text-sm text-muted-foreground">Body</p>
+                    {additionalBody > 0 && (
+                      <p className="text-xs text-green-600">+{additionalBody}</p>
+                    )}
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-accent">{selectedHeritageData.stamina}</p>
+                    <p className="text-2xl font-bold text-accent">{baseStamina + additionalStamina}</p>
                     <p className="text-sm text-muted-foreground">Stamina</p>
+                    {additionalStamina > 0 && (
+                      <p className="text-xs text-green-600">+{additionalStamina}</p>
+                    )}
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-yellow-500">25</p>
-                    <p className="text-sm text-muted-foreground">Experience</p>
+                    <p className="text-2xl font-bold text-yellow-500">{availableExperience}</p>
+                    <p className="text-sm text-muted-foreground">XP Remaining</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-500">1</p>
@@ -499,7 +553,15 @@ export default function CharacterCreationModal({
                   <p>• Primary Skills: 5 XP (Your heritage secondary skills, culture/archetype primary skills)</p>
                   <p>• Secondary Skills: 10 XP (Culture/archetype secondary skills)</p>
                   <p>• Other Skills: 20 XP (All other skills)</p>
+                  <p>• Body/Stamina: Variable XP (Based on current value - see cost chart below)</p>
                 </div>
+                {(totalAttributeCost > 0) && (
+                  <div className="mt-2 text-sm">
+                    <p className="font-medium">Current Spending:</p>
+                    <p className="text-muted-foreground">Skills: {usedExperience} XP</p>
+                    <p className="text-muted-foreground">Body/Stamina: {totalAttributeCost} XP</p>
+                  </div>
+                )}
               </div>
 
               {/* Selected Skills */}
@@ -567,6 +629,86 @@ export default function CharacterCreationModal({
                       );
                     })}
                   </div>
+                </div>
+              </div>
+
+              {/* Body and Stamina Purchasing */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Increase Body & Stamina</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="body">Body ({baseBody} + {additionalBody} = {baseBody + additionalBody})</Label>
+                      <span className="text-sm text-muted-foreground">{bodyCost} XP</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAdditionalBody(Math.max(0, additionalBody - 1))}
+                        disabled={additionalBody === 0}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-lg font-mono w-12 text-center">{additionalBody}</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const newValue = additionalBody + 1;
+                          const newCost = getAttributeCost(baseBody, newValue);
+                          if (newCost <= availableExperience + totalAttributeCost) {
+                            setAdditionalBody(newValue);
+                          }
+                        }}
+                        disabled={getAttributeCost(baseBody, additionalBody + 1) > availableExperience + totalAttributeCost}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="stamina">Stamina ({baseStamina} + {additionalStamina} = {baseStamina + additionalStamina})</Label>
+                      <span className="text-sm text-muted-foreground">{staminaCost} XP</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAdditionalStamina(Math.max(0, additionalStamina - 1))}
+                        disabled={additionalStamina === 0}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-lg font-mono w-12 text-center">{additionalStamina}</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const newValue = additionalStamina + 1;
+                          const newCost = getAttributeCost(baseStamina, newValue);
+                          if (newCost <= availableExperience + totalAttributeCost) {
+                            setAdditionalStamina(newValue);
+                          }
+                        }}
+                        disabled={getAttributeCost(baseStamina, additionalStamina + 1) > availableExperience + totalAttributeCost}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  <p>Body and Stamina cost according to current value: &lt;20 = 1 XP, 21-40 = 2 XP, 41-60 = 3 XP, etc.</p>
                 </div>
               </div>
             </div>
