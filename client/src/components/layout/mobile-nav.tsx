@@ -11,6 +11,9 @@ import {
   Settings,
   LogOut,
   X,
+  Building2,
+  Shield,
+  TrendingUp,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -34,9 +37,9 @@ const navigationItems = [
     adminOnly: false,
   },
   {
-    href: "/experience",
-    icon: Star,
-    label: "Experience",
+    href: "/progression",
+    icon: TrendingUp,
+    label: "XP Progression",
     adminOnly: false,
   },
   {
@@ -46,9 +49,27 @@ const navigationItems = [
     adminOnly: false,
   },
   {
+    href: "/chapters",
+    icon: Building2,
+    label: "Chapters",
+    adminOnly: true,
+  },
+  {
+    href: "/players",
+    icon: Users,
+    label: "Players",
+    adminOnly: true,
+  },
+  {
     href: "/users",
     icon: UserCog,
     label: "User Management",
+    adminOnly: true,
+  },
+  {
+    href: "/roles",
+    icon: Shield,
+    label: "Role Management",
     adminOnly: true,
   },
   {
