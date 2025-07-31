@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -376,6 +376,12 @@ export default function XPProgressionTracker({
     enabled: !!characterId,
   });
 
+  // Fetch all characters for achievement percentage calculation
+  const { data: allCharacters = [] } = useQuery({
+    queryKey: ["/api/characters"],
+    enabled: !!characterId,
+  });
+
   if (!character) return null;
 
   const totalXpEarned = (character.experience || 0) + (character.totalXpSpent || 0);
@@ -386,16 +392,52 @@ export default function XPProgressionTracker({
     ? ((totalXpEarned - (currentMilestone?.threshold || 0)) / (nextMilestone.threshold - (currentMilestone?.threshold || 0))) * 100
     : 100;
 
+  // Calculate achievement percentages
+  const calculateAchievementPercentage = (achievement: any) => {
+    if (!allCharacters.length) return 0;
+    
+    const achieversCount = allCharacters.filter((char: any) => {
+      if (achievement.id && achievement.id.startsWith('static-')) {
+        // Static achievement - use the check function
+        return achievement.check(char);
+      } else if (achievement.conditionType) {
+        // Custom achievement
+        switch (achievement.conditionType) {
+          case 'xp_spent':
+            return (char.totalXpSpent || 0) >= (achievement.conditionValue || 0);
+          case 'skill_count':
+            return (char.skills?.length || 0) >= (achievement.conditionValue || 0);
+          case 'attribute_value':
+            return (char.body + char.stamina) >= (achievement.conditionValue || 0);
+          case 'manual':
+          default:
+            // For manual achievements, we'd need to check character_achievements table
+            // For now, return false as we don't have that data in allCharacters
+            return false;
+        }
+      } else {
+        // Static achievement without custom ID
+        return achievement.check(char);
+      }
+    }).length;
+    
+    return Math.round((achieversCount / allCharacters.length) * 100);
+  };
+
   // Combine static achievements with custom achievements
   const customAchievementsList = (customAchievements as any[]) || [];
   const allAchievements = [
-    ...ACHIEVEMENTS,
+    ...ACHIEVEMENTS.map(achievement => ({
+      ...achievement,
+      percentage: calculateAchievementPercentage(achievement)
+    })),
     ...customAchievementsList.map((custom: any) => ({
       id: custom.id,
       title: custom.title,
       description: custom.description,
       icon: getIconComponent(custom.iconName || 'trophy'),
       rarity: custom.rarity,
+      percentage: calculateAchievementPercentage(custom),
       check: (char: Character) => {
         // Check based on condition type
         switch (custom.conditionType) {
@@ -567,8 +609,8 @@ export default function XPProgressionTracker({
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm">{achievement.title}</p>
                               <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                              <p className="text-xs text-muted-foreground capitalize">
-                                {achievement.rarity} • {achievement.conditionType === 'manual' ? 'Manual' : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`}
+                              <p className="text-xs text-muted-foreground">
+                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType === 'manual' ? 'Manual' : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`}
                               </p>
                             </div>
                           </div>
@@ -640,6 +682,7 @@ export default function XPProgressionTracker({
                       description={achievement.description}
                       icon={achievement.icon}
                       isUnlocked={true}
+                      percentage={achievement.percentage}
                       rarity={achievement.rarity}
                     />
                   ))}
@@ -665,6 +708,7 @@ export default function XPProgressionTracker({
                         description={achievement.description}
                         icon={achievement.icon}
                         isUnlocked={false}
+                        percentage={achievement.percentage}
                         rarity={achievement.rarity}
                       />
                       {isAdmin && customAchievementsList.find(c => c.id === achievement.id)?.conditionType === 'manual' && (

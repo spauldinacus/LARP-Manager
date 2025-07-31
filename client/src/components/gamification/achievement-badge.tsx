@@ -9,6 +9,7 @@ interface AchievementBadgeProps {
   icon: LucideIcon;
   isUnlocked: boolean;
   rarity?: "common" | "rare" | "epic" | "legendary";
+  percentage?: number;
   className?: string;
 }
 
@@ -45,9 +46,18 @@ export default function AchievementBadge({
   icon: Icon,
   isUnlocked,
   rarity = "common",
+  percentage,
   className,
 }: AchievementBadgeProps) {
   const styles = rarityStyles[rarity];
+  
+  // Determine color based on percentage if provided
+  const getPercentageColor = (pct: number) => {
+    if (pct >= 75) return "text-green-600 dark:text-green-400";
+    if (pct >= 50) return "text-blue-600 dark:text-blue-400";
+    if (pct >= 25) return "text-purple-600 dark:text-purple-400";
+    return "text-yellow-600 dark:text-yellow-400";
+  };
 
   return (
     <Card
@@ -92,7 +102,18 @@ export default function AchievementBadge({
             <p className="text-xs text-muted-foreground mt-1">
               {description}
             </p>
-            {isUnlocked && rarity !== "common" && (
+            {percentage !== undefined ? (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs mt-2",
+                  getPercentageColor(percentage),
+                  "border-gray-300 dark:border-gray-600"
+                )}
+              >
+                {percentage}% achieved
+              </Badge>
+            ) : isUnlocked && rarity !== "common" && (
               <Badge
                 variant="outline"
                 className={cn(
