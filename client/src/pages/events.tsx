@@ -820,7 +820,7 @@ export default function EventsPage() {
                               )}
                             </div>
                           </div>
-                          {(rsvp.xpPurchases > 0 || rsvp.xpCandlePurchases > 0) && (
+                          {(rsvp.xpPurchases > 0 || rsvp.xpCandlePurchases > 0) && (user?.isAdmin || character?.userId === user?.id) && (
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                               <p>
                                 XP Purchases: {rsvp.xpPurchases} | XP Candle Purchases: {rsvp.xpCandlePurchases}

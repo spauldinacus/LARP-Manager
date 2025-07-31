@@ -24,6 +24,10 @@ Preferred communication style: Simple, everyday language.
   - Set secure: false for Replit deployments (no internal HTTPS)
   - Added sameSite: 'lax' for better cookie compatibility
   - Session authentication now works properly in Replit deployment environment
+- **PRIVACY: XP purchase information now private**
+  - XP purchases and XP candle purchases only visible to admins and character owner
+  - Other players can no longer see purchase details in RSVP lists
+  - Maintains privacy while allowing necessary admin oversight
 - **CRITICAL FIX: Admin RSVP XP purchase updates now sync to character sheets**
   - Fixed React Query cache invalidation to refresh character data when admin modifies RSVP XP purchases
   - Experience entries and character totals now update immediately across all UI components
