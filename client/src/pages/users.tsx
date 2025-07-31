@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame, Search, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame, Search, ArrowUpDown, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -138,6 +138,28 @@ export default function UsersPage() {
       toast({
         title: "Update failed",
         description: error.message || "Failed to update player number",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "User deleted",
+        description: "User and all their characters have been successfully deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     },
@@ -396,6 +418,23 @@ export default function UsersPage() {
                             <Flame className="h-4 w-4 mr-2" />
                             Manage Candles
                           </Button>
+                          
+                          {userData.id !== user.id && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                const username = userData.playerName || userData.username;
+                                if (confirm(`Are you sure you want to delete user "${username}" and all their characters? This action cannot be undone.`)) {
+                                  deleteUserMutation.mutate(userData.id);
+                                }
+                              }}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete User
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>

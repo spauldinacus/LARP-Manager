@@ -42,6 +42,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
 
   // Character methods
@@ -175,6 +176,25 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, updateData: Partial<User>): Promise<User> {
     const [user] = await db.update(users).set(updateData).where(eq(users.id, id)).returning();
     return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    // Get all characters owned by this user
+    const userCharacters = await db
+      .select({ id: characters.id })
+      .from(characters)
+      .where(eq(characters.userId, id));
+
+    // Delete each character and its related data
+    for (const character of userCharacters) {
+      await this.deleteCharacter(character.id);
+    }
+
+    // Delete candle transactions
+    await db.delete(candleTransactions).where(eq(candleTransactions.userId, id));
+
+    // Finally delete the user
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async getAllUsers(): Promise<any[]> {
