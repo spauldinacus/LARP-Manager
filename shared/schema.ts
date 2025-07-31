@@ -158,6 +158,19 @@ export const staticMilestoneOverrides = pgTable("static_milestone_overrides", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+// Static achievement overrides table
+export const staticAchievementOverrides = pgTable("static_achievement_overrides", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  achievementIndex: integer("achievement_index").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  iconName: text("icon_name").notNull(),
+  rarity: text("rarity").notNull(),
+  conditionType: text("condition_type").notNull(),
+  conditionValue: integer("condition_value"),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 // Custom achievements table
 export const customAchievements = pgTable("custom_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),

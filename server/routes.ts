@@ -1298,6 +1298,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Static achievement editing
+  app.put("/api/admin/static-achievements/:index", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const index = parseInt(req.params.index);
+      const achievementData = z.object({
+        title: z.string(),
+        description: z.string(),
+        iconName: z.string(),
+        rarity: z.string(),
+        conditionType: z.string(),
+        conditionValue: z.number().optional(),
+      }).parse(req.body);
+
+      await storage.updateStaticAchievement(index, achievementData);
+      res.json({ message: "Static achievement updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update static achievement" });
+    }
+  });
+
   // Character achievements API
   app.get("/api/characters/:id/achievements", requireAuth, async (req, res) => {
     try {

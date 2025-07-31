@@ -100,11 +100,21 @@ export default function AchievementManagementModal({
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/admin/achievements/${achievement!.id}`, data);
-      return response.json();
+      // Handle static achievement updates differently
+      if ((achievement as any)?.isStatic) {
+        const response = await apiRequest("PUT", `/api/admin/static-achievements/${(achievement as any).staticIndex}`, data);
+        return response.json();
+      } else {
+        const response = await apiRequest("PUT", `/api/admin/achievements/${achievement!.id}`, data);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      if ((achievement as any)?.isStatic) {
+        // Force a reload of the page to refresh static achievements
+        window.location.reload();
+      }
       toast({
         title: "Achievement updated",
         description: "Achievement has been updated successfully.",

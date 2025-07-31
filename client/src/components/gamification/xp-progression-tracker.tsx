@@ -340,6 +340,24 @@ export default function XPProgressionTracker({
     setShowMilestoneModal(true);
   };
 
+  const handleEditStaticAchievement = (achievement: any, index: number) => {
+    // Convert static achievement to editable format
+    const editableAchievement = {
+      id: `static-${index}`,
+      title: achievement.title,
+      description: achievement.description,
+      iconName: achievement.icon.name || 'trophy',
+      rarity: achievement.rarity,
+      conditionType: achievement.conditionType || 'manual',
+      conditionValue: achievement.conditionValue,
+      isStatic: true,
+      staticIndex: index
+    };
+    setSelectedAchievement(editableAchievement);
+    setModalMode("edit");
+    setShowAchievementModal(true);
+  };
+
   // Fetch character experience history
   const { data: experienceHistory = [] } = useQuery({
     queryKey: ["/api/characters", characterId, "experience"],
@@ -530,9 +548,43 @@ export default function XPProgressionTracker({
                   </div>
                 </CardTitle>
                 <CardDescription>
-                  Manage custom achievements. Database achievements will appear below static ones.
+                  Edit any achievement including static ones. Changes to static achievements are saved to the database.
                 </CardDescription>
               </CardHeader>
+
+              {/* Static Achievements - Editable */}
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-2">Static Achievements (Editable)</h4>
+                    <div className="space-y-2">
+                      {ACHIEVEMENTS.map((achievement, index) => (
+                        <div key={`static-${index}`} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-full ${achievement.rarity === 'common' ? 'bg-gray-100' : achievement.rarity === 'rare' ? 'bg-blue-100' : achievement.rarity === 'epic' ? 'bg-purple-100' : 'bg-yellow-100'}`}>
+                              {React.createElement(LucideIcons[achievement.icon as keyof typeof LucideIcons] || Trophy, { className: "h-4 w-4" })}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{achievement.title}</p>
+                              <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                              <p className="text-xs text-muted-foreground capitalize">
+                                {achievement.rarity} • {achievement.conditionType === 'manual' ? 'Manual' : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditStaticAchievement(achievement, index)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
               {(adminAchievements as any[])?.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">

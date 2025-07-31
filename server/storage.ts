@@ -43,8 +43,11 @@ import {
   type CharacterAchievement,
   type InsertCharacterAchievement,
   staticMilestoneOverrides,
+  staticAchievementOverrides,
   type StaticMilestoneOverride,
   type InsertStaticMilestoneOverride,
+  type StaticAchievementOverride,
+  type InsertStaticAchievementOverride,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -1262,6 +1265,28 @@ export class DatabaseStorage implements IStorage {
 
   async getStaticMilestoneOverrides(): Promise<StaticMilestoneOverride[]> {
     return await db.select().from(staticMilestoneOverrides);
+  }
+
+  // Static achievement overrides
+  async updateStaticAchievement(index: number, data: { title: string, description: string, iconName: string, rarity: string, conditionType: string, conditionValue?: number }): Promise<void> {
+    await db
+      .insert(staticAchievementOverrides)
+      .values({ 
+        achievementIndex: index,
+        ...data,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: staticAchievementOverrides.achievementIndex,
+        set: { 
+          ...data,
+          updatedAt: new Date()
+        }
+      });
+  }
+
+  async getStaticAchievementOverrides(): Promise<StaticAchievementOverride[]> {
+    return await db.select().from(staticAchievementOverrides);
   }
 }
 
