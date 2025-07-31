@@ -892,6 +892,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Check if RSVP already exists
+      const existingRsvp = await storage.getEventRsvp(req.params.eventId, rsvpData.characterId);
+      if (existingRsvp) {
+        return res.status(400).json({ message: "Character has already RSVPed to this event" });
+      }
+
       // Check if user has enough candles for XP candle purchases
       if (rsvpData.xpCandlePurchases > 0) {
         const user = await storage.getUser(req.session.userId!);
