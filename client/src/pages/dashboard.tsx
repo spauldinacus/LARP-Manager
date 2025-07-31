@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
-import { Users, UserCheck, Star, Calendar, Menu, Bell, UserPlus, Plus, Flame } from "lucide-react";
+import { Users, UserCheck, Star, Calendar, Menu, UserPlus, Plus, Flame } from "lucide-react";
 import { useState } from "react";
 
 export default function DashboardPage() {
@@ -115,11 +115,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full"></span>
-            </Button>
-
             {isMobile && (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
