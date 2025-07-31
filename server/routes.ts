@@ -4,7 +4,7 @@ import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { storage } from "./storage";
-import { insertChapterSchema, insertUserSchema, insertCharacterSchema, insertEventSchema, insertExperienceEntrySchema } from "@shared/schema";
+import { insertChapterSchema, insertUserSchema, insertCharacterSchema, insertEventSchema, insertEventRsvpSchema, insertExperienceEntrySchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 
@@ -569,6 +569,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Player number generation error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to generate player number" });
+    }
+  });
+
+  // Event RSVP routes
+  app.get("/api/events/:eventId/rsvps", requireAuth, async (req, res) => {
+    try {
+      const rsvps = await storage.getEventRsvps(req.params.eventId);
+      res.json(rsvps);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get event RSVPs" });
+    }
+  });
+
+  app.get("/api/characters/:characterId/rsvps", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.characterId);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const rsvps = await storage.getCharacterRsvps(req.params.characterId);
+      res.json(rsvps);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get character RSVPs" });
+    }
+  });
+
+  app.post("/api/events/:eventId/rsvp", requireAuth, async (req, res) => {
+    try {
+      const rsvpData = insertEventRsvpSchema.parse(req.body);
+      
+      // Validate XP purchases limits
+      if (rsvpData.xpPurchases > 2 || rsvpData.xpCandlePurchases > 2) {
+        return res.status(400).json({ message: "Maximum 2 XP purchases and 2 XP candle purchases allowed" });
+      }
+
+      // Check if character belongs to user (unless admin)
+      const character = await storage.getCharacter(rsvpData.characterId);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const rsvp = await storage.createEventRsvp({
+        ...rsvpData,
+        eventId: req.params.eventId,
+        userId: req.session.userId!,
+      });
+
+      res.json(rsvp);
+    } catch (error) {
+      console.error("RSVP creation error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create RSVP" });
+    }
+  });
+
+  app.patch("/api/rsvps/:id", requireAuth, async (req, res) => {
+    try {
+      const updateData = insertEventRsvpSchema.partial().parse(req.body);
+      
+      // Validate XP purchases limits
+      if (updateData.xpPurchases && updateData.xpPurchases > 2) {
+        return res.status(400).json({ message: "Maximum 2 XP purchases allowed" });
+      }
+      if (updateData.xpCandlePurchases && updateData.xpCandlePurchases > 2) {
+        return res.status(400).json({ message: "Maximum 2 XP candle purchases allowed" });
+      }
+
+      const rsvp = await storage.updateEventRsvp(req.params.id, updateData);
+      res.json(rsvp);
+    } catch (error) {
+      console.error("RSVP update error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update RSVP" });
+    }
+  });
+
+  app.post("/api/rsvps/:id/attendance", requireAdmin, async (req, res) => {
+    try {
+      const { attended } = req.body;
+      const rsvp = await storage.markAttendance(req.params.id, attended);
+      res.json(rsvp);
+    } catch (error) {
+      console.error("Attendance marking error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to mark attendance" });
     }
   });
 

@@ -3,6 +3,7 @@ import {
   users,
   characters,
   events,
+  eventRsvps,
   experienceEntries,
   systemSettings,
   type Chapter,
@@ -13,6 +14,8 @@ import {
   type InsertCharacter,
   type Event,
   type InsertEvent,
+  type EventRsvp,
+  type InsertEventRsvp,
   type ExperienceEntry,
   type InsertExperienceEntry,
   type SystemSetting,
@@ -52,10 +55,19 @@ export interface IStorage {
   updateEvent(id: string, event: Partial<Event>): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
 
+  // Event RSVP methods
+  getEventRsvp(eventId: string, characterId: string): Promise<EventRsvp | undefined>;
+  createEventRsvp(rsvp: InsertEventRsvp): Promise<EventRsvp>;
+  updateEventRsvp(id: string, rsvp: Partial<EventRsvp>): Promise<EventRsvp>;
+  getEventRsvps(eventId: string): Promise<EventRsvp[]>;
+  getCharacterRsvps(characterId: string): Promise<EventRsvp[]>;
+  markAttendance(rsvpId: string, attended: boolean): Promise<EventRsvp>;
+
   // Experience methods
   getExperienceByCharacterId(characterId: string): Promise<ExperienceEntry[]>;
   createExperienceEntry(entry: InsertExperienceEntry): Promise<ExperienceEntry>;
   getTotalExperienceByCharacter(characterId: string): Promise<number>;
+  calculateTotalXpSpent(characterId: string): Promise<number>;
 
   // Dashboard stats
   getStats(): Promise<{
@@ -189,6 +201,16 @@ export class DatabaseStorage implements IStorage {
       .set({ ...character, updatedAt: new Date() })
       .where(eq(characters.id, id))
       .returning();
+    
+    // If skills, body, or stamina changed, recalculate total XP spent
+    if ('skills' in character || 'body' in character || 'stamina' in character) {
+      const totalSpent = await this.calculateTotalXpSpent(id);
+      await db
+        .update(characters)
+        .set({ totalXpSpent: totalSpent, updatedAt: new Date() })
+        .where(eq(characters.id, id));
+    }
+    
     return updated;
   }
 
@@ -236,11 +258,10 @@ export class DatabaseStorage implements IStorage {
   async createExperienceEntry(insertEntry: InsertExperienceEntry): Promise<ExperienceEntry> {
     const [entry] = await db.insert(experienceEntries).values(insertEntry).returning();
     
-    // Update character's total experience
+    // Update character's total experience (but no level)
     const totalExp = await this.getTotalExperienceByCharacter(insertEntry.characterId);
     await this.updateCharacter(insertEntry.characterId, { 
-      experience: totalExp,
-      level: Math.floor(totalExp / 10) + 1 // Simple leveling formula
+      experience: totalExp
     });
     
     return entry;
@@ -253,6 +274,98 @@ export class DatabaseStorage implements IStorage {
       .where(eq(experienceEntries.characterId, characterId));
     
     return Number(result[0]?.total) || 0;
+  }
+
+  async calculateTotalXpSpent(characterId: string): Promise<number> {
+    const character = await this.getCharacter(characterId);
+    if (!character) return 0;
+
+    let totalSpent = 0;
+
+    // Calculate XP spent on skills (based on skill costs from constants)
+    if (character.skills && character.skills.length > 0) {
+      for (const skill of character.skills) {
+        // This would need to reference the skill costs from your constants
+        // For now, assume primary skills cost 5, secondary 10, others 20
+        totalSpent += 10; // Average cost estimate
+      }
+    }
+
+    // Calculate XP spent on body increases (heritage base + increases)
+    // This would need heritage base values from constants
+    const bodyIncreases = Math.max(0, character.body - 10); // Assuming 10 is average base
+    totalSpent += bodyIncreases * 1; // 1 XP per body point
+
+    // Calculate XP spent on stamina increases
+    const staminaIncreases = Math.max(0, character.stamina - 10); // Assuming 10 is average base
+    totalSpent += staminaIncreases * 1; // 1 XP per stamina point
+
+    return totalSpent;
+  }
+
+  // Event RSVP methods
+  async getEventRsvp(eventId: string, characterId: string): Promise<EventRsvp | undefined> {
+    const [rsvp] = await db
+      .select()
+      .from(eventRsvps)
+      .where(and(eq(eventRsvps.eventId, eventId), eq(eventRsvps.characterId, characterId)));
+    return rsvp || undefined;
+  }
+
+  async createEventRsvp(insertRsvp: InsertEventRsvp): Promise<EventRsvp> {
+    const [rsvp] = await db.insert(eventRsvps).values(insertRsvp).returning();
+    return rsvp;
+  }
+
+  async updateEventRsvp(id: string, rsvp: Partial<EventRsvp>): Promise<EventRsvp> {
+    const [updated] = await db
+      .update(eventRsvps)
+      .set({ ...rsvp, updatedAt: new Date() })
+      .where(eq(eventRsvps.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getEventRsvps(eventId: string): Promise<EventRsvp[]> {
+    return await db
+      .select()
+      .from(eventRsvps)
+      .where(eq(eventRsvps.eventId, eventId))
+      .orderBy(desc(eventRsvps.createdAt));
+  }
+
+  async getCharacterRsvps(characterId: string): Promise<EventRsvp[]> {
+    return await db
+      .select()
+      .from(eventRsvps)
+      .where(eq(eventRsvps.characterId, characterId))
+      .orderBy(desc(eventRsvps.createdAt));
+  }
+
+  async markAttendance(rsvpId: string, attended: boolean): Promise<EventRsvp> {
+    const [rsvp] = await db
+      .update(eventRsvps)
+      .set({ attended, updatedAt: new Date() })
+      .where(eq(eventRsvps.id, rsvpId))
+      .returning();
+
+    // Award XP based on attendance and purchases
+    if (attended && rsvp) {
+      const baseXp = 3; // Base XP for attending event
+      const purchasedXp = (rsvp.xpPurchases * 1) + (rsvp.xpCandlePurchases * 1); // 1 XP per purchase
+      const totalXp = baseXp + purchasedXp;
+
+      await this.createExperienceEntry({
+        characterId: rsvp.characterId,
+        amount: totalXp,
+        reason: `Event attendance with ${rsvp.xpPurchases} XP purchases and ${rsvp.xpCandlePurchases} XP candle purchases`,
+        eventId: rsvp.eventId,
+        rsvpId: rsvp.id,
+        awardedBy: rsvp.userId,
+      });
+    }
+
+    return rsvp;
   }
 
   // Dashboard stats

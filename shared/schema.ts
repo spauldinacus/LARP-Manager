@@ -35,7 +35,7 @@ export const characters = pgTable("characters", {
   body: integer("body").notNull(),
   stamina: integer("stamina").notNull(),
   experience: integer("experience").default(0).notNull(),
-  level: integer("level").default(1).notNull(),
+  totalXpSpent: integer("total_xp_spent").default(0).notNull(),
   skills: text("skills").array().default(sql`'{}'`).notNull(),
   userId: uuid("user_id").references(() => users.id).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -58,12 +58,26 @@ export const events = pgTable("events", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+// Event RSVP system for XP purchases
+export const eventRsvps = pgTable("event_rsvps", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: uuid("event_id").references(() => events.id).notNull(),
+  characterId: uuid("character_id").references(() => characters.id).notNull(),
+  xpPurchases: integer("xp_purchases").default(0).notNull(), // max 2
+  xpCandlePurchases: integer("xp_candle_purchases").default(0).notNull(), // max 2
+  attended: boolean("attended").default(false).notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 export const experienceEntries = pgTable("experience_entries", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   characterId: uuid("character_id").references(() => characters.id).notNull(),
   amount: integer("amount").notNull(),
   reason: text("reason").notNull(),
   eventId: uuid("event_id").references(() => events.id),
+  rsvpId: uuid("rsvp_id").references(() => eventRsvps.id), // link to RSVP for attendance tracking
   awardedBy: uuid("awarded_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
@@ -101,6 +115,7 @@ export const charactersRelations = relations(characters, ({ one, many }) => ({
     references: [users.id],
   }),
   experienceEntries: many(experienceEntries),
+  rsvps: many(eventRsvps),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -109,6 +124,22 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     references: [users.id],
   }),
   experienceEntries: many(experienceEntries),
+  rsvps: many(eventRsvps),
+}));
+
+export const eventRsvpsRelations = relations(eventRsvps, ({ one }) => ({
+  event: one(events, {
+    fields: [eventRsvps.eventId],
+    references: [events.id],
+  }),
+  character: one(characters, {
+    fields: [eventRsvps.characterId],
+    references: [characters.id],
+  }),
+  user: one(users, {
+    fields: [eventRsvps.userId],
+    references: [users.id],
+  }),
 }));
 
 export const experienceEntriesRelations = relations(experienceEntries, ({ one }) => ({
@@ -119,6 +150,10 @@ export const experienceEntriesRelations = relations(experienceEntries, ({ one })
   event: one(events, {
     fields: [experienceEntries.eventId],
     references: [events.id],
+  }),
+  rsvp: one(eventRsvps, {
+    fields: [experienceEntries.rsvpId],
+    references: [eventRsvps.id],
   }),
   awardedBy: one(users, {
     fields: [experienceEntries.awardedBy],
@@ -150,6 +185,12 @@ export const insertEventSchema = createInsertSchema(events).omit({
   createdAt: true,
 });
 
+export const insertEventRsvpSchema = createInsertSchema(eventRsvps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertExperienceEntrySchema = createInsertSchema(experienceEntries).omit({
   id: true,
   createdAt: true,
@@ -169,6 +210,8 @@ export type Character = typeof characters.$inferSelect;
 export type InsertCharacter = z.infer<typeof insertCharacterSchema>;
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type EventRsvp = typeof eventRsvps.$inferSelect;
+export type InsertEventRsvp = z.infer<typeof insertEventRsvpSchema>;
 export type ExperienceEntry = typeof experienceEntries.$inferSelect;
 export type InsertExperienceEntry = z.infer<typeof insertExperienceEntrySchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;

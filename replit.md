@@ -11,18 +11,29 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 31, 2025
-- Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
-- Corrected heritage body/stamina values: Ar-Nura (8/12), Human (10/10), Stoneborn (15/5), Ughol (12/8), Rystarri (12/8)
-- Implemented heritage-specific culture restrictions as per rulebook
-- Added official heritage benefits, weaknesses, and costume requirements from rulebook
-- Added comprehensive skill selection system during character creation:
-  - Primary skills (5 XP): Heritage secondary skills, culture/archetype primary skills
-  - Secondary skills (10 XP): Culture/archetype secondary skills
-  - Other skills (20 XP): All remaining skills
-  - Interactive skill browser with cost calculation and experience tracking
-- Set starting experience to 25 XP for all new characters with skill purchase system
-- Enhanced admin functionality with user character management modal
-- Added skills array field to character database schema
+- **MAJOR UPDATE: Removed character levels system and implemented total XP spent tracking**
+  - Removed level field from character database schema
+  - Added totalXpSpent field to track cumulative experience point expenditure
+  - Updated character sheets to display "XP Spent" instead of "Level"
+  - Implemented automatic XP spent calculation based on skill purchases and attribute increases
+- **NEW: Event RSVP system with XP purchase options**
+  - Created event_rsvps table with XP purchase tracking
+  - Added RSVP functionality with limits: max 2 XP purchases, max 2 XP candle purchases
+  - Implemented automatic XP awarding based on event attendance (3 base XP + purchased XP)
+  - Created comprehensive RSVP management API endpoints
+  - Built event RSVP UI with character selection and XP purchase options
+- **Enhanced chapter management system**
+  - Added complete chapter management with database schema and API endpoints
+  - Implemented player number generation system (format: FL07310001)
+  - Created admin chapter management interface with create, edit, deactivate functions
+  - Integrated chapters into navigation sidebar
+- **Previous updates:**
+  - Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
+  - Corrected heritage body/stamina values: Ar-Nura (8/12), Human (10/10), Stoneborn (15/5), Ughol (12/8), Rystarri (12/8)
+  - Implemented heritage-specific culture restrictions as per rulebook
+  - Added official heritage benefits, weaknesses, and costume requirements from rulebook
+  - Set starting experience to 25 XP for all new characters with skill purchase system
+  - Enhanced admin functionality with user character management modal
 
 ## System Architecture
 
@@ -45,10 +56,12 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Design
 The application uses PostgreSQL with Drizzle ORM and includes these main entities:
-- **users**: User profiles with admin flags and authentication data
-- **characters**: Player characters with heritage, culture, archetype, and game statistics
-- **experienceEntries**: Experience point tracking with reasons and event associations
-- **events**: LARP events that can award experience to characters
+- **users**: User profiles with admin flags, authentication data, and chapter associations
+- **chapters**: LARP chapters with player number generation capabilities
+- **characters**: Player characters with heritage, culture, archetype, game statistics, and total XP spent tracking
+- **events**: LARP events with RSVP functionality and attendance tracking
+- **eventRsvps**: Event RSVP system with XP purchase tracking (max 2 XP, max 2 XP candles)
+- **experienceEntries**: Experience point tracking with reasons, event associations, and RSVP links
 - **systemSettings**: Application configuration storage
 
 ## Key Components
@@ -65,11 +78,14 @@ The application uses PostgreSQL with Drizzle ORM and includes these main entitie
 - **Character Sheets**: Detailed character views with experience history
 - **Status Management**: Active/inactive character states
 
-### Experience Tracking
-- **XP Awards**: Bulk experience assignment to multiple characters
-- **Event Integration**: Link experience awards to specific LARP events
-- **Audit Trail**: Complete history of experience awards with reasons
-- **Admin Controls**: Admin-only experience management features
+### Experience Tracking & Event RSVP System
+- **XP Spent Tracking**: Real-time calculation of total experience points spent on skills and attributes
+- **Event RSVP**: Players can RSVP to events with their characters and purchase additional XP
+- **XP Purchase Limits**: Maximum 2 XP purchases and 2 XP candle purchases per event
+- **Automatic XP Awards**: Base 3 XP for event attendance plus purchased XP automatically awarded
+- **Event Integration**: Complete RSVP and attendance tracking linked to experience awards
+- **Audit Trail**: Complete history of experience awards with reasons and RSVP associations
+- **Admin Controls**: Admin-only experience management and attendance marking features
 
 ### UI/UX Design
 - **Design System**: Comprehensive shadcn/ui component library

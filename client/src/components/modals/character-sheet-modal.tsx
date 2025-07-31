@@ -320,8 +320,8 @@ export default function CharacterSheetModal({
                           <p className="text-sm text-muted-foreground">Experience</p>
                         </div>
                         <div className="text-center p-4 bg-green-500/10 rounded-lg">
-                          <p className="text-3xl font-bold text-green-600">{(character as any).level}</p>
-                          <p className="text-sm text-muted-foreground">Level</p>
+                          <p className="text-3xl font-bold text-green-600">{(character as any).totalXpSpent || 0}</p>
+                          <p className="text-sm text-muted-foreground">XP Spent</p>
                         </div>
                       </div>
                     </CardContent>
