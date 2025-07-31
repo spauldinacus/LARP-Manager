@@ -36,6 +36,7 @@ import { toast } from "@/hooks/use-toast";
 interface Player {
   id: string;
   username: string;
+  playerName: string;
   email: string;
   playerNumber: string;
   chapterId: string;
@@ -213,7 +214,10 @@ export default function PlayersPage() {
                   <Card key={player.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
-                        <span>{player.username}</span>
+                        <div>
+                          <span>{player.playerName}</span>
+                          <p className="text-sm text-muted-foreground font-normal">@{player.username}</p>
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
@@ -412,7 +416,7 @@ export default function PlayersPage() {
       {/* Character Sheet Modal */}
       {selectedCharacter && (
         <CharacterSheetModal
-          character={selectedCharacter}
+          characterId={selectedCharacter.id}
           isOpen={isCharacterSheetOpen}
           onClose={() => {
             setIsCharacterSheetOpen(false);
