@@ -101,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
 
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
 
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
     }
@@ -851,6 +851,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Attendance marking error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to mark attendance" });
+    }
+  });
+
+  // User profile routes
+  app.patch("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const { playerName } = req.body;
+      
+      if (!playerName || !playerName.trim()) {
+        return res.status(400).json({ message: "Player name is required" });
+      }
+
+      const updatedUser = await storage.updateUser(req.session.userId!, { 
+        playerName: playerName.trim() 
+      });
+
+      res.json({ 
+        user: { 
+          id: updatedUser.id, 
+          username: updatedUser.username, 
+          playerName: updatedUser.playerName,
+          email: updatedUser.email, 
+          isAdmin: updatedUser.isAdmin 
+        } 
+      });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update profile" });
     }
   });
 

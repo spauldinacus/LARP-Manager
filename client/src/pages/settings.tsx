@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Settings, Menu, User, Shield, Bell, Database } from "lucide-react";
+import { Settings, Menu, User, Shield, Bell, Database, Edit2, Save, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -10,11 +10,51 @@ import { Separator } from "@/components/ui/separator";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import { useAuth } from "@/hooks/use-auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [editingPlayerName, setEditingPlayerName] = useState(false);
+  const [playerName, setPlayerName] = useState(user?.playerName || "");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const updatePlayerNameMutation = useMutation({
+    mutationFn: async (newPlayerName: string) => {
+      const response = await apiRequest("PATCH", "/api/user/profile", { playerName: newPlayerName });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      setEditingPlayerName(false);
+      toast({
+        title: "Player name updated",
+        description: "Your player name has been successfully updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update player name",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSavePlayerName = () => {
+    if (playerName.trim()) {
+      updatePlayerNameMutation.mutate(playerName.trim());
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setPlayerName(user?.playerName || "");
+    setEditingPlayerName(false);
+  };
 
   if (!user) {
     return (
@@ -95,6 +135,47 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="playerName">Player Name</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input 
+                      id="playerName" 
+                      value={playerName}
+                      onChange={(e) => setPlayerName(e.target.value)}
+                      disabled={!editingPlayerName}
+                      className={!editingPlayerName ? "bg-muted" : ""}
+                      placeholder="Enter your real name"
+                    />
+                    {editingPlayerName ? (
+                      <div className="flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleSavePlayerName}
+                          disabled={updatePlayerNameMutation.isPending}
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancelEdit}
+                          disabled={updatePlayerNameMutation.isPending}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingPlayerName(true)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <Input 
                     id="role" 
@@ -104,7 +185,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Contact an administrator to change your profile information.
+                  You can edit your player name above. Contact an administrator to change other profile information.
                 </p>
               </CardContent>
             </Card>

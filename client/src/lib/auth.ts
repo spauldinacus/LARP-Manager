@@ -3,6 +3,7 @@ import { apiRequest } from "./queryClient";
 export interface AuthUser {
   id: string;
   username: string;
+  playerName?: string;
   email: string;
   isAdmin: boolean;
 }
