@@ -1279,6 +1279,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Character achievements API
+  app.get("/api/characters/:id/achievements", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const achievements = await storage.getCharacterAchievements(id);
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch character achievements" });
+    }
+  });
+
+  app.post("/api/characters/:id/achievements/:achievementId", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id: characterId, achievementId } = req.params;
+      const achievement = await storage.unlockAchievement(characterId, achievementId);
+      res.json(achievement);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to unlock achievement" });
+    }
+  });
+
   // Achievement Settings API
   app.get("/api/admin/achievement-settings", requireAuth, requireAdmin, async (req, res) => {
     try {

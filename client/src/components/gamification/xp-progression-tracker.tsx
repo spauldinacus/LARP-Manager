@@ -32,8 +32,27 @@ import {
   Wand2,
   Edit,
   Trash2,
-  Plus
+  Plus,
+  Gem
 } from "lucide-react";
+
+// Helper function to get icon component by name
+const getIconComponent = (iconName: string) => {
+  const iconMap: { [key: string]: any } = {
+    trophy: Trophy,
+    star: Star,
+    crown: Crown,
+    shield: Shield,
+    sword: Sword,
+    gem: Gem,
+    fire: Flame,
+    heart: Heart,
+    lightning: Zap,
+    target: Target,
+    book: BookOpen,
+  };
+  return iconMap[iconName] || Trophy;
+};
 
 interface Character {
   id: string;
@@ -267,6 +286,32 @@ export default function XPProgressionTracker({
     setShowMilestoneModal(true);
   };
 
+  // Manual achievement unlock mutation
+  const unlockAchievementMutation = useMutation({
+    mutationFn: async (achievementId: string) => {
+      const response = await apiRequest("POST", `/api/characters/${characterId}/achievements/${achievementId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/characters', characterId, 'achievements'] });
+      toast({
+        title: "Achievement unlocked",
+        description: "Manual achievement has been unlocked for this character.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to unlock achievement",
+        description: error.message || "Unable to unlock achievement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const unlockManualAchievement = (achievementId: string) => {
+    unlockAchievementMutation.mutate(achievementId);
+  };
+
   // Fetch character experience history
   const { data: experienceHistory = [] } = useQuery({
     queryKey: ["/api/characters", characterId, "experience"],
@@ -276,6 +321,12 @@ export default function XPProgressionTracker({
   // Fetch event attendance data
   const { data: attendanceData } = useQuery({
     queryKey: ["/api/characters", characterId, "attendance-xp"],
+    enabled: !!characterId,
+  });
+
+  // Fetch character achievements
+  const { data: characterAchievements } = useQuery({
+    queryKey: ["/api/characters", characterId, "achievements"],
     enabled: !!characterId,
   });
 
@@ -289,8 +340,36 @@ export default function XPProgressionTracker({
     ? ((totalXpEarned - (currentMilestone?.threshold || 0)) / (nextMilestone.threshold - (currentMilestone?.threshold || 0))) * 100
     : 100;
 
-  const unlockedAchievements = ACHIEVEMENTS.filter(achievement => achievement.check(character));
-  const lockedAchievements = ACHIEVEMENTS.filter(achievement => !achievement.check(character));
+  // Combine static achievements with custom achievements
+  const customAchievementsList = (customAchievements as any[]) || [];
+  const allAchievements = [
+    ...ACHIEVEMENTS,
+    ...customAchievementsList.map((custom: any) => ({
+      id: custom.id,
+      title: custom.title,
+      description: custom.description,
+      icon: getIconComponent(custom.iconName || 'trophy'),
+      rarity: custom.rarity,
+      check: (char: Character) => {
+        // Check based on condition type
+        switch (custom.conditionType) {
+          case 'xp_spent':
+            return (char.totalXpSpent || 0) >= (custom.conditionValue || 0);
+          case 'skill_count':
+            return (char.skills?.length || 0) >= (custom.conditionValue || 0);
+          case 'attribute_value':
+            return (char.body + char.stamina) >= (custom.conditionValue || 0);
+          case 'manual':
+          default:
+            // For manual achievements, check if character has unlocked it
+            return characterAchievements?.some((ca: any) => ca.achievementId === custom.id) || false;
+        }
+      }
+    }))
+  ];
+
+  const unlockedAchievements = allAchievements.filter(achievement => achievement.check(character));
+  const lockedAchievements = allAchievements.filter(achievement => !achievement.check(character));
 
   return (
     <div className="space-y-6">
@@ -469,6 +548,9 @@ export default function XPProgressionTracker({
                 <h3 className="text-lg font-semibold mb-3 flex items-center space-x-2">
                   <Trophy className="h-5 w-5 text-yellow-600" />
                   <span>Unlocked Achievements ({unlockedAchievements.length})</span>
+                  {isAdmin && unlockedAchievements.some(a => customAchievementsList.find(c => c.id === a.id)) && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Includes Custom</span>
+                  )}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {unlockedAchievements.map((achievement) => (
@@ -491,17 +573,30 @@ export default function XPProgressionTracker({
                 <h3 className="text-lg font-semibold mb-3 flex items-center space-x-2">
                   <Target className="h-5 w-5 text-muted-foreground" />
                   <span>Available Achievements ({lockedAchievements.length})</span>
+                  {isAdmin && lockedAchievements.some(a => customAchievementsList.find(c => c.id === a.id)) && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Includes Custom</span>
+                  )}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {lockedAchievements.map((achievement) => (
-                    <AchievementBadge
-                      key={achievement.id}
-                      title={achievement.title}
-                      description={achievement.description}
-                      icon={achievement.icon}
-                      isUnlocked={false}
-                      rarity={achievement.rarity}
-                    />
+                    <div key={achievement.id} className="relative">
+                      <AchievementBadge
+                        title={achievement.title}
+                        description={achievement.description}
+                        icon={achievement.icon}
+                        isUnlocked={false}
+                        rarity={achievement.rarity}
+                      />
+                      {isAdmin && customAchievementsList.find(c => c.id === achievement.id)?.conditionType === 'manual' && (
+                        <Button
+                          size="sm"
+                          className="absolute top-2 right-2 h-6 w-6 p-0"
+                          onClick={() => unlockManualAchievement(achievement.id)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
