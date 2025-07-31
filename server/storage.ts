@@ -44,6 +44,7 @@ export interface IStorage {
   updateUser(id: string, user: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
+  updateUserRole(id: string, role: string): Promise<User>;
 
   // Character methods
   getCharacter(id: string): Promise<Character | undefined>;
@@ -218,6 +219,15 @@ export class DatabaseStorage implements IStorage {
     );
     
     return usersWithCharacterCounts;
+  }
+
+  async updateUserRole(id: string, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async getAllPlayersWithCharacters(): Promise<any[]> {

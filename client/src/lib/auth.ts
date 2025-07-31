@@ -5,7 +5,11 @@ export interface AuthUser {
   username: string;
   playerName?: string;
   email: string;
+  playerNumber?: string;
+  chapterId?: string;
   isAdmin: boolean;
+  role: string;
+  candles: number;
 }
 
 export interface LoginCredentials {

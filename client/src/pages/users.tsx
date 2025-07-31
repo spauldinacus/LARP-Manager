@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
+import RoleManagementModal from "@/components/modals/role-management-modal";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ export default function UsersPage() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [roleModalUser, setRoleModalUser] = useState<any | null>(null);
   const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
   const [showCandleModal, setShowCandleModal] = useState(false);
@@ -315,6 +317,12 @@ export default function UsersPage() {
                               Admin
                             </Badge>
                           )}
+                          {userData.role && userData.role !== 'user' && (
+                            <Badge variant="secondary">
+                              <Shield className="h-3 w-3 mr-1" />
+                              {userData.role.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          )}
                         </div>
                         
                         <div className="text-sm text-muted-foreground">
@@ -417,6 +425,15 @@ export default function UsersPage() {
                           >
                             <Flame className="h-4 w-4 mr-2" />
                             Manage Candles
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setRoleModalUser(userData)}
+                          >
+                            <Shield className="h-4 w-4 mr-2" />
+                            Manage Role
                           </Button>
                           
                           {userData.id !== user.id && (
@@ -540,6 +557,15 @@ export default function UsersPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Role Management Modal */}
+      {roleModalUser && (
+        <RoleManagementModal
+          isOpen={!!roleModalUser}
+          onClose={() => setRoleModalUser(null)}
+          user={roleModalUser}
+        />
+      )}
     </div>
   );
 }

@@ -14,6 +14,17 @@ export const chapters = pgTable("chapters", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+// Define role permissions
+export const rolePermissions = {
+  user: [],
+  moderator: ['manage_characters', 'manage_events', 'view_users'],
+  admin: ['manage_characters', 'manage_events', 'view_users', 'manage_users', 'manage_chapters', 'manage_roles', 'manage_system'],
+  super_admin: ['*'] // All permissions
+} as const;
+
+export type Role = keyof typeof rolePermissions;
+export type Permission = 'manage_characters' | 'manage_events' | 'view_users' | 'manage_users' | 'manage_chapters' | 'manage_roles' | 'manage_system';
+
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
@@ -23,6 +34,7 @@ export const users = pgTable("users", {
   playerNumber: text("player_number").unique(),
   chapterId: uuid("chapter_id").references(() => chapters.id),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  role: text("role").default("user").notNull(), // user, moderator, admin, super_admin
   candles: integer("candles").default(0).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
@@ -394,6 +406,23 @@ export const ARCHETYPES = [
     secondarySkills: ['Economics', 'Stone Masonry'],
   },
 ];
+
+// Permission helper functions
+export function hasPermission(userRole: Role, permission: Permission): boolean {
+  const permissions = rolePermissions[userRole];
+  return permissions.includes('*' as any) || permissions.includes(permission);
+}
+
+export function hasAnyPermission(userRole: Role, permissions: Permission[]): boolean {
+  return permissions.some(permission => hasPermission(userRole, permission));
+}
+
+export function isAtLeastRole(userRole: Role, requiredRole: Role): boolean {
+  const roleHierarchy: Role[] = ['user', 'moderator', 'admin', 'super_admin'];
+  const userRoleIndex = roleHierarchy.indexOf(userRole);
+  const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
+  return userRoleIndex >= requiredRoleIndex;
+}
 
 // Skill cost calculation function
 export function getSkillCost(skill: string, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } {

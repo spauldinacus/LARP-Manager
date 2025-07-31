@@ -27,6 +27,7 @@ declare module "express-session" {
   interface SessionData {
     userId?: string;
     isAdmin?: boolean;
+    userRole?: string;
   }
 }
 
@@ -56,6 +57,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Authentication required" });
     }
     next();
+  };
+
+  // Middleware for role-based access control
+  const requirePermission = (permission: string) => {
+    return (req: any, res: any, next: any) => {
+      const userRole = req.session.userRole || 'user';
+      
+      // Import permission helper functions
+      const { hasPermission } = require("@shared/schema");
+      
+      if (!hasPermission(userRole, permission) && !req.session.isAdmin) {
+        return res.status(403).json({ message: `Permission required: ${permission}` });
+      }
+      next();
+    };
+  };
+
+  // Middleware for role-based access
+  const requireRole = (requiredRole: string) => {
+    return (req: any, res: any, next: any) => {
+      const userRole = req.session.userRole || 'user';
+      const { isAtLeastRole } = require("@shared/schema");
+      
+      if (!isAtLeastRole(userRole, requiredRole) && !req.session.isAdmin) {
+        return res.status(403).json({ message: `Role required: ${requiredRole}` });
+      }
+      next();
+    };
   };
 
   const requireAdmin = (req: any, res: any, next: any) => {
@@ -100,8 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
+      req.session.userRole = user.role || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, role: user.role || 'user', candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
@@ -124,8 +154,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
+      req.session.userRole = user.role || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, role: user.role || 'user', candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
@@ -148,7 +179,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      const { password: _, ...userWithoutPassword } = user;
+      const userResponse = {
+        ...userWithoutPassword,
+        role: user.role || 'user',
+        candles: user.candles || 0
+      };
+      res.json({ user: userResponse });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
     }
@@ -945,6 +982,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update profile" });
+    }
+  });
+
+  // Role management endpoints (admin only)
+  app.get("/api/roles", requireAdmin, (req, res) => {
+    const { rolePermissions } = require("@shared/schema");
+    res.json(Object.keys(rolePermissions));
+  });
+
+  app.get("/api/permissions", requireAdmin, (req, res) => {
+    const { rolePermissions } = require("@shared/schema");
+    res.json(rolePermissions);
+  });
+
+  app.patch("/api/users/:id/role", requireAdmin, async (req, res) => {
+    try {
+      const { role } = req.body;
+      const { rolePermissions } = require("@shared/schema");
+      
+      if (!Object.keys(rolePermissions).includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      // Prevent users from demoting themselves
+      if (req.params.id === req.session.userId && role !== 'admin' && role !== 'super_admin') {
+        return res.status(400).json({ message: "Cannot demote yourself" });
+      }
+
+      const user = await storage.updateUserRole(req.params.id, role);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Role update error:", error);
+      res.status(500).json({ message: "Failed to update user role" });
     }
   });
 
