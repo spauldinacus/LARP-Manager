@@ -132,19 +132,29 @@ export default function DashboardPage() {
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* Player Candles Card - Always visible */}
-          <Card className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+          {/* Player Info Section */}
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Your Candles</p>
-                  <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{user.candles || 0}</p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                    Use candles to purchase additional XP during event RSVPs
-                  </p>
+                <div className="space-y-2">
+                  <h2 className="text-lg font-semibold">Welcome back, {user.playerName || user.username}!</h2>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Candles: </span>
+                      <Badge variant="outline" className="text-orange-600 border-orange-600">
+                        <Flame className="h-3 w-3 mr-1" />
+                        {user.candles || 0}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Use candles to purchase additional XP during event RSVPs
+                    </div>
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                  <Flame className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <span className="text-lg font-semibold text-primary">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
                 </div>
               </div>
             </CardContent>
