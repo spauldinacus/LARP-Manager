@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,11 +48,24 @@ export default function MilestoneManagementModal({
   milestone,
   mode,
 }: MilestoneManagementModalProps) {
-  const [title, setTitle] = useState(milestone?.title || "");
-  const [description, setDescription] = useState(milestone?.description || "");
-  const [threshold, setThreshold] = useState(milestone?.threshold?.toString() || "");
-  const [icon, setIcon] = useState(milestone?.iconName || "star");
-  const [color, setColor] = useState(milestone?.color || "text-blue-600");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [threshold, setThreshold] = useState("");
+  const [icon, setIcon] = useState("star");
+  const [color, setColor] = useState("text-blue-600");
+
+  // Reset form when milestone or modal state changes
+  useEffect(() => {
+    if (isOpen && milestone) {
+      setTitle(milestone.title || "");
+      setDescription(milestone.description || "");
+      setThreshold(milestone.threshold?.toString() || "");
+      setIcon(milestone.iconName || "star");
+      setColor(milestone.color || "text-blue-600");
+    } else if (isOpen && mode === "create") {
+      resetForm();
+    }
+  }, [isOpen, milestone, mode]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();

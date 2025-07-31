@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,12 +51,26 @@ export default function AchievementManagementModal({
   achievement,
   mode,
 }: AchievementManagementModalProps) {
-  const [title, setTitle] = useState(achievement?.title || "");
-  const [description, setDescription] = useState(achievement?.description || "");
-  const [icon, setIcon] = useState(achievement?.iconName || "trophy");
-  const [rarity, setRarity] = useState(achievement?.rarity || "common");
-  const [conditionType, setConditionType] = useState(achievement?.conditionType || "manual");
-  const [conditionValue, setConditionValue] = useState(achievement?.conditionValue?.toString() || "");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("trophy");
+  const [rarity, setRarity] = useState("common");
+  const [conditionType, setConditionType] = useState("manual");
+  const [conditionValue, setConditionValue] = useState("");
+
+  // Reset form when achievement or modal state changes
+  useEffect(() => {
+    if (isOpen && achievement) {
+      setTitle(achievement.title || "");
+      setDescription(achievement.description || "");
+      setIcon(achievement.iconName || "trophy");
+      setRarity(achievement.rarity || "common");
+      setConditionType(achievement.conditionType || "manual");
+      setConditionValue(achievement.conditionValue?.toString() || "");
+    } else if (isOpen && mode === "create") {
+      resetForm();
+    }
+  }, [isOpen, achievement, mode]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
