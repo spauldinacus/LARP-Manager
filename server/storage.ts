@@ -694,9 +694,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Candle transaction methods
-  async createCandleTransaction(insertTransaction: InsertCandleTransaction): Promise<CandleTransaction> {
-    const [transaction] = await db.insert(candleTransactions).values(insertTransaction).returning();
-    return transaction;
+  async createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction> {
+    // Create transaction record
+    const [created] = await db.insert(candleTransactions).values(transaction).returning();
+    
+    // Update user's candle balance
+    const user = await this.getUser(transaction.userId);
+    if (user) {
+      const newBalance = (user.candles || 0) + transaction.amount;
+      await db
+        .update(users)
+        .set({ candles: Math.max(0, newBalance) }) // Ensure non-negative balance
+        .where(eq(users.id, transaction.userId));
+    }
+    
+    return created;
   }
 
   // Refresh character XP values (utility function)
