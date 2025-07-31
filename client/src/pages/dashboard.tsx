@@ -253,8 +253,8 @@ export default function DashboardPage() {
                             {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
                           </p>
                         </div>
-                        <Badge variant={character.isActive ? "default" : "secondary"}>
-                          {character.isActive ? "Active" : "Inactive"}
+                        <Badge variant={character.isRetired ? "destructive" : character.isActive ? "default" : "secondary"}>
+                          {character.isRetired ? "Retired" : character.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                     ))}
