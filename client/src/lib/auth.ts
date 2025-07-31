@@ -18,6 +18,7 @@ export interface RegisterCredentials {
   playerName: string;
   email: string;
   password: string;
+  chapterId?: string;
 }
 
 export const authApi = {

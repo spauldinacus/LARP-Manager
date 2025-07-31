@@ -3,12 +3,14 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
@@ -21,6 +23,7 @@ const registerSchema = z.object({
   playerName: z.string().min(2, "Player name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  chapterId: z.string().min(1, "Please select a chapter"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -53,7 +56,14 @@ export default function LoginPage() {
       playerName: "",
       email: "",
       password: "",
+      chapterId: "",
     },
+  });
+
+  // Fetch chapters for registration
+  const { data: chapters, isLoading: chaptersLoading } = useQuery({
+    queryKey: ["/api/chapters"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const handleLogin = async (data: LoginForm) => {
@@ -71,7 +81,7 @@ export default function LoginPage() {
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      await register(data.username, data.playerName, data.email, data.password);
+      await register(data.username, data.playerName, data.email, data.password, data.chapterId);
       setLocation("/dashboard");
     } catch (error) {
       // Error handling is done in the auth hook
@@ -208,6 +218,30 @@ export default function LoginPage() {
                   {registerForm.formState.errors.password && (
                     <p className="text-sm text-destructive mt-1">
                       {registerForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="register-chapter">Chapter</Label>
+                  <Select 
+                    value={registerForm.watch("chapterId")} 
+                    onValueChange={(value) => registerForm.setValue("chapterId", value)}
+                  >
+                    <SelectTrigger className={registerForm.formState.errors.chapterId ? "border-destructive" : ""}>
+                      <SelectValue placeholder={chaptersLoading ? "Loading chapters..." : "Select your chapter"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chapters?.map((chapter: any) => (
+                        <SelectItem key={chapter.id} value={chapter.id}>
+                          {chapter.name} ({chapter.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {registerForm.formState.errors.chapterId && (
+                    <p className="text-sm text-destructive mt-1">
+                      {registerForm.formState.errors.chapterId.message}
                     </p>
                   )}
                 </div>
