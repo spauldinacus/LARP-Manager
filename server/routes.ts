@@ -418,7 +418,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const attendanceXP = await storage.calculateEventAttendanceXP(req.params.id);
-      res.json({ attendanceXP });
+      const eventsAttended = await storage.getAttendedEventsCount(req.params.id);
+      res.json({ 
+        attendanceXP,
+        eventsAttended 
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to calculate attendance XP" });
     }

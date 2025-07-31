@@ -118,6 +118,7 @@ export interface IStorage {
   updateExperienceEntryByRsvpId(rsvpId: string, updates: Partial<ExperienceEntry>): Promise<void>;
   getTotalExperienceByCharacter(characterId: string): Promise<number>;
   calculateTotalXpSpent(characterId: string): Promise<number>;
+  getAttendedEventsCount(characterId: string): Promise<number>;
 
   // Candle transaction methods
   createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction>;
@@ -681,9 +682,8 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
-  // Calculate base XP for a single event attendance (official Thrune LARP rulebook progression)
-  async calculateEventAttendanceXP(characterId: string): Promise<number> {
-    // Count total events attended by character (including current one if this is for attendance calculation)
+  // Get count of events actually attended by character
+  async getAttendedEventsCount(characterId: string): Promise<number> {
     const attendedEventsCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(eventRsvps)
@@ -692,7 +692,13 @@ export class DatabaseStorage implements IStorage {
         eq(eventRsvps.attended, true)
       ));
 
-    const eventCount = attendedEventsCount[0]?.count || 0;
+    return attendedEventsCount[0]?.count || 0;
+  }
+
+  // Calculate base XP for a single event attendance (official Thrune LARP rulebook progression)
+  async calculateEventAttendanceXP(characterId: string): Promise<number> {
+    // Count total events attended by character (including current one if this is for attendance calculation)
+    const eventCount = await this.getAttendedEventsCount(characterId);
 
     // Official Thrune LARP XP progression (page 17):
     // Events 1-10: 6 XP each
