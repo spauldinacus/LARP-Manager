@@ -286,6 +286,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Refresh character XP values (admin only)
+  app.post("/api/admin/refresh-character-xp/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.refreshCharacterXP(req.params.id);
+      res.json({ message: "Character XP values refreshed successfully" });
+    } catch (error) {
+      console.error("Character XP refresh error:", error);
+      res.status(500).json({ message: "Failed to refresh character XP values" });
+    }
+  });
+
   // Candle management routes
   app.get("/api/users/:id/candles", requireAdmin, async (req, res) => {
     try {
@@ -578,10 +589,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedSkills = [...character.skills, skill];
       await storage.updateCharacter(req.params.id, {
         skills: updatedSkills,
-        experience: character.experience - cost
       });
 
-      // Create experience entry for the spending
+      // Create experience entry for the spending (this will update experience automatically)
       await storage.createExperienceEntry({
         characterId: req.params.id,
         amount: -cost,
@@ -628,10 +638,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Insufficient experience points" });
       }
 
-      // Update character attribute and deduct experience
-      const updates: any = {
-        experience: character.experience - cost
-      };
+      // Update character attribute (don't manually deduct experience)
+      const updates: any = {};
       
       if (attribute === 'body') {
         updates.body = character.body + amount;
@@ -641,7 +649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateCharacter(req.params.id, updates);
 
-      // Create experience entry for the spending
+      // Create experience entry for the spending (this will update experience automatically)
       await storage.createExperienceEntry({
         characterId: req.params.id,
         amount: -cost,

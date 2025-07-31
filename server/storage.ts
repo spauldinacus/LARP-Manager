@@ -444,10 +444,13 @@ export class DatabaseStorage implements IStorage {
   async createExperienceEntry(insertEntry: InsertExperienceEntry): Promise<ExperienceEntry> {
     const [entry] = await db.insert(experienceEntries).values(insertEntry).returning();
     
-    // Update character's total experience (but no level)
+    // Update character's total experience and XP spent
     const totalExp = await this.getTotalExperienceByCharacter(insertEntry.characterId);
+    const totalXpSpent = await this.calculateTotalXpSpent(insertEntry.characterId);
+    
     await this.updateCharacter(insertEntry.characterId, { 
-      experience: totalExp
+      experience: totalExp,
+      totalXpSpent: totalXpSpent
     });
     
     return entry;
@@ -475,8 +478,8 @@ export class DatabaseStorage implements IStorage {
     // Sum all spent XP (convert negative to positive)
     const totalSpent = spentEntries.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
     
-    // Add initial 25 XP that every character starts with (considered "spent" on creation)
-    return totalSpent + 25;
+    // Return just the spent XP (don't add initial 25 XP here since it's not actually "spent")
+    return totalSpent;
   }
 
   async deleteExperienceEntry(id: string): Promise<void> {
@@ -487,10 +490,13 @@ export class DatabaseStorage implements IStorage {
       // Delete the entry
       await db.delete(experienceEntries).where(eq(experienceEntries.id, id));
       
-      // Update character's total experience
+      // Update character's total experience and XP spent
       const totalExp = await this.getTotalExperienceByCharacter(entry.characterId);
+      const totalXpSpent = await this.calculateTotalXpSpent(entry.characterId);
+      
       await this.updateCharacter(entry.characterId, { 
-        experience: totalExp
+        experience: totalExp,
+        totalXpSpent: totalXpSpent
       });
     }
   }
@@ -613,6 +619,17 @@ export class DatabaseStorage implements IStorage {
     }
 
     return rsvp;
+  }
+
+  // Refresh character XP values (utility function)
+  async refreshCharacterXP(characterId: string): Promise<void> {
+    const totalExp = await this.getTotalExperienceByCharacter(characterId);
+    const totalXpSpent = await this.calculateTotalXpSpent(characterId);
+    
+    await this.updateCharacter(characterId, { 
+      experience: totalExp,
+      totalXpSpent: totalXpSpent
+    });
   }
 
   // Dashboard stats
