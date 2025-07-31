@@ -275,36 +275,47 @@ export default function CharacterCreationModal({
                 </div>
               </div>
 
+              {/* Heritage Details */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Heritage Details: {selectedHeritageData.name}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Description</p>
+                      <p className="text-sm">{selectedHeritageData.description}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Costume Requirements</p>
+                      <p className="text-sm">{selectedHeritageData.costumeRequirements}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-green-600">Benefit</p>
+                      <p className="text-sm">{selectedHeritageData.benefit}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-red-600">Weakness</p>
+                      <p className="text-sm">{selectedHeritageData.weakness}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="text-sm font-medium text-muted-foreground">Secondary Skills Available</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedHeritageData.secondarySkills.map((skill, index) => (
+                      <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Skills */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h4 className="font-medium mb-3">Starting Skills</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Heritage Skills */}
-                  <div>
-                    <h5 className="text-sm font-medium text-primary mb-2">Heritage: {selectedHeritageData.name}</h5>
-                    <div className="space-y-1">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedHeritageData.primarySkills.map((skill, index) => (
-                            <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedHeritageData.secondarySkills.map((skill, index) => (
-                            <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   {/* Culture Skills */}
                   {selectedCultureData && (

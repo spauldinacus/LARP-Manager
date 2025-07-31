@@ -5,9 +5,11 @@ export const HERITAGES = [
     body: 8,
     stamina: 12,
     icon: "zap",
-    description: "Masters of arcane energies, born of magical bloodlines",
-    primarySkills: ["Arcane Lore", "Mysticism"],
-    secondarySkills: ["Alchemy", "Ancient Languages", "Ritual Magic"]
+    description: "The eldest heritage, claiming to be firstborn with vast empires and ancient libraries",
+    costumeRequirements: "Pointed ears",
+    benefit: "Corruption Resistance - Spend 10 Stamina to negate a point of Corruption (except when returning from death)",
+    weakness: "Arcane Susceptibility - Take double damage from Magic attacks",
+    secondarySkills: ["First Aid", "Bard", "Herbalism", "Meditation"]
   },
   {
     id: "human",
@@ -15,9 +17,11 @@ export const HERITAGES = [
     body: 10,
     stamina: 10,
     icon: "user",
-    description: "Adaptable and versatile, the most common heritage",
-    primarySkills: ["Any Two Skills"],
-    secondarySkills: ["Any Three Skills"]
+    description: "The most populous and widespread people throughout the realm",
+    costumeRequirements: "None",
+    benefit: "Human - No inherent benefit or weakness",
+    weakness: "Human - No inherent benefit or weakness",
+    secondarySkills: ["First Aid", "Farming", "Lumberjack", "Mining"]
   },
   {
     id: "stoneborn",
@@ -25,9 +29,11 @@ export const HERITAGES = [
     body: 15,
     stamina: 5,
     icon: "mountain",
-    description: "Hardy and resilient, carved from the mountain itself",
-    primarySkills: ["Smithing", "Stoneworking"],
-    secondarySkills: ["Engineering", "Mining", "Armorcrafting"]
+    description: "Sturdy and stoic people from beneath the mountains, known for craftsmanship",
+    costumeRequirements: "A full beard minimum 6 inches long (all genders)",
+    benefit: "One More Hammer - Reduce crafting time by 5 minutes for Alchemy, Smithing, Cooking, and Trapper skills",
+    weakness: "Arcane Disruption - Spend double Stamina to cast spells",
+    secondarySkills: ["Blacksmithing", "Cooking", "Lumberjack", "Mining"]
   },
   {
     id: "ughol",
@@ -35,9 +41,11 @@ export const HERITAGES = [
     body: 12,
     stamina: 8,
     icon: "leaf",
-    description: "Connected to nature, with bestial features",
-    primarySkills: ["Tracking", "Survival"],
-    secondarySkills: ["Animal Handling", "Herbalism", "Weather Sense"]
+    description: "Commonly called greenskins, they band together in motley crews for protection",
+    costumeRequirements: "Green or grey skin",
+    benefit: "Regeneration - Regain 1 Body per minute (as long as not in Bleed Out)",
+    weakness: "Weak to Corruption - Take 2 points of Corruption instead of 1",
+    secondarySkills: ["Quick Search", "Scavenging", "Taunt", "Trapper"]
   },
   {
     id: "rystarri",
@@ -45,9 +53,11 @@ export const HERITAGES = [
     body: 12,
     stamina: 8,
     icon: "moon",
-    description: "Ethereal and mystical, touched by otherworldly forces",
-    primarySkills: ["Spirit Lore", "Astrology"],
-    secondarySkills: ["Divination", "Dream Walking", "Ethereal Sight"]
+    description: "A nomadic feline people known as Bringers of the Lost",
+    costumeRequirements: "Cat ears or feline mask, with a tail attached to exterior of clothing",
+    benefit: "Claws - Always equipped with unarmed claws that inflict 2 base damage",
+    weakness: "Call of the Far Realms - Bleeding Out period is only 1 minute long",
+    secondarySkills: ["Herbalism", "Intercept", "Mercantile", "Scavenging"]
   }
 ] as const;
 
