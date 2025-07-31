@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AchievementBadge from "./achievement-badge";
 import MilestoneProgress from "./milestone-progress";
+import AchievementManagementModal from "../modals/achievement-management-modal";
+import MilestoneManagementModal from "../modals/milestone-management-modal";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 import { 
   Trophy, 
@@ -26,7 +30,8 @@ import {
   Brain,
   Wand2,
   Edit,
-  Trash2
+  Trash2,
+  Plus
 } from "lucide-react";
 
 interface Character {
@@ -173,6 +178,92 @@ export default function XPProgressionTracker({
   isAdmin = false
 }: XPProgressionTrackerProps) {
   const [selectedTab, setSelectedTab] = useState("overview");
+  const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<any>(null);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch custom achievements and milestones for admin
+  const { data: customAchievements = [] } = useQuery({
+    queryKey: ["/api/admin/achievements"],
+    enabled: isAdmin,
+  });
+
+  const { data: customMilestones = [] } = useQuery({
+    queryKey: ["/api/admin/milestones"],
+    enabled: isAdmin,
+  });
+
+  // Delete achievement mutation
+  const deleteAchievementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/achievements/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      toast({
+        title: "Achievement deleted",
+        description: "Achievement has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete achievement",
+        description: error.message || "Unable to delete achievement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete milestone mutation
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/milestones/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/milestones"] });
+      toast({
+        title: "Milestone deleted",
+        description: "Milestone has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete milestone",
+        description: error.message || "Unable to delete milestone",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateAchievement = () => {
+    setSelectedAchievement(null);
+    setModalMode("create");
+    setShowAchievementModal(true);
+  };
+
+  const handleEditAchievement = (achievement: any) => {
+    setSelectedAchievement(achievement);
+    setModalMode("edit");
+    setShowAchievementModal(true);
+  };
+
+  const handleCreateMilestone = () => {
+    setSelectedMilestone(null);
+    setModalMode("create");
+    setShowMilestoneModal(true);
+  };
+
+  const handleEditMilestone = (milestone: any) => {
+    setSelectedMilestone(milestone);
+    setModalMode("edit");
+    setShowMilestoneModal(true);
+  };
 
   // Fetch character experience history
   const { data: experienceHistory = [] } = useQuery({
@@ -319,11 +410,49 @@ export default function XPProgressionTracker({
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Achievement Management</span>
-                  <div className="text-sm text-muted-foreground">
-                    Admin can add/edit/delete custom achievements from database
-                  </div>
+                  <Button onClick={handleCreateAchievement} size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Achievement
+                  </Button>
                 </CardTitle>
+                <CardDescription>
+                  Manage custom achievements. Database achievements will appear below static ones.
+                </CardDescription>
               </CardHeader>
+              {customAchievements.length > 0 && (
+                <CardContent>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Custom Achievements ({customAchievements.length})</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {customAchievements.map((achievement: any) => (
+                        <div key={achievement.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{achievement.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{achievement.description}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditAchievement(achievement)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteAchievementMutation.mutate(achievement.id)}
+                              disabled={deleteAchievementMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
             </Card>
           )}
           <div className="space-y-4">
@@ -379,11 +508,51 @@ export default function XPProgressionTracker({
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Milestone Management</span>
-                  <div className="text-sm text-muted-foreground">
-                    Admin can add/edit/delete custom milestones from database
-                  </div>
+                  <Button onClick={handleCreateMilestone} size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Milestone
+                  </Button>
                 </CardTitle>
+                <CardDescription>
+                  Manage custom milestones. Database milestones will appear below static ones.
+                </CardDescription>
               </CardHeader>
+              {customMilestones.length > 0 && (
+                <CardContent>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Custom Milestones ({customMilestones.length})</h4>
+                    <div className="space-y-2">
+                      {customMilestones.map((milestone: any) => (
+                        <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{milestone.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {milestone.description} • {milestone.threshold} XP
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditMilestone(milestone)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteMilestoneMutation.mutate(milestone.id)}
+                              disabled={deleteMilestoneMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
             </Card>
           )}
           <div className="space-y-4">
@@ -479,6 +648,24 @@ export default function XPProgressionTracker({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Admin Management Modals */}
+      {isAdmin && (
+        <>
+          <AchievementManagementModal
+            isOpen={showAchievementModal}
+            onClose={() => setShowAchievementModal(false)}
+            achievement={selectedAchievement}
+            mode={modalMode}
+          />
+          <MilestoneManagementModal
+            isOpen={showMilestoneModal}
+            onClose={() => setShowMilestoneModal(false)}
+            milestone={selectedMilestone}
+            mode={modalMode}
+          />
+        </>
+      )}
     </div>
   );
 }
