@@ -20,6 +20,10 @@ Preferred communication style: Simple, everyday language.
   - Fixed authentication hook to properly expose refetch function for settings updates
   - User settings (player name, chapter assignment) now save successfully
   - Authentication context properly updates after settings changes
+- **DEPLOYMENT: Updated session configuration for Replit compatibility**
+  - Set secure: false for Replit deployments (no internal HTTPS)
+  - Added sameSite: 'lax' for better cookie compatibility
+  - Session authentication now works properly in Replit deployment environment
 - **CRITICAL FIX: Admin RSVP XP purchase updates now sync to character sheets**
   - Fixed React Query cache invalidation to refresh character data when admin modifies RSVP XP purchases
   - Experience entries and character totals now update immediately across all UI components

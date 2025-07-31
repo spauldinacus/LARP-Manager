@@ -44,9 +44,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Replit deployments don't use HTTPS internally
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        sameSite: 'lax', // Better cookie compatibility
       },
     })
   );
