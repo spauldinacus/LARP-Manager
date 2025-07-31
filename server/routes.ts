@@ -323,20 +323,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/characters/:id/add-skill", requireAdmin, async (req, res) => {
     try {
-      const { skill } = req.body;
-      await storage.addSkillToCharacter(req.params.id, skill);
-      res.json({ message: "Skill added successfully" });
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      const { skill, cost } = req.body;
+      
+      if (!skill || !cost || cost <= 0) {
+        return res.status(400).json({ message: "Invalid skill or cost" });
+      }
+
+      // Check if character already has this skill
+      if (character.skills && character.skills.includes(skill)) {
+        return res.status(400).json({ message: "Character already has this skill" });
+      }
+
+      // Add skill to character
+      const updatedSkills = [...(character.skills || []), skill];
+      const newTotalXpSpent = (character.totalXpSpent || 0) + cost;
+      
+      await storage.updateCharacter(req.params.id, {
+        skills: updatedSkills,
+        totalXpSpent: newTotalXpSpent,
+        experience: character.experience - cost // Deduct XP from available pool
+      });
+
+      // Create experience entry for the spending
+      await storage.createExperienceEntry({
+        characterId: req.params.id,
+        amount: -cost,
+        reason: `Admin added skill: ${skill}`,
+        awardedBy: req.session.userId!,
+      });
+
+      res.json({ message: "Skill added successfully and XP totals updated" });
     } catch (error) {
+      console.error("Admin add skill error:", error);
       res.status(500).json({ message: "Failed to add skill" });
     }
   });
 
-  app.delete("/api/admin/characters/:id/remove-skill", requireAdmin, async (req, res) => {
+  app.post("/api/admin/characters/:id/remove-skill", requireAdmin, async (req, res) => {
     try {
-      const { skill } = req.body;
-      await storage.removeSkillFromCharacter(req.params.id, skill);
-      res.json({ message: "Skill removed successfully" });
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      const { skill, cost } = req.body;
+      
+      if (!skill || !cost || cost <= 0) {
+        return res.status(400).json({ message: "Invalid skill or cost" });
+      }
+
+      // Check if character has this skill
+      if (!character.skills || !character.skills.includes(skill)) {
+        return res.status(400).json({ message: "Character does not have this skill" });
+      }
+
+      // Remove skill from character
+      const updatedSkills = character.skills.filter(s => s !== skill);
+      const newTotalXpSpent = Math.max(0, (character.totalXpSpent || 0) - cost);
+      
+      await storage.updateCharacter(req.params.id, {
+        skills: updatedSkills,
+        totalXpSpent: newTotalXpSpent,
+        experience: character.experience + cost // Return XP to available pool
+      });
+
+      // Create experience entry for the refund
+      await storage.createExperienceEntry({
+        characterId: req.params.id,
+        amount: cost,
+        reason: `Admin removed skill: ${skill}`,
+        awardedBy: req.session.userId!,
+      });
+
+      res.json({ message: "Skill removed successfully and XP totals updated" });
     } catch (error) {
+      console.error("Admin remove skill error:", error);
       res.status(500).json({ message: "Failed to remove skill" });
     }
   });

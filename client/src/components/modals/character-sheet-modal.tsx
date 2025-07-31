@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle } from "lucide-react";
+import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings } from "lucide-react";
 import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Skill } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -79,6 +79,9 @@ export default function CharacterSheetModal({
   const [additionalBody, setAdditionalBody] = useState(0);
   const [additionalStamina, setAdditionalStamina] = useState(0);
   const [retirementReason, setRetirementReason] = useState("");
+  const [showAdminSkills, setShowAdminSkills] = useState(false);
+  const [selectedAdminSkill, setSelectedAdminSkill] = useState("");
+  const [selectedRemoveSkill, setSelectedRemoveSkill] = useState("");
 
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
@@ -218,6 +221,53 @@ export default function CharacterSheetModal({
       toast({
         title: "Retirement failed",
         description: error.message || "Failed to retire character",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin skill management mutations
+  const adminAddSkillMutation = useMutation({
+    mutationFn: async (data: { skill: string; cost: number }) => {
+      const response = await apiRequest("POST", `/api/admin/characters/${characterId}/add-skill`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setSelectedAdminSkill("");
+      toast({
+        title: "Skill added (Admin)",
+        description: "The skill has been added to the character and XP totals updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Admin add skill failed",
+        description: error.message || "Failed to add skill",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const adminRemoveSkillMutation = useMutation({
+    mutationFn: async (data: { skill: string; cost: number }) => {
+      const response = await apiRequest("POST", `/api/admin/characters/${characterId}/remove-skill`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setSelectedRemoveSkill("");
+      toast({
+        title: "Skill removed (Admin)",
+        description: "The skill has been removed from the character and XP totals updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Admin remove skill failed",
+        description: error.message || "Failed to remove skill",
         variant: "destructive",
       });
     },
@@ -663,6 +713,147 @@ export default function CharacterSheetModal({
                         </AlertDialogContent>
                       </AlertDialog>
                     </CardContent>
+                  </Card>
+                )}
+
+                {/* Admin Skill Management */}
+                {user?.isAdmin && (
+                  <Card className="border-blue-200 dark:border-blue-800">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-400">
+                          <Settings className="h-5 w-5" />
+                          <span>Admin: Skill Management</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAdminSkills(!showAdminSkills)}
+                        >
+                          {showAdminSkills ? 'Hide' : 'Show'} Admin Controls
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    {showAdminSkills && (
+                      <CardContent className="space-y-6">
+                        {/* XP Totals Display */}
+                        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-3">Experience Point Summary</h4>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <p className="text-2xl font-bold text-yellow-600">{(character as any).experience}</p>
+                              <p className="text-sm text-muted-foreground">Available XP</p>
+                            </div>
+                            <div>
+                              <p className="text-2xl font-bold text-green-600">{(character as any).totalXpSpent || 0}</p>
+                              <p className="text-sm text-muted-foreground">Total XP Spent</p>
+                            </div>
+                            <div>
+                              <p className="text-2xl font-bold text-blue-600">{((character as any).experience || 0) + ((character as any).totalXpSpent || 0)}</p>
+                              <p className="text-sm text-muted-foreground">Total XP Earned</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Add Skills */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium text-blue-700 dark:text-blue-400">Add Skills (Admin)</h4>
+                            <div className="space-y-3">
+                              <Label htmlFor="admin-skill-select">Select Skill to Add</Label>
+                              <Select value={selectedAdminSkill} onValueChange={setSelectedAdminSkill}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Choose a skill" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
+                                    const skillData = getSkillCost(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    return (
+                                      <SelectItem key={skill} value={skill}>
+                                        <div className="flex items-center justify-between w-full">
+                                          <span>{skill}</span>
+                                          <Badge
+                                            variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                                            className="ml-2 text-xs"
+                                          >
+                                            {skillData.cost} XP
+                                          </Badge>
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              {selectedAdminSkill && (
+                                <Button
+                                  onClick={() => {
+                                    const skillData = getSkillCost(selectedAdminSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    adminAddSkillMutation.mutate({ skill: selectedAdminSkill, cost: skillData.cost });
+                                  }}
+                                  disabled={!selectedAdminSkill || adminAddSkillMutation.isPending}
+                                  className="w-full"
+                                  variant="outline"
+                                >
+                                  {adminAddSkillMutation.isPending ? "Adding..." : `Add Skill (Admin)`}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Remove Skills */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium text-blue-700 dark:text-blue-400">Remove Skills (Admin)</h4>
+                            <div className="space-y-3">
+                              <Label htmlFor="admin-remove-skill-select">Select Skill to Remove</Label>
+                              <Select value={selectedRemoveSkill} onValueChange={setSelectedRemoveSkill}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Choose a skill to remove" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {((character as any)?.skills || []).map((skill: string) => {
+                                    const skillData = getSkillCost(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    return (
+                                      <SelectItem key={skill} value={skill}>
+                                        <div className="flex items-center justify-between w-full">
+                                          <span>{skill}</span>
+                                          <Badge
+                                            variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                                            className="ml-2 text-xs"
+                                          >
+                                            -{skillData.cost} XP
+                                          </Badge>
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              {selectedRemoveSkill && (
+                                <Button
+                                  onClick={() => {
+                                    const skillData = getSkillCost(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    adminRemoveSkillMutation.mutate({ skill: selectedRemoveSkill, cost: skillData.cost });
+                                  }}
+                                  disabled={!selectedRemoveSkill || adminRemoveSkillMutation.isPending}
+                                  className="w-full"
+                                  variant="destructive"
+                                >
+                                  {adminRemoveSkillMutation.isPending ? "Removing..." : `Remove Skill (Admin)`}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="font-medium mb-2 text-blue-800 dark:text-blue-300">Admin Notes:</p>
+                          <p>• Adding skills will increase Total XP Spent and reduce Available XP</p>
+                          <p>• Removing skills will decrease Total XP Spent and increase Available XP</p>
+                          <p>• XP costs are calculated based on character's heritage, culture, and archetype</p>
+                          <p>• All changes are tracked in the experience history</p>
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
                 )}
 
