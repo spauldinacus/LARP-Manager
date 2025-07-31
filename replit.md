@@ -11,6 +11,10 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 31, 2025
+- **CRITICAL FIX: Admin RSVP XP purchase updates now sync to character sheets**
+  - Fixed React Query cache invalidation to refresh character data when admin modifies RSVP XP purchases
+  - Experience entries and character totals now update immediately across all UI components
+  - Character sheet modals now reflect real-time changes from admin RSVP modifications
 - **Enhanced dashboard with player candle display**
   - Added prominent candle balance card visible to all players on dashboard
   - Styled with orange gradient theme and flame icon

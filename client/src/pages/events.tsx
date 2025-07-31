@@ -246,6 +246,9 @@ export default function EventsPage() {
       apiRequest("PATCH", `/api/rsvps/${rsvpId}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      // Invalidate all character-specific queries
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"], exact: false });
       toast({
         title: "RSVP Updated",
         description: "RSVP has been updated successfully.",
