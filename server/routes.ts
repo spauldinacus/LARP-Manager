@@ -404,11 +404,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         experience: character.experience + cost // Return XP to available pool
       });
 
-      // Create experience entry for the refund
+      // Create experience entry for the refund (positive amount to refund the XP)
       await storage.createExperienceEntry({
         characterId: req.params.id,
-        amount: cost,
-        reason: `Admin removed skill: ${skill}`,
+        amount: cost, // Positive amount refunds the XP spent
+        reason: `Admin refunded skill: ${skill}`,
         awardedBy: req.session.userId!,
       });
 
