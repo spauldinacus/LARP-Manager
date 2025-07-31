@@ -875,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/events/:eventId/rsvp", requireAuth, async (req, res) => {
     try {
-      const rsvpData = insertEventRsvpSchema.parse(req.body);
+      const rsvpData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).parse(req.body);
       
       // Validate XP purchases limits
       if (rsvpData.xpPurchases > 2 || rsvpData.xpCandlePurchases > 2) {
@@ -932,7 +932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/rsvps/:id", requireAuth, async (req, res) => {
     try {
-      const updateData = insertEventRsvpSchema.partial().parse(req.body);
+      const updateData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).partial().parse(req.body);
       
       // Validate XP purchases limits
       if (updateData.xpPurchases && updateData.xpPurchases > 2) {
