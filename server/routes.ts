@@ -4,7 +4,7 @@ import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { storage } from "./storage";
-import { insertUserSchema, insertCharacterSchema, insertEventSchema, insertExperienceEntrySchema } from "@shared/schema";
+import { insertChapterSchema, insertUserSchema, insertCharacterSchema, insertEventSchema, insertExperienceEntrySchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 
@@ -20,6 +20,7 @@ const registerSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(6),
+  chapterId: z.string().optional(),
 });
 
 declare module "express-session" {
@@ -67,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, email, password } = registerSchema.parse(req.body);
+      const { username, email, password, chapterId } = registerSchema.parse(req.body);
       
       // Check if user exists
       const existingUser = await storage.getUserByEmail(email);
@@ -83,13 +84,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username,
         email,
         password: hashedPassword,
+        chapterId,
         isAdmin: false,
       });
 
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
 
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin } });
+      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
@@ -113,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.isAdmin = user.isAdmin;
 
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin } });
+      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
@@ -136,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin } });
+      res.json({ user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
     }
@@ -500,6 +502,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Character retirement error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to retire character" });
+    }
+  });
+
+  // Chapter routes
+  app.get("/api/chapters", requireAuth, async (req, res) => {
+    try {
+      const chapters = await storage.getAllChapters();
+      res.json(chapters);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get chapters" });
+    }
+  });
+
+  app.get("/api/chapters/:id", requireAuth, async (req, res) => {
+    try {
+      const chapter = await storage.getChapter(req.params.id);
+      if (!chapter) {
+        return res.status(404).json({ message: "Chapter not found" });
+      }
+      res.json(chapter);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get chapter" });
+    }
+  });
+
+  app.post("/api/chapters", requireAdmin, async (req, res) => {
+    try {
+      const chapterData = insertChapterSchema.parse(req.body);
+      const chapter = await storage.createChapter({
+        ...chapterData,
+        createdBy: req.session.userId!,
+      });
+      res.json(chapter);
+    } catch (error) {
+      console.error("Chapter creation error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create chapter" });
+    }
+  });
+
+  app.patch("/api/chapters/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateData = insertChapterSchema.partial().parse(req.body);
+      const chapter = await storage.updateChapter(req.params.id, updateData);
+      res.json(chapter);
+    } catch (error) {
+      console.error("Chapter update error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update chapter" });
+    }
+  });
+
+  app.delete("/api/chapters/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteChapter(req.params.id);
+      res.json({ message: "Chapter deactivated successfully" });
+    } catch (error) {
+      console.error("Chapter deletion error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to deactivate chapter" });
+    }
+  });
+
+  app.post("/api/chapters/:id/generate-player-number", requireAdmin, async (req, res) => {
+    try {
+      const playerNumber = await storage.generatePlayerNumber(req.params.id);
+      res.json({ playerNumber });
+    } catch (error) {
+      console.error("Player number generation error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to generate player number" });
     }
   });
 

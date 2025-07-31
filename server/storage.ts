@@ -1,9 +1,12 @@
 import {
+  chapters,
   users,
   characters,
   events,
   experienceEntries,
   systemSettings,
+  type Chapter,
+  type InsertChapter,
   type User,
   type InsertUser,
   type Character,
@@ -12,11 +15,21 @@ import {
   type InsertEvent,
   type ExperienceEntry,
   type InsertExperienceEntry,
+  type SystemSetting,
+  type InsertSystemSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // Chapter methods
+  getChapter(id: string): Promise<Chapter | undefined>;
+  getAllChapters(): Promise<Chapter[]>;
+  createChapter(chapter: InsertChapter): Promise<Chapter>;
+  updateChapter(id: string, chapter: Partial<Chapter>): Promise<Chapter>;
+  deleteChapter(id: string): Promise<void>;
+  generatePlayerNumber(chapterId: string): Promise<string>;
+
   // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -54,6 +67,65 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Chapter methods
+  async getChapter(id: string): Promise<Chapter | undefined> {
+    const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
+    return chapter || undefined;
+  }
+
+  async getAllChapters(): Promise<Chapter[]> {
+    return await db.select().from(chapters).where(eq(chapters.isActive, true));
+  }
+
+  async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
+    const [chapter] = await db.insert(chapters).values(insertChapter).returning();
+    return chapter;
+  }
+
+  async updateChapter(id: string, updateData: Partial<Chapter>): Promise<Chapter> {
+    const [chapter] = await db
+      .update(chapters)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(chapters.id, id))
+      .returning();
+    return chapter;
+  }
+
+  async deleteChapter(id: string): Promise<void> {
+    await db.update(chapters)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(chapters.id, id));
+  }
+
+  async generatePlayerNumber(chapterId: string): Promise<string> {
+    const chapter = await this.getChapter(chapterId);
+    if (!chapter) {
+      throw new Error("Chapter not found");
+    }
+
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    
+    // Get count of users created this month for this chapter
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    
+    const usersThisMonth = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.chapterId, chapterId),
+          sql`${users.createdAt} >= ${monthStart}`,
+          sql`${users.createdAt} <= ${monthEnd}`
+        )
+      );
+
+    const nextNumber = String(usersThisMonth.length + 1).padStart(4, '0');
+    return `${chapter.code.toUpperCase()}${month}${year}${nextNumber}`;
+  }
+
   // User methods
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -71,7 +143,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    // Generate player number if chapter is assigned
+    let playerNumber: string | undefined;
+    if (insertUser.chapterId) {
+      playerNumber = await this.generatePlayerNumber(insertUser.chapterId);
+    }
+
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      playerNumber,
+    }).returning();
     return user;
   }
 

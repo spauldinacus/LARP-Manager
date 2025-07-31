@@ -10,6 +10,7 @@ import {
   UserCog,
   Settings,
   LogOut,
+  Building2,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -41,6 +42,12 @@ const navigationItems = [
     icon: Calendar,
     label: "Events",
     adminOnly: false,
+  },
+  {
+    href: "/chapters",
+    icon: Building2,
+    label: "Chapters",
+    adminOnly: true,
   },
   {
     href: "/users",

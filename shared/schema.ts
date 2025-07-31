@@ -3,11 +3,24 @@ import { pgTable, text, varchar, integer, timestamp, boolean, uuid } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const chapters = pgTable("chapters", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(), // 2-letter chapter code
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  playerNumber: text("player_number").unique(),
+  chapterId: uuid("chapter_id").references(() => chapters.id),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
@@ -63,10 +76,23 @@ export const systemSettings = pgTable("system_settings", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const chaptersRelations = relations(chapters, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [chapters.createdBy],
+    references: [users.id],
+  }),
+  users: many(users),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  chapter: one(chapters, {
+    fields: [users.chapterId],
+    references: [chapters.id],
+  }),
   characters: many(characters),
   createdEvents: many(events),
   awardedExperience: many(experienceEntries),
+  createdChapters: many(chapters),
 }));
 
 export const charactersRelations = relations(characters, ({ one, many }) => ({
@@ -101,9 +127,16 @@ export const experienceEntriesRelations = relations(experienceEntries, ({ one })
 }));
 
 // Insert schemas
+export const insertChapterSchema = createInsertSchema(chapters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  playerNumber: true, // Generated automatically
 });
 
 export const insertCharacterSchema = createInsertSchema(characters).omit({
@@ -128,6 +161,8 @@ export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit
 });
 
 // Types
+export type Chapter = typeof chapters.$inferSelect;
+export type InsertChapter = z.infer<typeof insertChapterSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Character = typeof characters.$inferSelect;
