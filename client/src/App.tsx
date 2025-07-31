@@ -10,7 +10,7 @@ import DashboardPage from "@/pages/dashboard";
 import CharactersPage from "@/pages/characters";
 import ChaptersPage from "@/pages/chapters";
 import EventsPage from "@/pages/events";
-import ExperiencePage from "@/pages/experience";
+
 import UsersPage from "@/pages/users";
 import SettingsPage from "@/pages/settings";
 
@@ -23,7 +23,6 @@ function Router() {
       <Route path="/characters" component={CharactersPage} />
       <Route path="/chapters" component={ChaptersPage} />
       <Route path="/events" component={EventsPage} />
-      <Route path="/experience" component={ExperiencePage} />
       <Route path="/users" component={UsersPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />

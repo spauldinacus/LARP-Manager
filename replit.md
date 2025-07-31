@@ -22,11 +22,20 @@ Preferred communication style: Simple, everyday language.
   - Implemented automatic XP awarding based on event attendance (3 base XP + purchased XP)
   - Created comprehensive RSVP management API endpoints
   - Built event RSVP UI with character selection and XP purchase options
+- **Streamlined experience management**
+  - Removed standalone experience page and manual XP grant functionality
+  - Experience is now exclusively managed through events and RSVP purchases
+  - Updated navigation to remove experience page link
+  - Cleaned up dashboard quick actions to focus on event-based XP management
 - **Enhanced chapter management system**
   - Added complete chapter management with database schema and API endpoints
   - Implemented player number generation system (format: FL07310001)
   - Created admin chapter management interface with create, edit, deactivate functions
   - Integrated chapters into navigation sidebar
+- **Fixed navigation layout issues**
+  - Applied consistent sidebar layout across all pages
+  - Fixed sidebar disappearing when navigating to chapters or events pages
+  - Added mobile navigation support for all sections
 - **Previous updates:**
   - Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
   - Corrected heritage body/stamina values: Ar-Nura (8/12), Human (10/10), Stoneborn (15/5), Ughol (12/8), Rystarri (12/8)

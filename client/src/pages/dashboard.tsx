@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
-import ExperienceModal from "@/components/modals/experience-modal";
 import { Users, UserCheck, Star, Calendar, Menu, Bell, UserPlus, Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -20,7 +19,6 @@ export default function DashboardPage() {
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCharacterModalOpen, setIsCharacterModalOpen] = useState(false);
-  const [isExperienceModalOpen, setIsExperienceModalOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -284,38 +282,21 @@ export default function DashboardPage() {
                 </Button>
 
                 {user.isAdmin && (
-                  <>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-auto p-4 group"
-                      onClick={() => setIsExperienceModalOpen(true)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Star className="h-5 w-5 text-primary-foreground" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium">Award Experience</p>
-                          <p className="text-sm text-muted-foreground">Grant XP to characters</p>
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-auto p-4 group"
+                    onClick={() => setLocation("/events")}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Plus className="h-5 w-5 text-primary-foreground" />
                       </div>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-auto p-4 group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Plus className="h-5 w-5 text-primary-foreground" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium">Create Event</p>
-                          <p className="text-sm text-muted-foreground">Schedule new LARP event</p>
-                        </div>
+                      <div className="text-left">
+                        <p className="font-medium">Create Event</p>
+                        <p className="text-sm text-muted-foreground">Schedule new LARP event</p>
                       </div>
-                    </Button>
-                  </>
+                    </div>
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -328,13 +309,6 @@ export default function DashboardPage() {
         isOpen={isCharacterModalOpen}
         onClose={() => setIsCharacterModalOpen(false)}
       />
-
-      {user.isAdmin && (
-        <ExperienceModal
-          isOpen={isExperienceModalOpen}
-          onClose={() => setIsExperienceModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

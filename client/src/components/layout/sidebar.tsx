@@ -32,12 +32,6 @@ const navigationItems = [
     adminOnly: false,
   },
   {
-    href: "/experience",
-    icon: Star,
-    label: "Experience",
-    adminOnly: false,
-  },
-  {
     href: "/events",
     icon: Calendar,
     label: "Events",
