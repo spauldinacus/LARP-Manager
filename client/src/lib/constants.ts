@@ -2,8 +2,8 @@ export const HERITAGES = [
   {
     id: "ar-nura",
     name: "Ar-Nura",
-    body: 2,
-    stamina: 4,
+    body: 8,
+    stamina: 12,
     icon: "zap",
     description: "Masters of arcane energies, born of magical bloodlines",
     primarySkills: ["Arcane Lore", "Mysticism"],
@@ -12,8 +12,8 @@ export const HERITAGES = [
   {
     id: "human",
     name: "Human",
-    body: 3,
-    stamina: 3,
+    body: 10,
+    stamina: 10,
     icon: "user",
     description: "Adaptable and versatile, the most common heritage",
     primarySkills: ["Any Two Skills"],
@@ -22,8 +22,8 @@ export const HERITAGES = [
   {
     id: "stoneborn",
     name: "Stoneborn",
-    body: 4,
-    stamina: 2,
+    body: 15,
+    stamina: 5,
     icon: "mountain",
     description: "Hardy and resilient, carved from the mountain itself",
     primarySkills: ["Smithing", "Stoneworking"],
@@ -32,8 +32,8 @@ export const HERITAGES = [
   {
     id: "ughol",
     name: "Ughol",
-    body: 4,
-    stamina: 2,
+    body: 12,
+    stamina: 8,
     icon: "leaf",
     description: "Connected to nature, with bestial features",
     primarySkills: ["Tracking", "Survival"],
@@ -42,8 +42,8 @@ export const HERITAGES = [
   {
     id: "rystarri",
     name: "Rystarri",
-    body: 1,
-    stamina: 5,
+    body: 12,
+    stamina: 8,
     icon: "moon",
     description: "Ethereal and mystical, touched by otherworldly forces",
     primarySkills: ["Spirit Lore", "Astrology"],
@@ -54,202 +54,330 @@ export const HERITAGES = [
 export const CULTURES = {
   "ar-nura": [
     { 
-      id: "araean", 
-      name: "Araean",
-      primarySkills: ["Politics", "Trade"],
-      secondarySkills: ["Etiquette", "Law", "Economics"]
+      id: "eisolae", 
+      name: "Eisolae",
+      primarySkills: ["Meditation", "Lore (Magic)"],
+      secondarySkills: ["Scribe", "First Aid"]
     },
     { 
-      id: "caldoran", 
-      name: "Caldoran",
-      primarySkills: ["Military Tactics", "Leadership"],
-      secondarySkills: ["Strategy", "Intimidation", "Command"]
+      id: "jhaniada", 
+      name: "Jhani'ada",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
+      secondarySkills: ["Courage", "Parry"]
     },
     { 
-      id: "drakmoran", 
-      name: "Drakmoran",
-      primarySkills: ["Stealth", "Information"],
-      secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
+      id: "viskela", 
+      name: "Viskela",
+      primarySkills: ["Bard", "Socialite"],
+      secondarySkills: ["Wealth", "Mercantile"]
     }
   ],
   "human": [
     { 
-      id: "araean", 
-      name: "Araean",
-      primarySkills: ["Politics", "Trade"],
-      secondarySkills: ["Etiquette", "Law", "Economics"]
+      id: "erdanian", 
+      name: "Erdanian",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
+      secondarySkills: ["Courage", "Shield"]
     },
     { 
-      id: "caldoran", 
-      name: "Caldoran",
-      primarySkills: ["Military Tactics", "Leadership"],
-      secondarySkills: ["Strategy", "Intimidation", "Command"]
+      id: "khemasuri", 
+      name: "Khemasuri",
+      primarySkills: ["Socialite", "Wealth"],
+      secondarySkills: ["Bard", "Mercantile"]
     },
     { 
-      id: "drakmoran", 
-      name: "Drakmoran",
-      primarySkills: ["Stealth", "Information"],
-      secondarySkills: ["Espionage", "Lockpicking", "Disguise"]
+      id: "saronean", 
+      name: "Saronean",
+      primarySkills: ["Weapon Focus (Bow)", "Herbalism"],
+      secondarySkills: ["Hunting", "Alertness"]
     },
     { 
-      id: "freehold", 
-      name: "Freehold",
-      primarySkills: ["Crafting", "Innovation"],
-      secondarySkills: ["Engineering", "Invention", "Repair"]
-    },
-    { 
-      id: "northern", 
-      name: "Northern",
-      primarySkills: ["Survival", "Navigation"],
-      secondarySkills: ["Animal Handling", "Weather Sense", "Cartography"]
+      id: "vyaldur", 
+      name: "Vyaldur",
+      primarySkills: ["Trapper", "Scavenging"],
+      secondarySkills: ["Lockpicking", "Quick Search"]
     }
   ],
   "stoneborn": [
     { 
-      id: "mountain-clan", 
-      name: "Mountain Clan",
-      primarySkills: ["Smithing", "Mining"],
-      secondarySkills: ["Stoneworking", "Engineering", "Tunneling"]
+      id: "dargadian", 
+      name: "Dargadian",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Medium)"],
+      secondarySkills: ["Blacksmithing", "Toughness"]
     },
     { 
-      id: "forge-born", 
-      name: "Forge Born",
-      primarySkills: ["Smithing", "Metalworking"],
-      secondarySkills: ["Armorcrafting", "Weaponsmithing", "Enchantment"]
+      id: "akhunrasi", 
+      name: "Akhunrasi",
+      primarySkills: ["Blacksmithing", "Mining"],
+      secondarySkills: ["Armor Smithing", "Weapon Smithing"]
     },
     { 
-      id: "stone-guard", 
-      name: "Stone Guard",
-      primarySkills: ["Shield Use", "Tactics"],
-      secondarySkills: ["Formation Fighting", "Defense", "Vigilance"]
+      id: "kahrnuthaen", 
+      name: "Kahrnuthaen",
+      primarySkills: ["Lore (Engineering)", "Scavenging"],
+      secondarySkills: ["Fortify Armor", "Alchemy"]
     }
   ],
   "ughol": [
     { 
-      id: "forest-dweller", 
-      name: "Forest Dweller",
-      primarySkills: ["Tracking", "Herbalism"],
-      secondarySkills: ["Animal Handling", "Camouflage", "Tree Climbing"]
+      id: "gragrimn", 
+      name: "Gragrimn",
+      primarySkills: ["Weapon Focus (Medium)", "Intimidation"],
+      secondarySkills: ["Brutal Blow", "Knockback"]
     },
     { 
-      id: "plains-walker", 
-      name: "Plains Walker",
-      primarySkills: ["Survival", "Animal Handling"],
-      secondarySkills: ["Weather Sense", "Hunting", "Navigation"]
+      id: "skraata", 
+      name: "Skraata",
+      primarySkills: ["Hide", "Stealth"],
+      secondarySkills: ["Backstab", "Weapon Focus (Small)"]
     },
     { 
-      id: "river-folk", 
-      name: "River Folk",
-      primarySkills: ["Swimming", "Fishing"],
-      secondarySkills: ["Boat Building", "Water Navigation", "River Lore"]
+      id: "voruk", 
+      name: "Voruk",
+      primarySkills: ["Hunting", "Herbalism"],
+      secondarySkills: ["Weapon Focus (Bow)", "Lore (Nature)"]
     }
   ],
   "rystarri": [
     { 
-      id: "moon-touched", 
-      name: "Moon Touched",
-      primarySkills: ["Astrology", "Divination"],
-      secondarySkills: ["Night Vision", "Lunar Magic", "Dream Walking"]
+      id: "maolawki", 
+      name: "Maolawki",
+      primarySkills: ["Meditation", "Dodge"],
+      secondarySkills: ["Weapon Focus (Unarmed)", "Iron Will"]
     },
     { 
-      id: "star-born", 
-      name: "Star Born",
-      primarySkills: ["Navigation", "Mysticism"],
-      secondarySkills: ["Stellar Magic", "Prophecy", "Cosmic Lore"]
-    },
-    { 
-      id: "void-walker", 
-      name: "Void Walker",
-      primarySkills: ["Spirit Lore", "Ethereal Sight"],
-      secondarySkills: ["Banishment", "Spirit Communication", "Otherworld Travel"]
+      id: "yarowi", 
+      name: "Yarowi",
+      primarySkills: ["Trader", "Mercantile"],
+      secondarySkills: ["Socialite", "Wealth"]
     }
   ]
 } as const;
 
 export const ARCHETYPES = [
   { 
-    id: "warrior", 
-    name: "Warrior", 
-    description: "Master of combat and tactics",
-    primarySkills: ["Melee Combat", "Shield Use"],
-    secondarySkills: ["Tactics", "Weapon Maintenance", "Intimidation"]
+    id: "advisor", 
+    name: "Advisor", 
+    description: "I give council to those in need",
+    primarySkills: ["Bard", "Courage", "First Aid", "Lore (Any)", "Mercantile", "Scribe", "Socialite", "Wealth", "Weapon Focus (Staff)", "Withdraw"],
+    secondarySkills: ["Intimidation", "Meditation", "Plead for Mercy"]
   },
   { 
-    id: "arcanist", 
-    name: "Arcanist", 
-    description: "Wielder of magical forces",
-    primarySkills: ["Arcane Magic", "Spell Lore"],
-    secondarySkills: ["Alchemy", "Enchantment", "Magical Theory"]
+    id: "alchemystic", 
+    name: "Alchemystic", 
+    description: "All things may be transformed",
+    primarySkills: ["Alchemy", "Lore (Magic)", "Meditation", "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", "Magic Path (Apprentice): Path of Thorns", "Magic Path (Journeyman): Path of Thorns", "Stored Spell", "Weapon Proficiency (Staff)", "Herbalism"],
+    secondarySkills: ["Magic Path (Master): Path of Flesh", "Magic Path (Master): Path of Thorns", "First Aid"]
   },
   { 
-    id: "healer", 
-    name: "Healer", 
-    description: "Protector and mender of life",
-    primarySkills: ["Healing Arts", "Herbalism"],
-    secondarySkills: ["Anatomy", "Disease Treatment", "Surgery"]
+    id: "archer", 
+    name: "Archer", 
+    description: "Aim straight and true",
+    primarySkills: ["Alertness", "Dexterity Armor", "Hide", "Hunting", "Marksmanship", "Rapidfire", "Weapon Focus (Bow)", "Weapon Proficiency (Bow)", "Weapon Focus (Medium)", "Weapon Proficiency (Medium)"],
+    secondarySkills: ["Dodge", "Stealth", "Trapper"]
   },
   { 
-    id: "scout", 
-    name: "Scout", 
-    description: "Swift and stealthy explorer",
-    primarySkills: ["Stealth", "Ranged Combat"],
-    secondarySkills: ["Tracking", "Climbing", "Camouflage"]
+    id: "berserker", 
+    name: "Berserker", 
+    description: "Rage... building... unleashing!",
+    primarySkills: ["Armor Training (Light)", "Brutal Blow", "Courage", "Intimidation", "Knockback", "Taunt", "Toughness", "Weapon Focus (Any)", "Weapon Proficiency (Large, Medium)", "Withdraw"],
+    secondarySkills: ["Armor Training (Medium)", "Iron Will", "Weapon Focus (Unarmed)"]
   },
   { 
-    id: "craftsman", 
-    name: "Craftsman", 
-    description: "Creator of wondrous items",
-    primarySkills: ["Smithing", "Crafting"],
-    secondarySkills: ["Engineering", "Appraisal", "Trade"]
+    id: "bodyguard", 
+    name: "Bodyguard", 
+    description: "I don't have time to bleed",
+    primarySkills: ["Alertness", "Armor Training (Light)", "Courage", "First Aid", "Intercept", "Parry", "Shield", "Toughness", "Weapon Focus (Medium)", "Weapon Proficiency (Medium)"],
+    secondarySkills: ["Armor Training (Medium)", "Dodge", "Intimidation"]
   },
   { 
-    id: "scholar", 
-    name: "Scholar", 
-    description: "Keeper of knowledge and lore",
-    primarySkills: ["Research", "Ancient Languages"],
-    secondarySkills: ["History", "Literature", "Cartography"]
+    id: "chef", 
+    name: "Chef", 
+    description: "Toiling away in front of a hot stove",
+    primarySkills: ["Alchemy", "Alertness", "Cooking", "Courage", "Disarm", "First Aid", "Hamstring", "Intimidation", "Mercantile", "Wealth"],
+    secondarySkills: ["Herbalism", "Trader", "Weapon Focus (Small)"]
   },
   { 
-    id: "diplomat", 
-    name: "Diplomat", 
-    description: "Master of words and influence",
-    primarySkills: ["Persuasion", "Etiquette"],
-    secondarySkills: ["Politics", "Law", "Negotiation"]
+    id: "courtesan", 
+    name: "Courtesan", 
+    description: "Serving others is a delight",
+    primarySkills: ["Bard", "Cooking", "First Aid", "Healing", "Meditation", "Plead for Mercy", "Scribe", "Socialite", "Wealth", "Withdraw"],
+    secondarySkills: ["Dodge", "Herbalism", "Mercantile"]
+  },
+  { 
+    id: "ecomancer", 
+    name: "Ecomancer", 
+    description: "Nature is red in tooth and claw",
+    primarySkills: ["Alchemy", "First Aid", "Healing", "Herbalism", "Hide", "Lore (Nature)", "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", "Magic Path (Apprentice): Path of Thorns", "Magic Path (Journeyman): Path of Thorns", "Meditation", "Weapon Proficiency (Staff or Bow)"],
+    secondarySkills: ["Stored Spell", "Magic Path (Master): Path of Flesh", "Magic Path (Master): Path of Thorns"]
+  },
+  { 
+    id: "elementalist", 
+    name: "Elementalist", 
+    description: "Fire and ice shall bend to my will",
+    primarySkills: ["Armor Training (Light)", "Magic Path (Apprentice): Path of the Chill Wind", "Magic Path (Journeyman): Path of the Chill Wind", "Magic Path (Apprentice): Path of the Eternal Flame", "Magic Path (Journeyman): Path of the Eternal Flame", "Meditation", "Socialite", "Stored Spell", "Toughness", "Weapon Proficiency (Staff)"],
+    secondarySkills: ["Counterspell", "Magic Path (Master): Path of the Chill Wind", "Magic Path (Master): Path of the Eternal Flame"]
+  },
+  { 
+    id: "entertainer", 
+    name: "Entertainer", 
+    description: "Perhaps you would like to hear a song?",
+    primarySkills: ["Bard", "Cheat", "Dexterity Armor", "Disarm", "Dodge", "Hide", "Play Dead", "Plead for Mercy", "Socialite", "Taunt"],
+    secondarySkills: ["Backstab", "Weapon Focus (Small)", "Wealth"]
+  },
+  { 
+    id: "erudite", 
+    name: "Erudite", 
+    description: "Speak not wisdom to those incapable of understanding",
+    primarySkills: ["Counterspell", "Lore (Magic)", "Magic Path (Apprentice): Path of Arcane Mind", "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Apprentice): Path of Chill Wind", "Magic Path (Journeyman): Path of Chill Wind", "Magic Path (Apprentice): Path of Eternal Flame", "Magic Path (Journeyman): Path of Eternal Flame", "Stored Spell", "Wealth", "Weapon Proficiency (Staff)"],
+    secondarySkills: ["Magic Path (Master): Path of Arcane Mind", "Magic Path (Master): Path of Chill Wind", "Magic Path (Master): Path of Eternal Flame"]
+  },
+  { 
+    id: "farmer", 
+    name: "Farmer", 
+    description: "It's honest work",
+    primarySkills: ["Bard", "Dodge", "Farming", "First Aid", "Herbalism", "Hunting", "Intimidation", "Knockback", "Plead for Mercy", "Weapon Proficiency (Polearm)"],
+    secondarySkills: ["Trader", "Trapper", "Weapon Focus (Polearm or Unarmed)"]
+  },
+  { 
+    id: "forester", 
+    name: "Forester", 
+    description: "The woods are lovely, dark and deep...",
+    primarySkills: ["Courage", "First Aid", "Herbalism", "Hunting", "Intimidation", "Lore (Nature)", "Lumberjack", "Rapidfire", "Weapon Proficiency (Bow, Crossbow, or Medium)", "Weapon Focus (Bow, Crossbow, or Medium)"],
+    secondarySkills: ["Hide", "Stealth", "Trapper"]
+  },
+  { 
+    id: "forgewright", 
+    name: "Forgewright", 
+    description: "My hammer sings on steel, and crushes bone",
+    primarySkills: ["Armor Smithing", "Armor Training (Medium)", "Blacksmithing", "Fortify Armor", "Mercantile", "Mining", "Scavenging", "Wealth", "Weapon Proficiency (Medium)", "Weapon Smithing"],
+    secondarySkills: ["Toughness", "Weapon Focus (Small or Medium)", "Shield"]
+  },
+  { 
+    id: "gunslinger", 
+    name: "Gunslinger", 
+    description: "Masters of firearms, dealing in lead",
+    primarySkills: ["Alertness", "Ambidexterity", "Armor Training (Light)", "Dexterity Armor", "Hunting", "Marksmanship", "Rapidfire", "Weapon Focus (Medium, Crossbow, or Firearm)", "Weapon Proficiency (Medium, Crossbow, or Firearm)", "Withdraw"],
+    secondarySkills: ["Armor Training (Medium)", "Courage", "Iron Will"]
+  },
+  { 
+    id: "juggernaut", 
+    name: "Juggernaut", 
+    description: "Trust your steel",
+    primarySkills: ["Armor Training (Medium)", "Armor Training (Heavy)", "Brutal Blow", "Courage", "Fortify Armor", "Knockback", "Shield", "Toughness", "Weapon Proficiency (Medium, Large, or Polearm)", "Weapon Focus (Medium, Large, or Polearm)"],
+    secondarySkills: ["Intimidation", "Iron Will", "Shield Master"]
   },
   { 
     id: "merchant", 
     name: "Merchant", 
-    description: "Trader and negotiator",
-    primarySkills: ["Trade", "Appraisal"],
-    secondarySkills: ["Economics", "Negotiation", "Travel"]
-  },
-  { 
-    id: "performer", 
-    name: "Performer", 
-    description: "Artist and entertainer",
-    primarySkills: ["Performance", "Music"],
-    secondarySkills: ["Storytelling", "Dance", "Acrobatics"]
-  },
-  { 
-    id: "guardian", 
-    name: "Guardian", 
-    description: "Protector of the innocent",
-    primarySkills: ["Protection", "Shield Use"],
-    secondarySkills: ["First Aid", "Vigilance", "Courage"]
-  },
-  { 
-    id: "hunter", 
-    name: "Hunter", 
-    description: "Tracker and predator",
-    primarySkills: ["Tracking", "Survival"],
-    secondarySkills: ["Animal Lore", "Trapping", "Butchery"]
+    description: "Everything and everyone has their price",
+    primarySkills: ["Courage", "Intimidation", "Knockback", "Mercantile", "Plead for Mercy", "Trader", "Wealth", "Weapon Proficiency (Staff)", "Weapon Focus (Small)", "Withdraw"],
+    secondarySkills: ["Scavenging", "Trapper", "Weapon Focus (Staff)"]
   },
   { 
     id: "mystic", 
     name: "Mystic", 
-    description: "Seeker of hidden truths",
-    primarySkills: ["Mysticism", "Meditation"],
-    secondarySkills: ["Spirit Lore", "Divination", "Philosophy"]
+    description: "Master that which lies within",
+    primarySkills: ["Alertness", "Dexterity Armor", "Iron Will", "Lore (Magic, Nature)", "Magic Path (Apprentice): Path of Arcane Mind", "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", "Meditation", "Scribe", "Stored Spell", "Weapon Focus (Unarmed)"],
+    secondarySkills: ["Courage", "Magic Path (Master): Path of Arcane Mind", "Magic Path (Master): Path of Flesh"]
+  },
+  { 
+    id: "physician", 
+    name: "Physician", 
+    description: "Save lives and tend to the wellbeing of others",
+    primarySkills: ["Alertness", "Blinding", "Chirurgeon", "Courage", "First Aid", "Hamstring", "Healing", "Herbalism", "Lore (Nature)", "Weapon Focus (Small)"],
+    secondarySkills: ["Mercantile", "Trader", "Wealth"]
+  },
+  { 
+    id: "rogue", 
+    name: "Rogue", 
+    description: "It's only wrong if you get caught",
+    primarySkills: ["Ambidexterity", "Armor Training (Light)", "Backstab", "Dexterity Armor", "Hide", "Lockpicking", "Parry", "Stealth", "Weapon Proficiency (Firearms, Medium, or Thrown)", "Weapon Focus (Small, Medium, or Thrown)"],
+    secondarySkills: ["Quick Search", "Knockout Strike", "Herbalism"]
+  },
+  { 
+    id: "scholar", 
+    name: "Scholar", 
+    description: "Knowledge is power",
+    primarySkills: ["Alertness", "Cheat", "First Aid", "Herbalism", "Hide", "Lore (Any)", "Meditation", "Scribe"],
+    secondarySkills: ["Play Dead", "Wealth", "Withdraw"]
+  },
+  { 
+    id: "scoundrel", 
+    name: "Scoundrel", 
+    description: "All is fair in love and war... and cards",
+    primarySkills: ["Alertness", "Armor Training (Light)", "Backstab", "Cheat", "Hide", "Lockpicking", "Quick Search", "Stealth", "Weapon Proficiency (Medium or Thrown)", "Weapon Focus (Small, Medium, or Thrown)"],
+    secondarySkills: ["Dexterity Armor", "Scavenging", "Withdraw"]
+  },
+  { 
+    id: "shadowcaster", 
+    name: "Shadowcaster", 
+    description: "In shadows are the lost treasures of hidden knowledge",
+    primarySkills: ["Courage", "Hide", "Knockout Strike", "Lore (Magic)", "Magic Path (Apprentice): Path of Shadows", "Magic Path (Journeyman): Path of Shadows", "Meditation", "Stealth", "Weapon Focus (Small)", "Withdraw"],
+    secondarySkills: ["Counterspell", "Stored Spell", "Magic Path (Master): Path of Shadows"]
+  },
+  { 
+    id: "skirmisher", 
+    name: "Skirmisher", 
+    description: "Keep your wits as sharp as your steel",
+    primarySkills: ["Ambidexterity", "Armor Training (Light)", "Dexterity Armor", "Disarm", "Dodge", "Intercept", "Parry", "Piercing Strike", "Riposte", "Weapon Proficiency (Medium, Staff, or Polearm)", "Weapon Focus (Small, Medium, or Polearm)"],
+    secondarySkills: ["Alertness", "Courage", "Taunt"]
+  },
+  { 
+    id: "slayer", 
+    name: "Slayer", 
+    description: "Through the thick of battle",
+    primarySkills: ["Alertness", "Armor Training (Light)", "Brutal Blow", "Courage", "Hide", "Iron Will", "Lore (Monster)", "Parry", "Weapon Focus (Medium, Large, Polearm, or Thrown)", "Weapon Proficiency (Medium, Large, Polearm, or Thrown)"],
+    secondarySkills: ["Alchemy", "Hunting", "Stealth"]
+  },
+  { 
+    id: "soldier", 
+    name: "Soldier", 
+    description: "One of the more common warrior types",
+    primarySkills: ["Armor Training (Light)", "Armor Training (Medium)", "Brutal Blow", "Courage", "Disarm", "Parry", "Shield", "Weapon Focus (Any)", "Weapon Proficiency (Any)", "Toughness"],
+    secondarySkills: ["Armor Training (Heavy)", "Dexterity Armor", "Scavenging"]
+  },
+  { 
+    id: "spellblade", 
+    name: "Spellblade", 
+    description: "By steel and sorcery I slay my foes",
+    primarySkills: ["Ambidexterity", "Armor Training (Light)", "Dexterity Armor", "Disarm", "Magic Path (Apprentice): Path of the Chill Wind", "Magic Path (Apprentice): Path of the Eternal Flame", "Parry", "Weapon Proficiency (Medium, or Polearm)", "Weapon Focus (Small, Medium, or Polearm)"],
+    secondarySkills: ["Magic Path (Journeyman): Path of the Chill Wind", "Magic Path (Journeyman): Path of the Eternal Flame", "Intercept"]
+  },
+  { 
+    id: "sorcerer", 
+    name: "Sorcerer", 
+    description: "The eldritch power of the arcane flows through my blood",
+    primarySkills: ["Counterspell", "Magic Path (Apprentice): Path of Arcane Mind", "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Apprentice): Path of Eternal Flame", "Magic Path (Journeyman): Path of Eternal Flame", "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", "Meditation", "Scribe", "Stored Spell"],
+    secondarySkills: ["Magic Path (Apprentice): Path of Shadows", "Magic Path (Apprentice): Path of Thorns", "Weapon Proficiency (Staff)"]
+  },
+  { 
+    id: "thaumaturgist", 
+    name: "Thaumaturgist", 
+    description: "Through the arcane, I unlock powers unknown to other mortals",
+    primarySkills: ["Alchemy", "Lore (Magic)", "Magic Path (Apprentice): Path of Arcane Mind", "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Apprentice): Path of Chill Wind", "Magic Path (Journeyman): Path of Chill Wind", "Magic Path (Apprentice): Path of Shadows", "Magic Path (Journeyman): Path of Shadows", "Scribe", "Weapon Proficiency (Firearms, Staff)"],
+    secondarySkills: ["Magic Path (Master): Path of Arcane Mind", "Magic Path (Master): Path of Chill Wind", "Magic Path (Master): Path of Shadows"]
+  },
+  { 
+    id: "tinker", 
+    name: "Tinker", 
+    description: "Always seeking to make something new",
+    primarySkills: ["Alchemy", "Alertness", "Blacksmithing", "First Aid", "Fortify Armor", "Lockpicking", "Lore (Engineering)", "Scavenging", "Trader", "Trapper"],
+    secondarySkills: ["Armor Smithing", "Weapon Smithing", "Weapon Proficiency (Firearms)"]
+  },
+  { 
+    id: "warden", 
+    name: "Warden", 
+    description: "The world is a dangerous place...",
+    primarySkills: ["Alertness", "Armor Training (Light)", "Courage", "Dexterity Armor", "First Aid", "Herbalism", "Intercept", "Parry", "Weapon Proficiency (Medium, Staff, or Firearms)", "Weapon Focus (Medium, Staff, or Firearms)"],
+    secondarySkills: ["Magic Path (Apprentice): Path of Thorns", "Magic Path (Journeyman): Path of Thorns", "Mercantile"]
+  },
+  { 
+    id: "wizard", 
+    name: "Wizard", 
+    description: "Wielders of the arcane arts",
+    primarySkills: ["Counterspell", "Lore (Magic)", "Magic Path (Apprentice): Path of Arcane Mind", "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Apprentice): Path of Eternal Flame", "Magic Path (Journeyman): Path of Eternal Flame", "Magic Path (Apprentice): Path of Thorns", "Magic Path (Journeyman): Path of Thorns", "Scribe", "Stored Spell"],
+    secondarySkills: ["Magic Path (Master): Path of Arcane Mind", "Magic Path (Master): Eternal Flame", "Magic Path (Master): Path of Thorns"]
   }
 ] as const;
 
