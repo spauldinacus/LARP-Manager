@@ -938,7 +938,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/rsvps/:id", requireAdmin, async (req, res) => {
     try {
-      const updateData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).partial().parse(req.body);
+      // Create a more flexible schema for updates that allows null for attended
+      const updateSchema = insertEventRsvpSchema.omit({ eventId: true, userId: true }).extend({
+        attended: z.boolean().nullable().optional(),
+      }).partial();
+      
+      const updateData = updateSchema.parse(req.body);
       
       // Validate XP purchases limits
       if (updateData.xpPurchases && updateData.xpPurchases > 2) {

@@ -154,7 +154,6 @@ export default function EventsPage() {
       characterId: "",
       xpPurchases: 0,
       xpCandlePurchases: 0,
-      attended: false,
     },
   });
 
@@ -163,7 +162,6 @@ export default function EventsPage() {
     defaultValues: {
       xpPurchases: 0,
       xpCandlePurchases: 0,
-      attended: false,
     },
   });
 
@@ -201,7 +199,6 @@ export default function EventsPage() {
     editRsvpForm.reset({
       xpPurchases: rsvp.xpPurchases,
       xpCandlePurchases: rsvp.xpCandlePurchases,
-      attended: rsvp.attended,
     });
     setIsEditRsvpModalOpen(true);
   };
@@ -682,14 +679,14 @@ export default function EventsPage() {
                               </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Badge variant={rsvp.attended ? "default" : "secondary"}>
-                                {rsvp.attended ? "Attended" : "RSVPed"}
+                              <Badge variant={rsvp.attended === true ? "default" : rsvp.attended === false ? "destructive" : "secondary"}>
+                                {rsvp.attended === true ? "Attended" : rsvp.attended === false ? "No-Show" : "RSVPed"}
                               </Badge>
                               {user?.isAdmin && (
                                 <div className="flex space-x-1">
                                   <Button
                                     size="sm"
-                                    variant={rsvp.attended ? "default" : "outline"}
+                                    variant={rsvp.attended === true ? "default" : "outline"}
                                     onClick={() => markAttendanceMutation.mutate({ rsvpId: rsvp.id, attended: true })}
                                     disabled={markAttendanceMutation.isPending}
                                     className="text-xs px-2 py-1"
@@ -698,7 +695,7 @@ export default function EventsPage() {
                                   </Button>
                                   <Button
                                     size="sm"
-                                    variant={!rsvp.attended ? "default" : "outline"}
+                                    variant={rsvp.attended === false ? "destructive" : "outline"}
                                     onClick={() => markAttendanceMutation.mutate({ rsvpId: rsvp.id, attended: false })}
                                     disabled={markAttendanceMutation.isPending}
                                     className="text-xs px-2 py-1"

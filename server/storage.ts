@@ -729,8 +729,8 @@ export class DatabaseStorage implements IStorage {
         rsvpId: rsvp.id,
         awardedBy: adminUserId,
       });
-    } else if (!attended && rsvp) {
-      // Remove any existing XP entry for this RSVP if marking as not attended
+    } else if (attended === false && rsvp) {
+      // Remove any existing XP entry for this RSVP if marking as no-show
       await db
         .delete(experienceEntries)
         .where(eq(experienceEntries.rsvpId, rsvp.id));

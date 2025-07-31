@@ -112,7 +112,7 @@ export const eventRsvps = pgTable("event_rsvps", {
   characterId: uuid("character_id").references(() => characters.id).notNull(),
   xpPurchases: integer("xp_purchases").default(0).notNull(), // max 2
   xpCandlePurchases: integer("xp_candle_purchases").default(0).notNull(), // max 2
-  attended: boolean("attended").default(false).notNull(),
+  attended: boolean("attended"),
   userId: uuid("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
