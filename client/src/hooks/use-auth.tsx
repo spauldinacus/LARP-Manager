@@ -9,7 +9,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, playerName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: ({ username, email, password }: { username: string; email: string; password: string }) =>
-      authApi.register({ username, email, password }),
+    mutationFn: ({ username, playerName, email, password }: { username: string; playerName: string; email: string; password: string }) =>
+      authApi.register({ username, playerName, email, password }),
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.setQueryData(["/api/auth/me"], data);
@@ -88,8 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loginMutation.mutateAsync({ email, password });
   };
 
-  const register = async (username: string, email: string, password: string) => {
-    await registerMutation.mutateAsync({ username, email, password });
+  const register = async (username: string, playerName: string, email: string, password: string) => {
+    await registerMutation.mutateAsync({ username, playerName, email, password });
   };
 
   const logout = async () => {

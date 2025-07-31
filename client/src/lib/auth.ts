@@ -14,6 +14,7 @@ export interface LoginCredentials {
 
 export interface RegisterCredentials {
   username: string;
+  playerName: string;
   email: string;
   password: string;
 }

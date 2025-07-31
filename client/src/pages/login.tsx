@@ -18,6 +18,7 @@ const loginSchema = z.object({
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
+  playerName: z.string().min(2, "Player name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -49,6 +50,7 @@ export default function LoginPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
+      playerName: "",
       email: "",
       password: "",
     },
@@ -69,7 +71,7 @@ export default function LoginPage() {
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      await register(data.username, data.email, data.password);
+      await register(data.username, data.playerName, data.email, data.password);
       setLocation("/dashboard");
     } catch (error) {
       // Error handling is done in the auth hook
@@ -158,6 +160,22 @@ export default function LoginPage() {
                   {registerForm.formState.errors.username && (
                     <p className="text-sm text-destructive mt-1">
                       {registerForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="register-player-name">Player Name</Label>
+                  <Input
+                    id="register-player-name"
+                    type="text"
+                    placeholder="Enter your real name"
+                    {...registerForm.register("playerName")}
+                    className={registerForm.formState.errors.playerName ? "border-destructive" : ""}
+                  />
+                  {registerForm.formState.errors.playerName && (
+                    <p className="text-sm text-destructive mt-1">
+                      {registerForm.formState.errors.playerName.message}
                     </p>
                   )}
                 </div>

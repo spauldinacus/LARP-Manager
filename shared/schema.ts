@@ -17,6 +17,7 @@ export const chapters = pgTable("chapters", {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
+  playerName: text("player_name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   playerNumber: text("player_number").unique(),
