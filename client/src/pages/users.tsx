@@ -256,6 +256,16 @@ export default function UsersPage() {
                             </span>
                           )}
                         </div>
+                        
+                        <div className="flex items-center space-x-4 mt-2">
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Candles: </span>
+                            <Badge variant="outline" className="text-orange-600 border-orange-600">
+                              <Flame className="h-3 w-3 mr-1" />
+                              {userData.candles || 0}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -264,14 +274,28 @@ export default function UsersPage() {
                             {userData.characterCount || 0} characters
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedUserId(userData.id)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View Characters
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedUserId(userData.id)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View Characters
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedUserForCandles(userData.id);
+                              setShowCandleModal(true);
+                            }}
+                          >
+                            <Flame className="h-4 w-4 mr-2" />
+                            Manage Candles
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

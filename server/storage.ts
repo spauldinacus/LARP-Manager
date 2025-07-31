@@ -328,6 +328,22 @@ export class DatabaseStorage implements IStorage {
       awardedBy: insertCharacter.userId, // Character creator awards themselves the initial XP
     });
     
+    // Create experience entries for each starting skill purchased at character creation
+    if (insertCharacter.skills && insertCharacter.skills.length > 0) {
+      // Import skill costs from shared schema
+      const { getSkillCost } = await import("../shared/schema");
+      
+      for (const skill of insertCharacter.skills) {
+        const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.culture as any, insertCharacter.archetype as any);
+        await this.createExperienceEntry({
+          characterId: character.id,
+          amount: -skillData.cost, // Negative because it's spending XP
+          reason: `Skill purchase: ${skill}`,
+          awardedBy: insertCharacter.userId,
+        });
+      }
+    }
+    
     return character;
   }
 
