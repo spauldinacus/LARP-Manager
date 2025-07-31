@@ -145,9 +145,6 @@ export default function UsersPage() {
                           <div className="text-sm font-medium">
                             {userData.characterCount || 0} characters
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {userData.totalExperience || 0} total XP
-                          </div>
                         </div>
                         <Button
                           size="sm"

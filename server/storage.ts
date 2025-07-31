@@ -168,8 +168,24 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+  async getAllUsers(): Promise<any[]> {
+    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+    
+    const usersWithCharacterCounts = await Promise.all(
+      allUsers.map(async (user) => {
+        const userCharacters = await db
+          .select({ id: characters.id })
+          .from(characters)  
+          .where(eq(characters.userId, user.id));
+          
+        return {
+          ...user,
+          characterCount: userCharacters.length,
+        };
+      })
+    );
+    
+    return usersWithCharacterCounts;
   }
 
   async getAllPlayersWithCharacters(): Promise<any[]> {
