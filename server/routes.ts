@@ -644,15 +644,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const entry = await storage.createExperienceEntry(entryData);
       
-      // Update character's total experience
-      await storage.updateCharacter(req.params.id, {
-        experience: character.experience + req.body.amount
-      });
+      // Refresh character XP totals
+      await storage.refreshCharacterXP(req.params.id);
       
       res.status(201).json(entry);
     } catch (error) {
       console.error("Experience award error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to award experience" });
+    }
+  });
+
+  // Edit experience entry (admin only)
+  app.put("/api/experience/:id", requireAdmin, async (req, res) => {
+    try {
+      const { amount, reason } = req.body;
+      
+      if (!amount || !reason) {
+        return res.status(400).json({ message: "Amount and reason are required" });
+      }
+
+      const entry = await storage.updateExperienceEntry(req.params.id, {
+        amount,
+        reason,
+      });
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Experience entry not found" });
+      }
+
+      // Refresh character XP totals
+      await storage.refreshCharacterXP(entry.characterId);
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Experience edit error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update experience entry" });
+    }
+  });
+
+  // Delete experience entry (admin only)
+  app.delete("/api/experience/:id", requireAdmin, async (req, res) => {
+    try {
+      const entry = await storage.getExperienceEntry(req.params.id);
+      if (!entry) {
+        return res.status(404).json({ message: "Experience entry not found" });
+      }
+
+      await storage.deleteExperienceEntry(req.params.id);
+      
+      // Refresh character XP totals
+      await storage.refreshCharacterXP(entry.characterId);
+      
+      res.json({ message: "Experience entry deleted successfully" });
+    } catch (error) {
+      console.error("Experience delete error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to delete experience entry" });
     }
   });
 

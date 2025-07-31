@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "@/components/layout/sidebar";
@@ -11,7 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Menu, TrendingUp, Trophy, Target, Star, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Menu, TrendingUp, Trophy, Target, Star, Users, Plus, Edit, Trash2, Calendar } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 import type { Character } from "@shared/schema";
 
 export default function ProgressionPage() {
@@ -20,6 +25,12 @@ export default function ProgressionPage() {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
+  const [showAddXpModal, setShowAddXpModal] = useState(false);
+  const [showEditXpModal, setShowEditXpModal] = useState(false);
+  const [selectedExperienceEntry, setSelectedExperienceEntry] = useState<any>(null);
+  const [xpAmount, setXpAmount] = useState(0);
+  const [xpReason, setXpReason] = useState("");
+  const queryClient = useQueryClient();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -31,6 +42,91 @@ export default function ProgressionPage() {
   const { data: characters = [], isLoading: charactersLoading } = useQuery<Character[]>({
     queryKey: ["/api/characters"],
     enabled: !!user,
+  });
+
+  // Fetch experience history for selected character
+  const { data: experienceHistory = [] } = useQuery({
+    queryKey: ["/api/characters", selectedCharacterId, "experience"],
+    enabled: !!selectedCharacterId,
+  });
+
+  // Add XP mutation
+  const addXpMutation = useMutation({
+    mutationFn: async (data: { amount: number; reason: string }) => {
+      const response = await apiRequest("POST", `/api/characters/${selectedCharacterId}/experience`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", selectedCharacterId, "experience"] });
+      setShowAddXpModal(false);
+      setXpAmount(0);
+      setXpReason("");
+      toast({
+        title: "Experience added",
+        description: "Experience points have been successfully added.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add experience",
+        description: error.message || "Failed to add experience points",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Edit XP mutation
+  const editXpMutation = useMutation({
+    mutationFn: async (data: { entryId: string; amount: number; reason: string }) => {
+      const response = await apiRequest("PUT", `/api/experience/${data.entryId}`, {
+        amount: data.amount,
+        reason: data.reason,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", selectedCharacterId, "experience"] });
+      setShowEditXpModal(false);
+      setSelectedExperienceEntry(null);
+      setXpAmount(0);
+      setXpReason("");
+      toast({
+        title: "Experience updated",
+        description: "Experience entry has been successfully updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update experience",
+        description: error.message || "Failed to update experience entry",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete XP mutation
+  const deleteXpMutation = useMutation({
+    mutationFn: async (entryId: string) => {
+      const response = await apiRequest("DELETE", `/api/experience/${entryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", selectedCharacterId, "experience"] });
+      toast({
+        title: "Experience deleted",
+        description: "Experience entry has been successfully deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete experience",
+        description: error.message || "Failed to delete experience entry",
+        variant: "destructive",
+      });
+    },
   });
 
   // Auto-select first active character
@@ -72,16 +168,18 @@ export default function ProgressionPage() {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <Sidebar user={user} currentPath="/progression" />
+        {user && <Sidebar user={user} currentPath="/progression" />}
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNav 
-        isOpen={mobileMenuOpen} 
-        onClose={() => setMobileMenuOpen(false)} 
-        user={user} 
-        currentPath="/progression" 
-      />
+      {user && (
+        <MobileNav 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)} 
+          user={user} 
+          currentPath="/progression" 
+        />
+      )}
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6">
@@ -146,6 +244,16 @@ export default function ProgressionPage() {
                       <Badge variant="outline">
                         {((selectedCharacter.experience || 0) + (selectedCharacter.totalXpSpent || 0))} Total XP
                       </Badge>
+                      {user?.isAdmin && (
+                        <Button
+                          size="sm"
+                          onClick={() => setShowAddXpModal(true)}
+                          className="ml-4"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add XP
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -172,6 +280,14 @@ export default function ProgressionPage() {
             <XPProgressionTracker 
               characterId={selectedCharacter.id} 
               character={selectedCharacter}
+              isAdmin={user?.isAdmin}
+              onEditExperience={(entry) => {
+                setSelectedExperienceEntry(entry);
+                setXpAmount(entry.amount);
+                setXpReason(entry.reason);
+                setShowEditXpModal(true);
+              }}
+              onDeleteExperience={(entryId) => deleteXpMutation.mutate(entryId)}
             />
           )}
 
@@ -221,6 +337,100 @@ export default function ProgressionPage() {
           )}
         </div>
       </main>
+
+      {/* Add XP Modal */}
+      <Dialog open={showAddXpModal} onOpenChange={setShowAddXpModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Experience Points</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="xp-amount">Experience Points</Label>
+              <Input
+                id="xp-amount"
+                type="number"
+                value={xpAmount}
+                onChange={(e) => setXpAmount(parseInt(e.target.value) || 0)}
+                placeholder="Enter XP amount"
+              />
+            </div>
+            <div>
+              <Label htmlFor="xp-reason">Reason</Label>
+              <Input
+                id="xp-reason"
+                value={xpReason}
+                onChange={(e) => setXpReason(e.target.value)}
+                placeholder="Reason for XP award (e.g., 'Event attendance', 'Special achievement')"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddXpModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (xpAmount && xpReason) {
+                  addXpMutation.mutate({ amount: xpAmount, reason: xpReason });
+                }
+              }}
+              disabled={!xpAmount || !xpReason || addXpMutation.isPending}
+            >
+              {addXpMutation.isPending ? "Adding..." : "Add XP"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit XP Modal */}
+      <Dialog open={showEditXpModal} onOpenChange={setShowEditXpModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Experience Entry</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-xp-amount">Experience Points</Label>
+              <Input
+                id="edit-xp-amount"
+                type="number"
+                value={xpAmount}
+                onChange={(e) => setXpAmount(parseInt(e.target.value) || 0)}
+                placeholder="Enter XP amount"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-xp-reason">Reason</Label>
+              <Input
+                id="edit-xp-reason"
+                value={xpReason}
+                onChange={(e) => setXpReason(e.target.value)}
+                placeholder="Reason for XP award"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditXpModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedExperienceEntry && xpAmount && xpReason) {
+                  editXpMutation.mutate({
+                    entryId: selectedExperienceEntry.id,
+                    amount: xpAmount,
+                    reason: xpReason,
+                  });
+                }
+              }}
+              disabled={!xpAmount || !xpReason || editXpMutation.isPending}
+            >
+              {editXpMutation.isPending ? "Updating..." : "Update XP"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

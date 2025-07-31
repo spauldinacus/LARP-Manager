@@ -24,7 +24,9 @@ import {
   Users,
   Flame,
   Brain,
-  Wand2
+  Wand2,
+  Edit,
+  Trash2
 } from "lucide-react";
 
 interface Character {
@@ -44,6 +46,9 @@ interface Character {
 interface XPProgressionTrackerProps {
   characterId: string;
   character?: Character;
+  isAdmin?: boolean;
+  onEditExperience?: (entry: any) => void;
+  onDeleteExperience?: (entryId: string) => void;
 }
 
 // XP milestone definitions
@@ -164,7 +169,13 @@ const ACHIEVEMENTS = [
   }
 ];
 
-export default function XPProgressionTracker({ characterId, character }: XPProgressionTrackerProps) {
+export default function XPProgressionTracker({ 
+  characterId, 
+  character, 
+  isAdmin = false, 
+  onEditExperience, 
+  onDeleteExperience 
+}: XPProgressionTrackerProps) {
   const [selectedTab, setSelectedTab] = useState("overview");
 
   // Fetch character experience history
@@ -417,21 +428,42 @@ export default function XPProgressionTracker({ characterId, character }: XPProgr
               {experienceHistory.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {(experienceHistory as any[]).map((entry: any) => (
-                    <div key={entry.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={entry.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-full ${entry.amount > 0 ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400"}`}>
                           {entry.amount > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingUp className="h-4 w-4 rotate-180" />}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{entry.reason}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(entry.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
-                      <Badge variant={entry.amount > 0 ? "default" : "destructive"}>
-                        {entry.amount > 0 ? "+" : ""}{entry.amount} XP
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={entry.amount > 0 ? "default" : "destructive"}>
+                          {entry.amount > 0 ? "+" : ""}{entry.amount} XP
+                        </Badge>
+                        {isAdmin && (
+                          <div className="flex space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onEditExperience?.(entry)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onDeleteExperience?.(entry.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

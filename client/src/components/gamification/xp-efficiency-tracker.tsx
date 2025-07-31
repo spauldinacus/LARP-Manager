@@ -78,7 +78,7 @@ export default function XPEfficiencyTracker({ character }: XPEfficiencyTrackerPr
   const cultureSkills = getCultureSkills(character.culture);
   const archetypeSkills = getArchetypeSkills(character.archetype);
   
-  const allOptimalSkills = [...new Set([...heritageSkills, ...cultureSkills, ...archetypeSkills])];
+  const allOptimalSkills = Array.from(new Set([...heritageSkills, ...cultureSkills, ...archetypeSkills]));
   const missingOptimalSkills = allOptimalSkills.filter(skill => !character.skills?.includes(skill));
   
   // Calculate next upgrade costs

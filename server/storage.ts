@@ -619,6 +619,32 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getExperienceEntry(id: string): Promise<any | undefined> {
+    const [entry] = await db.select().from(experienceEntries).where(eq(experienceEntries.id, id));
+    return entry || undefined;
+  }
+
+  async updateExperienceEntry(id: string, updateData: { amount: number; reason: string }): Promise<any | undefined> {
+    const [updated] = await db
+      .update(experienceEntries)
+      .set(updateData)
+      .where(eq(experienceEntries.id, id))
+      .returning();
+    
+    if (updated) {
+      // Update character's total experience and XP spent
+      const totalExp = await this.getTotalExperienceByCharacter(updated.characterId);
+      const totalXpSpent = await this.calculateTotalXpSpent(updated.characterId);
+      
+      await this.updateCharacter(updated.characterId, { 
+        experience: totalExp,
+        totalXpSpent: totalXpSpent
+      });
+    }
+    
+    return updated || undefined;
+  }
+
   // Calculate base XP for a single event attendance (official Thrune LARP rulebook progression)
   async calculateEventAttendanceXP(characterId: string): Promise<number> {
     // Count total events attended by character (including current one if this is for attendance calculation)
