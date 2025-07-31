@@ -44,6 +44,12 @@ const navigationItems = [
     adminOnly: true,
   },
   {
+    href: "/players",
+    icon: Users,
+    label: "Players",
+    adminOnly: true,
+  },
+  {
     href: "/users",
     icon: UserCog,
     label: "User Management",

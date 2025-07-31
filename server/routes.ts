@@ -302,6 +302,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/players", requireAdmin, async (req, res) => {
+    try {
+      const players = await storage.getAllPlayersWithCharacters();
+      res.json(players);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get players" });
+    }
+  });
+
+  app.put("/api/admin/players/:id/player-number", requireAdmin, async (req, res) => {
+    try {
+      const { playerNumber } = req.body;
+      await storage.updateUserPlayerNumber(req.params.id, playerNumber);
+      res.json({ message: "Player number updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update player number" });
+    }
+  });
+
+  app.post("/api/admin/characters/:id/add-skill", requireAdmin, async (req, res) => {
+    try {
+      const { skill } = req.body;
+      await storage.addSkillToCharacter(req.params.id, skill);
+      res.json({ message: "Skill added successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add skill" });
+    }
+  });
+
+  app.delete("/api/admin/characters/:id/remove-skill", requireAdmin, async (req, res) => {
+    try {
+      const { skill } = req.body;
+      await storage.removeSkillFromCharacter(req.params.id, skill);
+      res.json({ message: "Skill removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove skill" });
+    }
+  });
+
   app.get("/api/admin/stats", requireAdmin, async (req, res) => {
     try {
       const stats = await storage.getStats();

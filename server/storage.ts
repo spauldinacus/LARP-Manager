@@ -172,6 +172,88 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
+  async getAllPlayersWithCharacters(): Promise<any[]> {
+    const usersWithCharacters = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        playerNumber: users.playerNumber,
+        chapterId: users.chapterId,
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt));
+
+    const playersWithCharacters = await Promise.all(
+      usersWithCharacters.map(async (user) => {
+        const userCharacters = await db
+          .select({
+            id: characters.id,
+            name: characters.name,
+            heritage: characters.heritage,
+            culture: characters.culture,
+            archetype: characters.archetype,
+            skills: characters.skills,
+            isActive: characters.isActive,
+            isRetired: characters.isRetired,
+          })
+          .from(characters)
+          .where(eq(characters.userId, user.id))
+          .orderBy(desc(characters.createdAt));
+
+        return {
+          ...user,
+          characters: userCharacters,
+        };
+      })
+    );
+
+    return playersWithCharacters;
+  }
+
+  async updateUserPlayerNumber(userId: string, playerNumber: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ playerNumber, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async addSkillToCharacter(characterId: string, skill: string): Promise<void> {
+    const character = await this.getCharacter(characterId);
+    if (!character) {
+      throw new Error("Character not found");
+    }
+
+    const currentSkills = character.skills || [];
+    if (currentSkills.includes(skill)) {
+      throw new Error("Character already has this skill");
+    }
+
+    const updatedSkills = [...currentSkills, skill];
+    await db
+      .update(characters)
+      .set({ skills: updatedSkills, updatedAt: new Date() })
+      .where(eq(characters.id, characterId));
+  }
+
+  async removeSkillFromCharacter(characterId: string, skill: string): Promise<void> {
+    const character = await this.getCharacter(characterId);
+    if (!character) {
+      throw new Error("Character not found");
+    }
+
+    const currentSkills = character.skills || [];
+    if (!currentSkills.includes(skill)) {
+      throw new Error("Character does not have this skill");
+    }
+
+    const updatedSkills = currentSkills.filter(s => s !== skill);
+    await db
+      .update(characters)
+      .set({ skills: updatedSkills, updatedAt: new Date() })
+      .where(eq(characters.id, characterId));
+  }
+
   // Character methods
   async getCharacter(id: string): Promise<Character | undefined> {
     const [character] = await db.select().from(characters).where(eq(characters.id, id));

@@ -107,7 +107,12 @@ export default function DashboardPage() {
                 <Menu className="h-5 w-5" />
               </Button>
             )}
-            <h1 className="text-xl font-semibold">Dashboard</h1>
+            <div>
+              <h1 className="text-xl font-semibold">Dashboard</h1>
+              {user.playerNumber && (
+                <p className="text-sm text-muted-foreground">Player #{user.playerNumber}</p>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
