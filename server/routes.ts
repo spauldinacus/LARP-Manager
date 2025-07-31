@@ -936,7 +936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/rsvps/:id", requireAuth, async (req, res) => {
+  app.patch("/api/rsvps/:id", requireAdmin, async (req, res) => {
     try {
       const updateData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).partial().parse(req.body);
       
@@ -953,6 +953,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("RSVP update error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update RSVP" });
+    }
+  });
+
+  app.delete("/api/rsvps/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteEventRsvp(req.params.id);
+      res.json({ message: "RSVP removed successfully" });
+    } catch (error) {
+      console.error("RSVP deletion error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to remove RSVP" });
     }
   });
 

@@ -92,6 +92,7 @@ export interface IStorage {
   getEventRsvp(eventId: string, characterId: string): Promise<EventRsvp | undefined>;
   createEventRsvp(rsvp: InsertEventRsvp): Promise<EventRsvp>;
   updateEventRsvp(id: string, rsvp: Partial<EventRsvp>): Promise<EventRsvp>;
+  deleteEventRsvp(id: string): Promise<void>;
   getEventRsvps(eventId: string): Promise<EventRsvp[]>;
   getCharacterRsvps(characterId: string): Promise<EventRsvp[]>;
   markAttendance(rsvpId: string, attended: boolean, adminUserId: string): Promise<EventRsvp>;
@@ -676,6 +677,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(eventRsvps.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteEventRsvp(id: string): Promise<void> {
+    // First, remove any experience entries linked to this RSVP
+    await db
+      .delete(experienceEntries)
+      .where(eq(experienceEntries.rsvpId, id));
+    
+    // Then delete the RSVP
+    await db
+      .delete(eventRsvps)
+      .where(eq(eventRsvps.id, id));
   }
 
   async getEventRsvps(eventId: string): Promise<EventRsvp[]> {

@@ -38,7 +38,9 @@ export default function EventsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRsvpModalOpen, setIsRsvpModalOpen] = useState(false);
   const [isRsvpListModalOpen, setIsRsvpListModalOpen] = useState(false);
+  const [isEditRsvpModalOpen, setIsEditRsvpModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedRsvp, setSelectedRsvp] = useState<EventRsvp | null>(null);
   const { toast } = useToast();
 
   // Redirect to login if not authenticated
@@ -156,6 +158,15 @@ export default function EventsPage() {
     },
   });
 
+  const editRsvpForm = useForm({
+    resolver: zodResolver(rsvpFormSchema.omit({ characterId: true })),
+    defaultValues: {
+      xpPurchases: 0,
+      xpCandlePurchases: 0,
+      attended: false,
+    },
+  });
+
   const onCreateSubmit = (data: any) => {
     createEventMutation.mutate({
       ...data,
@@ -170,6 +181,34 @@ export default function EventsPage() {
         eventId: selectedEvent.id,
         data,
       });
+    }
+  };
+
+  const onEditRsvpSubmit = (data: any) => {
+    if (selectedRsvp) {
+      updateRsvpMutation.mutate({
+        rsvpId: selectedRsvp.id,
+        data,
+      });
+      setIsEditRsvpModalOpen(false);
+      setSelectedRsvp(null);
+      editRsvpForm.reset();
+    }
+  };
+
+  const handleEditRsvp = (rsvp: EventRsvp) => {
+    setSelectedRsvp(rsvp);
+    editRsvpForm.reset({
+      xpPurchases: rsvp.xpPurchases,
+      xpCandlePurchases: rsvp.xpCandlePurchases,
+      attended: rsvp.attended,
+    });
+    setIsEditRsvpModalOpen(true);
+  };
+
+  const handleDeleteRsvp = (rsvp: EventRsvp) => {
+    if (window.confirm(`Remove ${characters.find(c => c.id === rsvp.characterId)?.name || 'this character'} from the event?`)) {
+      deleteRsvpMutation.mutate(rsvp.id);
     }
   };
 
@@ -199,6 +238,46 @@ export default function EventsPage() {
       toast({
         title: "Attendance Error",
         description: error.message || "Failed to update attendance",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin RSVP modification mutations
+  const updateRsvpMutation = useMutation({
+    mutationFn: ({ rsvpId, data }: { rsvpId: string; data: Partial<EventRsvp> }) =>
+      apiRequest("PATCH", `/api/rsvps/${rsvpId}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
+      toast({
+        title: "RSVP Updated",
+        description: "RSVP has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Error",
+        description: error.message || "Failed to update RSVP",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteRsvpMutation = useMutation({
+    mutationFn: (rsvpId: string) =>
+      apiRequest("DELETE", `/api/rsvps/${rsvpId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      toast({
+        title: "RSVP Removed",
+        description: "Character has been removed from the event.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Removal Error",
+        description: error.message || "Failed to remove RSVP",
         variant: "destructive",
       });
     },
@@ -637,9 +716,31 @@ export default function EventsPage() {
                               </p>
                             </div>
                           )}
-                          <p className="text-xs text-gray-500">
-                            RSVPed on {new Date(rsvp.createdAt).toLocaleDateString()}
-                          </p>
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs text-gray-500">
+                              RSVPed on {new Date(rsvp.createdAt).toLocaleDateString()}
+                            </p>
+                            {user?.isAdmin && (
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditRsvp(rsvp)}
+                                  className="text-xs px-2 py-1"
+                                >
+                                  Edit XP
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteRsvp(rsvp)}
+                                  className="text-xs px-2 py-1"
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })
@@ -652,6 +753,76 @@ export default function EventsPage() {
                 Close
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit RSVP Modal */}
+        <Dialog open={isEditRsvpModalOpen} onOpenChange={setIsEditRsvpModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit RSVP XP Purchases</DialogTitle>
+              <DialogDescription>
+                Modify the XP purchases for this character's RSVP
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editRsvpForm}>
+              <form onSubmit={editRsvpForm.handleSubmit(onEditRsvpSubmit)} className="space-y-4">
+                <FormField
+                  control={editRsvpForm.control}
+                  name="xpPurchases"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>XP Purchases (Max 2)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="2"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editRsvpForm.control}
+                  name="xpCandlePurchases"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>XP Candle Purchases (Max 2)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="2"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          Purchase additional experience points for this character (10 candles each).
+                        </p>
+                        <p className="text-sm font-medium text-orange-600">
+                          Cost: {(field.value || 0) * 10} candles
+                        </p>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsEditRsvpModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateRsvpMutation.isPending}>
+                    {updateRsvpMutation.isPending ? "Updating..." : "Update RSVP"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
