@@ -371,34 +371,109 @@ export class DatabaseStorage implements IStorage {
   // Dashboard stats
   async getStats(): Promise<{
     totalCharacters: number;
+    totalCharactersLastMonth: number;
     activePlayers: number;
+    activePlayersLastWeek: number;
     totalExperience: number;
+    totalExperienceLastMonth: number;
     upcomingEvents: number;
+    nextEvent: { name: string; date: Date; daysUntil: number } | null;
   }> {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Total characters
     const [characterCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(characters)
       .where(eq(characters.isActive, true));
 
+    // Characters from last month
+    const [characterCountLastMonth] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(characters)
+      .where(and(
+        eq(characters.isActive, true),
+        sql`${characters.createdAt} <= ${lastMonth}`
+      ));
+
+    // Active players
     const [playerCount] = await db
       .select({ count: sql<number>`count(distinct ${characters.userId})` })
       .from(characters)
       .where(eq(characters.isActive, true));
 
+    // Active players from last week
+    const [playerCountLastWeek] = await db
+      .select({ count: sql<number>`count(distinct ${characters.userId})` })
+      .from(characters)
+      .where(and(
+        eq(characters.isActive, true),
+        sql`${characters.createdAt} <= ${lastWeek}`
+      ));
+
+    // Total experience
     const [expTotal] = await db
       .select({ total: sum(experienceEntries.amount) })
-      .from(experienceEntries);
+      .from(experienceEntries)
+      .where(sql`${experienceEntries.amount} > 0`);
 
+    // Experience from last month
+    const [expTotalLastMonth] = await db
+      .select({ total: sum(experienceEntries.amount) })
+      .from(experienceEntries)
+      .where(and(
+        sql`${experienceEntries.amount} > 0`,
+        sql`${experienceEntries.createdAt} <= ${lastMonth}`
+      ));
+
+    // Upcoming events count
     const [eventCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(events)
       .where(and(eq(events.isActive, true), sql`${events.eventDate} >= now()`));
 
+    // Next upcoming event
+    const [nextEvent] = await db
+      .select({
+        name: events.name,
+        eventDate: events.eventDate,
+      })
+      .from(events)
+      .where(and(eq(events.isActive, true), sql`${events.eventDate} >= now()`))
+      .orderBy(events.eventDate)
+      .limit(1);
+
+    const totalChars = characterCount?.count || 0;
+    const totalCharsLastMonth = characterCountLastMonth?.count || 0;
+    const activePlayers = playerCount?.count || 0;
+    const activePlayersLastWeek = playerCountLastWeek?.count || 0;
+    const totalExp = Number(expTotal?.total) || 0;
+    const totalExpLastMonth = Number(expTotalLastMonth?.total) || 0;
+
+    let nextEventInfo = null;
+    if (nextEvent) {
+      const eventDate = new Date(nextEvent.eventDate);
+      const timeDiff = eventDate.getTime() - now.getTime();
+      const daysUntil = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      nextEventInfo = {
+        name: nextEvent.name,
+        date: eventDate,
+        daysUntil: Math.max(0, daysUntil)
+      };
+    }
+
     return {
-      totalCharacters: characterCount?.count || 0,
-      activePlayers: playerCount?.count || 0,
-      totalExperience: Number(expTotal?.total) || 0,
+      totalCharacters: totalChars,
+      totalCharactersLastMonth: totalCharsLastMonth,
+      activePlayers: activePlayers,
+      activePlayersLastWeek: activePlayersLastWeek,
+      totalExperience: totalExp,
+      totalExperienceLastMonth: totalExpLastMonth,
       upcomingEvents: eventCount?.count || 0,
+      nextEvent: nextEventInfo,
     };
   }
 }

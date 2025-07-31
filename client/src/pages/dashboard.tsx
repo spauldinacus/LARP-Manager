@@ -33,6 +33,27 @@ export default function DashboardPage() {
     enabled: !!user?.isAdmin,
   });
 
+  // Calculate percentage changes
+  const calculatePercentageChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  };
+
+  const characterPercentageChange = stats ? calculatePercentageChange(
+    stats.totalCharacters, 
+    stats.totalCharactersLastMonth
+  ) : 0;
+
+  const playerPercentageChange = stats ? calculatePercentageChange(
+    stats.activePlayers, 
+    stats.activePlayersLastWeek
+  ) : 0;
+
+  const experiencePercentageChange = stats ? calculatePercentageChange(
+    stats.totalExperience, 
+    stats.totalExperienceLastMonth
+  ) : 0;
+
   // Fetch recent characters
   const { data: characters, isLoading: charactersLoading } = useQuery({
     queryKey: ["/api/characters"],
@@ -128,7 +149,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    <span className="text-green-500">+12%</span> from last month
+                    <span className={characterPercentageChange >= 0 ? "text-green-500" : "text-red-500"}>
+                      {characterPercentageChange >= 0 ? '+' : ''}{characterPercentageChange}%
+                    </span> from last month
                   </p>
                 </CardContent>
               </Card>
@@ -149,7 +172,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    <span className="text-green-500">+8%</span> from last week
+                    <span className={playerPercentageChange >= 0 ? "text-green-500" : "text-red-500"}>
+                      {playerPercentageChange >= 0 ? '+' : ''}{playerPercentageChange}%
+                    </span> from last week
                   </p>
                 </CardContent>
               </Card>
@@ -170,7 +195,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    <span className="text-green-500">+156</span> this month
+                    <span className={experiencePercentageChange >= 0 ? "text-green-500" : "text-red-500"}>
+                      {experiencePercentageChange >= 0 ? '+' : ''}{experiencePercentageChange}%
+                    </span> from last month
                   </p>
                 </CardContent>
               </Card>
@@ -190,7 +217,15 @@ export default function DashboardPage() {
                       <Calendar className="h-6 w-6 text-blue-500" />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">Next event in 5 days</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {stats?.nextEvent ? (
+                      stats.nextEvent.daysUntil === 0 ? 
+                        `${stats.nextEvent.name} is today!` :
+                        stats.nextEvent.daysUntil === 1 ? 
+                          `${stats.nextEvent.name} tomorrow` :
+                          `${stats.nextEvent.name} in ${stats.nextEvent.daysUntil} days`
+                    ) : "No upcoming events"}
+                  </p>
                 </CardContent>
               </Card>
             </div>
