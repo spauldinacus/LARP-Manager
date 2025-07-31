@@ -466,25 +466,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Character does not have this skill" });
       }
 
-      // Remove skill from character
+      // Find and delete the original experience entry for this skill purchase
+      // This is better than creating a refund entry as it removes the spending entirely
+      await storage.deleteSkillExperienceEntry(req.params.id, skill);
+
+      // Remove skill from character (XP totals will be recalculated by deleteSkillExperienceEntry)
       const updatedSkills = character.skills.filter(s => s !== skill);
-      const newTotalXpSpent = Math.max(0, (character.totalXpSpent || 0) - cost);
-      
       await storage.updateCharacter(req.params.id, {
         skills: updatedSkills,
-        totalXpSpent: newTotalXpSpent,
-        experience: character.experience + cost // Return XP to available pool
       });
 
-      // Create experience entry for the refund (positive amount to refund the XP)
-      await storage.createExperienceEntry({
-        characterId: req.params.id,
-        amount: cost, // Positive amount refunds the XP spent
-        reason: `Admin refunded skill: ${skill}`,
-        awardedBy: req.session.userId!,
-      });
-
-      res.json({ message: "Skill removed successfully and XP totals updated" });
+      res.json({ message: "Skill removed successfully and XP refunded" });
     } catch (error) {
       console.error("Admin remove skill error:", error);
       res.status(500).json({ message: "Failed to remove skill" });

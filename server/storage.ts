@@ -632,6 +632,35 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // Delete skill-related experience entry (for admin skill removal)
+  async deleteSkillExperienceEntry(characterId: string, skill: string): Promise<void> {
+    // Find the experience entry for this skill purchase/addition
+    const entries = await db
+      .select()
+      .from(experienceEntries)
+      .where(and(
+        eq(experienceEntries.characterId, characterId),
+        sql`${experienceEntries.reason} LIKE '%${skill}'`,
+        sql`${experienceEntries.amount} < 0` // Only negative entries (spending)
+      ))
+      .orderBy(desc(experienceEntries.createdAt));
+
+    // Delete the most recent spending entry for this skill
+    if (entries.length > 0) {
+      const entryToDelete = entries[0];
+      await db.delete(experienceEntries).where(eq(experienceEntries.id, entryToDelete.id));
+      
+      // Update character's total experience and XP spent
+      const totalExp = await this.getTotalExperienceByCharacter(characterId);
+      const totalXpSpent = await this.calculateTotalXpSpent(characterId);
+      
+      await this.updateCharacter(characterId, { 
+        experience: totalExp,
+        totalXpSpent: totalXpSpent
+      });
+    }
+  }
+
   // Dashboard stats
   async getStats(): Promise<{
     totalCharacters: number;
