@@ -203,8 +203,10 @@ export default function CharacterCreationModal({
   }, 0);
 
   // Get base body/stamina from heritage
-  const baseBody = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage)?.body || 0 : 0;
-  const baseStamina = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage)?.stamina || 0 : 0;
+  const watchedHeritage = form.watch("heritage");
+  const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
+  const baseBody = selectedHeritageData?.body || 0;
+  const baseStamina = selectedHeritageData?.stamina || 0;
   
   // Calculate attribute costs based on incremental cost from current values
   const bodyCost = additionalBody > 0 ? getAttributeCost(baseBody, additionalBody) : 0;
@@ -259,11 +261,8 @@ export default function CharacterCreationModal({
     createCharacterMutation.mutate(data);
   };
 
-  const watchedHeritage = form.watch("heritage");
   const watchedCulture = form.watch("culture");
   const watchedArchetype = form.watch("archetype");
-  
-  const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
   const availableCultures = watchedHeritage ? CULTURES[watchedHeritage as Heritage] || [] : [];
   const selectedCultureData = availableCultures.find(c => c.id === watchedCulture);
   const selectedArchetypeData = ARCHETYPES.find(a => a.id === watchedArchetype);
