@@ -34,6 +34,10 @@ Preferred communication style: Simple, everyday language.
   - Added historical data comparison for growth tracking
   - Implemented actual next event countdown with event names
   - All dashboard metrics now reflect authentic data from the database
+- **Enhanced character display formatting**
+  - Capitalized heritage, culture, and archetype names across all pages
+  - Converted kebab-case to proper title case (e.g., "ar-nura" → "Ar Nura")
+  - Applied consistent formatting to character cards, sheets, modals, and admin views
 - **Enhanced chapter management system**
   - Added complete chapter management with database schema and API endpoints
   - Implemented player number generation system (format: FL07310001)

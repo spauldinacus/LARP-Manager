@@ -145,7 +145,7 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
                         <div className="flex-1">
                           <p className="font-medium">{character.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {character.heritage} {character.archetype} • Current XP: {character.experience}
+                            {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} • Current XP: {character.experience}
                           </p>
                         </div>
                       </label>

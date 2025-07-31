@@ -244,7 +244,7 @@ export default function PlayersPage() {
                                 <div>
                                   <p className="text-sm font-medium">{character.name}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {character.heritage} {character.archetype}
+                                    {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                   </p>
                                   <div className="flex space-x-1 mt-1">
                                     <Badge variant={character.isActive ? "default" : "secondary"} className="text-xs">

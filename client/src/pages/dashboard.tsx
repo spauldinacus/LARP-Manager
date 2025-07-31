@@ -274,7 +274,7 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{character.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {character.heritage} {character.archetype}
+                            {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </p>
                         </div>
                         <Badge variant={character.isActive ? "default" : "secondary"}>
