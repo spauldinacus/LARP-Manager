@@ -362,6 +362,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Check if character is retired
+      if (character.isRetired) {
+        return res.status(400).json({ message: "Cannot purchase skills for retired characters" });
+      }
+
       const { skill, cost } = req.body;
       
       if (!skill || !cost || cost <= 0) {
@@ -412,6 +417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Check if character is retired
+      if (character.isRetired) {
+        return res.status(400).json({ message: "Cannot increase attributes for retired characters" });
+      }
+
       const { attribute, amount, cost } = req.body;
       
       if (!attribute || !amount || !cost || amount <= 0 || cost <= 0) {
@@ -451,6 +461,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Attribute increase error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to increase attribute" });
+    }
+  });
+
+  // Retire character (player or admin)
+  app.post("/api/characters/:id/retire", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { reason } = req.body;
+      
+      if (!reason || reason.trim().length === 0) {
+        return res.status(400).json({ message: "Retirement reason is required" });
+      }
+
+      if (character.isRetired) {
+        return res.status(400).json({ message: "Character is already retired" });
+      }
+
+      // Update character to retired status
+      await storage.updateCharacter(req.params.id, {
+        isRetired: true,
+        retiredAt: new Date(),
+        retiredBy: req.session.userId!,
+        retirementReason: reason.trim(),
+        isActive: false // Also set inactive when retired
+      });
+
+      res.json({ message: "Character retired successfully" });
+    } catch (error) {
+      console.error("Character retirement error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to retire character" });
     }
   });
 

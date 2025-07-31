@@ -26,6 +26,10 @@ export const characters = pgTable("characters", {
   skills: text("skills").array().default(sql`'{}'`).notNull(),
   userId: uuid("user_id").references(() => users.id).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  isRetired: boolean("is_retired").default(false).notNull(),
+  retiredAt: timestamp("retired_at"),
+  retiredBy: uuid("retired_by").references(() => users.id),
+  retirementReason: text("retirement_reason"),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });

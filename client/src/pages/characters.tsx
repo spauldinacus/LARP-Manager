@@ -104,9 +104,16 @@ export default function CharactersPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{character.name}</span>
-                      <Badge variant={character.isActive ? "default" : "secondary"}>
-                        {character.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <div className="flex space-x-2">
+                        <Badge variant={character.isActive ? "default" : "secondary"}>
+                          {character.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        {(character as any).isRetired && (
+                          <Badge variant="destructive">
+                            Retired
+                          </Badge>
+                        )}
+                      </div>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
                       Played by {character.playerName}
