@@ -49,10 +49,7 @@ export default function DashboardPage() {
     stats.activePlayersLastWeek
   ) : 0;
 
-  const experiencePercentageChange = stats ? calculatePercentageChange(
-    stats.totalExperience, 
-    stats.totalExperienceLastMonth
-  ) : 0;
+
 
   // Fetch recent characters
   const { data: characters, isLoading: charactersLoading } = useQuery({
@@ -137,7 +134,7 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-auto p-6 space-y-6">
           {/* Stats Cards */}
           {user.isAdmin && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -184,28 +181,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Experience Awarded</p>
-                      {statsLoading ? (
-                        <Skeleton className="h-8 w-16 mt-2" />
-                      ) : (
-                        <p className="text-2xl font-bold">{(stats as any)?.totalExperience || 0}</p>
-                      )}
-                    </div>
-                    <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
-                      <Star className="h-6 w-6 text-yellow-500" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    <span className={experiencePercentageChange >= 0 ? "text-green-500" : "text-red-500"}>
-                      {experiencePercentageChange >= 0 ? '+' : ''}{experiencePercentageChange}%
-                    </span> from last month
-                  </p>
-                </CardContent>
-              </Card>
+
 
               <Card>
                 <CardContent className="p-6">
