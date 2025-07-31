@@ -12,11 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ### January 31, 2025
 - Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
-- Corrected heritage body/stamina values: Ar-Nura (2/4), Human (3/3), Stoneborn (4/2), Ughol (4/2), Rystarri (1/5)
+- Corrected heritage body/stamina values: Ar-Nura (8/12), Human (10/10), Stoneborn (15/5), Ughol (12/8), Rystarri (12/8)
 - Implemented heritage-specific culture restrictions as per rulebook
-- Added comprehensive skill display system showing primary/secondary skills for heritage, culture, and archetype
-- Set starting experience to 25 XP for all new characters
+- Added official heritage benefits, weaknesses, and costume requirements from rulebook
+- Added comprehensive skill selection system during character creation:
+  - Primary skills (5 XP): Heritage secondary skills, culture/archetype primary skills
+  - Secondary skills (10 XP): Culture/archetype secondary skills
+  - Other skills (20 XP): All remaining skills
+  - Interactive skill browser with cost calculation and experience tracking
+- Set starting experience to 25 XP for all new characters with skill purchase system
 - Enhanced admin functionality with user character management modal
+- Added skills array field to character database schema
 
 ## System Architecture
 

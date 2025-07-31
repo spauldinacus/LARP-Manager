@@ -391,6 +391,37 @@ export const ARCHETYPES = [
   }
 ] as const;
 
+// Comprehensive skills list extracted from all archetypes
+export const SKILLS = [
+  "Alchemy", "Alertness", "Ambidexterity", "Armor Smithing", "Armor Training (Light)", 
+  "Armor Training (Medium)", "Armor Training (Heavy)", "Backstab", "Bard", "Blacksmithing",
+  "Blinding", "Brutal Blow", "Cheat", "Chirurgeon", "Cooking", "Counterspell", "Courage",
+  "Dexterity Armor", "Disarm", "Dodge", "Farming", "First Aid", "Fortify Armor", "Hamstring",
+  "Healing", "Herbalism", "Hide", "Hunting", "Intercept", "Intimidation", "Iron Will",
+  "Knockback", "Knockout Strike", "Lockpicking", "Lore (Any)", "Lore (Engineering)", 
+  "Lore (Magic)", "Lore (Monster)", "Lore (Nature)", "Lumberjack", "Magic Path (Apprentice): Path of Arcane Mind",
+  "Magic Path (Journeyman): Path of Arcane Mind", "Magic Path (Master): Path of Arcane Mind",
+  "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", 
+  "Magic Path (Master): Path of Flesh", "Magic Path (Apprentice): Path of Thorns",
+  "Magic Path (Journeyman): Path of Thorns", "Magic Path (Master): Path of Thorns",
+  "Magic Path (Apprentice): Path of the Chill Wind", "Magic Path (Journeyman): Path of the Chill Wind",
+  "Magic Path (Master): Path of the Chill Wind", "Magic Path (Apprentice): Path of the Eternal Flame",
+  "Magic Path (Journeyman): Path of the Eternal Flame", "Magic Path (Master): Path of the Eternal Flame",
+  "Magic Path (Apprentice): Path of Shadows", "Magic Path (Journeyman): Path of Shadows",
+  "Magic Path (Master): Path of Shadows", "Marksmanship", "Meditation", "Mercantile", "Mining",
+  "Parry", "Piercing Strike", "Play Dead", "Plead for Mercy", "Quick Search", "Rapidfire",
+  "Riposte", "Scavenging", "Scribe", "Shield", "Shield Master", "Socialite", "Stealth",
+  "Stored Spell", "Taunt", "Toughness", "Trader", "Trapper", "Weapon Focus (Any)",
+  "Weapon Focus (Small)", "Weapon Focus (Medium)", "Weapon Focus (Large)", "Weapon Focus (Bow)",
+  "Weapon Focus (Crossbow)", "Weapon Focus (Firearms)", "Weapon Focus (Polearm)", 
+  "Weapon Focus (Staff)", "Weapon Focus (Thrown)", "Weapon Focus (Unarmed)",
+  "Weapon Proficiency (Small)", "Weapon Proficiency (Medium)", "Weapon Proficiency (Large)",
+  "Weapon Proficiency (Bow)", "Weapon Proficiency (Crossbow)", "Weapon Proficiency (Firearms)",
+  "Weapon Proficiency (Polearm)", "Weapon Proficiency (Staff)", "Weapon Proficiency (Thrown)",
+  "Weapon Smithing", "Wealth", "Withdraw"
+] as const;
+
 export type Heritage = typeof HERITAGES[number]["id"];
 export type Culture = keyof typeof CULTURES;
 export type Archetype = typeof ARCHETYPES[number]["id"];
+export type Skill = typeof SKILLS[number];

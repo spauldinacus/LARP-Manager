@@ -23,6 +23,7 @@ export const characters = pgTable("characters", {
   stamina: integer("stamina").notNull(),
   experience: integer("experience").default(0).notNull(),
   level: integer("level").default(1).notNull(),
+  skills: text("skills").array().default(sql`'{}'`).notNull(),
   userId: uuid("user_id").references(() => users.id).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),

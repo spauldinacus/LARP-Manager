@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { HERITAGES, CULTURES, ARCHETYPES, type Heritage } from "@/lib/constants";
+import { HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@/lib/constants";
 import {
   Dialog,
   DialogContent,
@@ -24,8 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Zap, User, Mountain, Leaf, Moon, Loader2 } from "lucide-react";
+import { Zap, User, Mountain, Leaf, Moon, Loader2, Plus, Minus } from "lucide-react";
 
 const characterSchema = z.object({
   name: z.string().min(1, "Character name is required"),
@@ -33,9 +35,16 @@ const characterSchema = z.object({
   heritage: z.string().min(1, "Heritage is required"),
   culture: z.string().min(1, "Culture is required"),
   archetype: z.string().min(1, "Archetype is required"),
+  selectedSkills: z.array(z.string()).default([]),
 });
 
 type CharacterForm = z.infer<typeof characterSchema>;
+
+interface SelectedSkill {
+  name: Skill;
+  cost: number;
+  category: 'primary' | 'secondary' | 'other';
+}
 
 interface CharacterCreationModalProps {
   isOpen: boolean;
@@ -57,6 +66,8 @@ export default function CharacterCreationModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedHeritage, setSelectedHeritage] = useState<Heritage | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<SelectedSkill[]>([]);
+  const [availableExperience, setAvailableExperience] = useState(25);
 
   const form = useForm<CharacterForm>({
     resolver: zodResolver(characterSchema),
@@ -66,8 +77,91 @@ export default function CharacterCreationModal({
       heritage: "",
       culture: "",
       archetype: "",
+      selectedSkills: [],
     },
   });
+
+  // Helper functions for skill management
+  const getSkillCost = (skill: Skill, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
+    const heritageData = HERITAGES.find(h => h.id === heritage);
+    const cultureData = culture ? CULTURES[heritage as Heritage]?.find(c => c.id === culture) : null;
+    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+
+    // Check if skill is primary for any of the selected options
+    if (
+      (heritageData?.secondarySkills || []).includes(skill as any) ||
+      (cultureData?.primarySkills || []).includes(skill as any) ||
+      (archetypeData?.primarySkills || []).includes(skill as any)
+    ) {
+      return { cost: 5, category: 'primary' };
+    }
+
+    // Check if skill is secondary for any of the selected options
+    if (
+      (cultureData?.secondarySkills || []).includes(skill as any) ||
+      (archetypeData?.secondarySkills || []).includes(skill as any)
+    ) {
+      return { cost: 10, category: 'secondary' };
+    }
+
+    // Otherwise it's a general skill
+    return { cost: 20, category: 'other' };
+  };
+
+  const addSkill = (skill: Skill) => {
+    const heritage = form.watch("heritage");
+    const culture = form.watch("culture");
+    const archetype = form.watch("archetype");
+    
+    if (!heritage || !culture || !archetype) {
+      toast({
+        title: "Selection Required",
+        description: "Please select heritage, culture, and archetype before adding skills.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const skillData = getSkillCost(skill, heritage, culture, archetype);
+    
+    if (skillData.cost > availableExperience) {
+      toast({
+        title: "Insufficient Experience",
+        description: `This skill costs ${skillData.cost} XP, but you only have ${availableExperience} XP remaining.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedSkills.some(s => s.name === skill)) {
+      toast({
+        title: "Skill Already Selected",
+        description: "This skill has already been added to your character.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newSkill: SelectedSkill = {
+      name: skill,
+      cost: skillData.cost,
+      category: skillData.category,
+    };
+
+    setSelectedSkills([...selectedSkills, newSkill]);
+    setAvailableExperience(availableExperience - skillData.cost);
+    form.setValue("selectedSkills", [...selectedSkills, newSkill].map(s => s.name));
+  };
+
+  const removeSkill = (skill: Skill) => {
+    const skillToRemove = selectedSkills.find(s => s.name === skill);
+    if (!skillToRemove) return;
+
+    const updatedSkills = selectedSkills.filter(s => s.name !== skill);
+    setSelectedSkills(updatedSkills);
+    setAvailableExperience(availableExperience + skillToRemove.cost);
+    form.setValue("selectedSkills", updatedSkills.map(s => s.name));
+  };
 
   const createCharacterMutation = useMutation({
     mutationFn: async (data: CharacterForm) => {
@@ -78,7 +172,8 @@ export default function CharacterCreationModal({
         ...data,
         body: heritage.body,
         stamina: heritage.stamina,
-        experience: 25, // Starting experience per rulebook
+        experience: availableExperience, // Remaining experience after skill purchases
+        skills: selectedSkills.map(s => s.name), // Add selected skills
       };
 
       const response = await apiRequest("POST", "/api/characters", characterData);
@@ -374,6 +469,95 @@ export default function CharacterCreationModal({
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Skill Selection */}
+          {selectedHeritageData && selectedCultureData && selectedArchetypeData && (
+            <div className="space-y-4">
+              {/* Experience Points Display */}
+              <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium">Experience Points</h4>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-blue-600">{availableExperience}</p>
+                    <p className="text-sm text-muted-foreground">XP Remaining</p>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>• Primary Skills: 5 XP (Your heritage secondary skills, culture/archetype primary skills)</p>
+                  <p>• Secondary Skills: 10 XP (Culture/archetype secondary skills)</p>
+                  <p>• Other Skills: 20 XP (All other skills)</p>
+                </div>
+              </div>
+
+              {/* Selected Skills */}
+              {selectedSkills.length > 0 && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-3">Selected Skills ({selectedSkills.length})</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSkills.map((skill, index) => (
+                      <Badge
+                        key={index}
+                        variant={skill.category === 'primary' ? 'default' : skill.category === 'secondary' ? 'secondary' : 'outline'}
+                        className="flex items-center gap-1"
+                      >
+                        {skill.name}
+                        <span className="text-xs opacity-70">({skill.cost} XP)</span>
+                        <button
+                          type="button"
+                          onClick={() => removeSkill(skill.name)}
+                          className="ml-1 text-xs hover:text-destructive"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Skill Selection Interface */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Add Skills</h4>
+                <div className="max-h-64 overflow-y-auto">
+                  <div className="grid gap-1">
+                    {SKILLS.filter(skill => !selectedSkills.some(s => s.name === skill)).map((skill) => {
+                      const heritage = form.watch("heritage");
+                      const culture = form.watch("culture");
+                      const archetype = form.watch("archetype");
+                      const skillData = getSkillCost(skill, heritage, culture, archetype);
+                      
+                      return (
+                        <div
+                          key={skill}
+                          className="flex items-center justify-between p-2 rounded hover:bg-muted/70 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <span className="text-sm">{skill}</span>
+                            <Badge
+                              variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                              className="ml-2 text-xs"
+                            >
+                              {skillData.cost} XP
+                            </Badge>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => addSkill(skill)}
+                            disabled={skillData.cost > availableExperience}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
