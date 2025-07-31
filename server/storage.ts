@@ -282,7 +282,14 @@ export class DatabaseStorage implements IStorage {
   // Character methods
   async getCharacter(id: string): Promise<Character | undefined> {
     const [character] = await db.select().from(characters).where(eq(characters.id, id));
-    return character || undefined;
+    if (!character) return undefined;
+    
+    // Calculate real-time XP spent
+    const calculatedXpSpent = await this.calculateTotalXpSpent(character.id);
+    return {
+      ...character,
+      totalXpSpent: calculatedXpSpent,
+    };
   }
 
   async getCharactersByUserId(userId: string): Promise<Character[]> {
@@ -320,7 +327,18 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(characters.userId, users.id))
       .orderBy(desc(characters.createdAt));
 
-    return charactersWithPlayers;
+    // Calculate real-time XP spent for each character
+    const charactersWithCalculatedXP = await Promise.all(
+      charactersWithPlayers.map(async (character) => {
+        const calculatedXpSpent = await this.calculateTotalXpSpent(character.id);
+        return {
+          ...character,
+          totalXpSpent: calculatedXpSpent,
+        };
+      })
+    );
+
+    return charactersWithCalculatedXP;
   }
 
   async createCharacter(insertCharacter: InsertCharacter): Promise<Character> {

@@ -260,7 +260,7 @@ export default function CharactersPage() {
                       </div>
                       <div>
                         <p className="text-muted-foreground">XP Spent</p>
-                        <p className="font-semibold">{character.totalXpSpent || 25}</p>
+                        <p className="font-semibold">{character.totalXpSpent || 0}</p>
                       </div>
                     </div>
 
