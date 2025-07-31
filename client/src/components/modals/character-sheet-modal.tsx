@@ -310,10 +310,32 @@ export default function CharacterSheetModal({
                         <div className="text-center p-4 bg-primary/10 rounded-lg">
                           <p className="text-3xl font-bold text-primary">{(character as any).body}</p>
                           <p className="text-sm text-muted-foreground">Body</p>
+                          {(() => {
+                            const heritage = HERITAGES.find(h => h.id === (character as any).heritage);
+                            const startingBody = heritage?.body || 10;
+                            const purchasedBody = (character as any).body - startingBody;
+                            return (
+                              <div className="text-xs text-muted-foreground mt-2 space-y-0.5 border-t pt-2">
+                                <div>Starting: {startingBody}</div>
+                                {purchasedBody > 0 && <div>Purchased: +{purchasedBody}</div>}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="text-center p-4 bg-accent/10 rounded-lg">
                           <p className="text-3xl font-bold text-accent">{(character as any).stamina}</p>
                           <p className="text-sm text-muted-foreground">Stamina</p>
+                          {(() => {
+                            const heritage = HERITAGES.find(h => h.id === (character as any).heritage);
+                            const startingStamina = heritage?.stamina || 10;
+                            const purchasedStamina = (character as any).stamina - startingStamina;
+                            return (
+                              <div className="text-xs text-muted-foreground mt-2 space-y-0.5 border-t pt-2">
+                                <div>Starting: {startingStamina}</div>
+                                {purchasedStamina > 0 && <div>Purchased: +{purchasedStamina}</div>}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="text-center p-4 bg-yellow-500/10 rounded-lg">
                           <p className="text-3xl font-bold text-yellow-600">{(character as any).experience}</p>
