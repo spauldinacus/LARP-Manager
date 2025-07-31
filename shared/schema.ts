@@ -97,7 +97,7 @@ export const candleTransactions = pgTable("candle_transactions", {
   userId: uuid("user_id").references(() => users.id).notNull(),
   amount: integer("amount").notNull(), // positive for awarded, negative for spent
   reason: text("reason").notNull(),
-  adminId: uuid("admin_id").references(() => users.id).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
@@ -243,7 +243,7 @@ export const candleTransactionsRelations = relations(candleTransactions, ({ one 
     references: [users.id],
   }),
   admin: one(users, {
-    fields: [candleTransactions.adminId],
+    fields: [candleTransactions.createdBy],
     references: [users.id],
   }),
 }));
