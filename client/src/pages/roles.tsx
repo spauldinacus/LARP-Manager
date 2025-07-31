@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2, Shield, Users, Settings } from "lucide-react";
+import { Plus, Edit, Trash2, Shield, Users, Settings, Menu } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Sidebar from "@/components/layout/sidebar";
+import MobileNav from "@/components/layout/mobile-nav";
 import type { Role, Permission } from "@shared/schema";
 
 const roleFormSchema = z.object({
@@ -26,7 +30,10 @@ const roleFormSchema = z.object({
 type RoleFormData = z.infer<typeof roleFormSchema>;
 
 export default function RolesPage() {
+  const { user } = useAuth();
+  const [location] = useLocation();
   const { toast } = useToast();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<Role | null>(null);
@@ -163,20 +170,97 @@ export default function RolesPage() {
     }
   };
 
+  // Loading state or not authenticated
+  if (!user) {
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="h-8 w-48 bg-muted animate-pulse rounded mx-auto" />
+          <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  // Not an admin user
+  if (!user.isAdmin) {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="hidden lg:block">
+          <Sidebar user={user} currentPath={location} />
+        </div>
+        <MobileNav 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)} 
+          user={user} 
+          currentPath={location} 
+        />
+        <main className="flex-1 overflow-auto p-6">
+          <Card className="p-12 text-center">
+            <Shield className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Admin Access Required</h3>
+            <p className="text-muted-foreground">
+              You need administrator privileges to manage roles and permissions.
+            </p>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   if (rolesLoading || permissionsLoading) {
-    return <div className="p-6">Loading roles and permissions...</div>;
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="hidden lg:block">
+          <Sidebar user={user} currentPath={location} />
+        </div>
+        <main className="flex-1 overflow-auto p-6">
+          <div className="space-y-4 text-center">
+            <div className="h-8 w-48 bg-muted animate-pulse rounded mx-auto" />
+            <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
-          <p className="text-muted-foreground">
-            Create and manage user roles with specific permissions
-          </p>
-        </div>
-        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <Sidebar user={user} currentPath={location} />
+      </div>
+
+      {/* Mobile Navigation */}
+      <MobileNav 
+        isOpen={mobileMenuOpen} 
+        onClose={() => setMobileMenuOpen(false)} 
+        user={user} 
+        currentPath={location} 
+      />
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
+                <p className="text-muted-foreground">
+                  Create and manage user roles with specific permissions
+                </p>
+              </div>
+            </div>
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -496,6 +580,8 @@ export default function RolesPage() {
           </div>
         </DialogContent>
       </Dialog>
+        </div>
+      </main>
     </div>
   );
 }
