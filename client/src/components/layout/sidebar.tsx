@@ -1,6 +1,7 @@
 import { useAuth, type AuthUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 import {
   LayoutDashboard,
   Users,
@@ -77,7 +78,7 @@ export default function Sidebar({ user, currentPath }: SidebarProps) {
           const isActive = currentPath === item.href;
 
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className={cn(
@@ -89,7 +90,7 @@ export default function Sidebar({ user, currentPath }: SidebarProps) {
             >
               <Icon className="h-5 w-5" />
               <span>{item.label}</span>
-            </a>
+            </Link>
           );
         })}
       </nav>

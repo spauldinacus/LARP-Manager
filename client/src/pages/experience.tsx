@@ -22,7 +22,14 @@ export default function ExperiencePage() {
   });
 
   if (!user) {
-    return null;
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="h-8 w-48 bg-muted animate-pulse rounded mx-auto" />
+          <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -41,7 +48,7 @@ export default function ExperiencePage() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-6 lg:ml-64">
+      <main className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">

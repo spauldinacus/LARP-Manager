@@ -1,6 +1,7 @@
 import { useAuth, type AuthUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 import {
   LayoutDashboard,
   Users,
@@ -94,7 +95,7 @@ export default function MobileNav({ isOpen, onClose, user, currentPath }: Mobile
             const isActive = currentPath === item.href;
 
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
@@ -107,7 +108,7 @@ export default function MobileNav({ isOpen, onClose, user, currentPath }: Mobile
               >
                 <Icon className="h-5 w-5" />
                 <span>{item.label}</span>
-              </a>
+              </Link>
             );
           })}
         </nav>

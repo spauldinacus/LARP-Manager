@@ -22,7 +22,14 @@ export default function UsersPage() {
 
   // Loading state or not authenticated
   if (!user) {
-    return null;
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="h-8 w-48 bg-muted animate-pulse rounded mx-auto" />
+          <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
+        </div>
+      </div>
+    );
   }
 
   // Not an admin user
@@ -38,7 +45,7 @@ export default function UsersPage() {
           user={user} 
           currentPath={location} 
         />
-        <main className="flex-1 overflow-auto p-6 lg:ml-64">
+        <main className="flex-1 overflow-auto p-6">
           <Card className="p-12 text-center">
             <Shield className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Admin Access Required</h3>
@@ -67,7 +74,7 @@ export default function UsersPage() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-6 lg:ml-64">
+      <main className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
