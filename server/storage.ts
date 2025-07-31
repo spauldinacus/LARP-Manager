@@ -475,11 +475,24 @@ export class DatabaseStorage implements IStorage {
         sql`${experienceEntries.amount} < 0`
       ));
 
+    // Get all skill refund entries (positive amounts from admin refunds)
+    const refundEntries = await db
+      .select({ amount: experienceEntries.amount })
+      .from(experienceEntries)
+      .where(and(
+        eq(experienceEntries.characterId, characterId),
+        sql`${experienceEntries.amount} > 0`,
+        sql`${experienceEntries.reason} LIKE '%refunded skill%'`
+      ));
+
     // Sum all spent XP (convert negative to positive)
     const totalSpent = spentEntries.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
     
-    // Return just the spent XP (don't add initial 25 XP here since it's not actually "spent")
-    return totalSpent;
+    // Sum all refunded XP
+    const totalRefunded = refundEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    
+    // Return spent XP minus refunded XP
+    return Math.max(0, totalSpent - totalRefunded);
   }
 
   async deleteExperienceEntry(id: string): Promise<void> {
