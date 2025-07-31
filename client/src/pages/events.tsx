@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, Plus, MapPin, Clock, Menu, Eye } from "lucide-react";
+import { Calendar, Users, Plus, MapPin, Clock, Menu, Eye, Edit } from "lucide-react";
 import { insertEventSchema, insertEventRsvpSchema, type Event, type Character, type EventRsvp } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,7 @@ export default function EventsPage() {
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
   const [isRsvpModalOpen, setIsRsvpModalOpen] = useState(false);
   const [isRsvpListModalOpen, setIsRsvpListModalOpen] = useState(false);
   const [isEditRsvpModalOpen, setIsEditRsvpModalOpen] = useState(false);
@@ -114,6 +115,28 @@ export default function EventsPage() {
     },
   });
 
+  const updateEventMutation = useMutation({
+    mutationFn: ({ eventId, data }: { eventId: string; data: Partial<Event> }) =>
+      apiRequest("PATCH", `/api/events/${eventId}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setIsEditEventModalOpen(false);
+      setSelectedEvent(null);
+      editForm.reset();
+      toast({
+        title: "Event updated",
+        description: "The event has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Error",
+        description: error.message || "Failed to update event",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createRsvpMutation = useMutation({
     mutationFn: ({ eventId, data }: { eventId: string; data: RsvpFormData }) =>
       apiRequest("POST", `/api/events/${eventId}/rsvp`, data),
@@ -165,6 +188,17 @@ export default function EventsPage() {
     },
   });
 
+  const editForm = useForm({
+    resolver: zodResolver(eventFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      eventDate: new Date().toISOString().slice(0, 16),
+      location: "",
+      createdBy: user?.id || "",
+    },
+  });
+
   const onCreateSubmit = (data: any) => {
     createEventMutation.mutate({
       ...data,
@@ -201,6 +235,30 @@ export default function EventsPage() {
       xpCandlePurchases: rsvp.xpCandlePurchases,
     });
     setIsEditRsvpModalOpen(true);
+  };
+
+  const handleEditEvent = (event: Event) => {
+    setSelectedEvent(event);
+    editForm.reset({
+      name: event.name,
+      description: event.description || "",
+      eventDate: new Date(event.eventDate).toISOString().slice(0, 16),
+      location: event.location || "",
+      createdBy: event.createdBy,
+    });
+    setIsEditEventModalOpen(true);
+  };
+
+  const onEditSubmit = (data: any) => {
+    if (selectedEvent) {
+      updateEventMutation.mutate({
+        eventId: selectedEvent.id,
+        data: {
+          ...data,
+          eventDate: new Date(data.eventDate),
+        },
+      });
+    }
   };
 
   const handleDeleteRsvp = (rsvp: EventRsvp) => {
@@ -566,16 +624,28 @@ export default function EventsPage() {
                   <span>{getRsvpCount(event.id)} RSVPs</span>
                   {getRsvpCount(event.id) > 0 && <Eye className="w-3 h-3 ml-1" />}
                 </button>
-                {user && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleRsvp(event)}
-                    disabled={!event.isActive}
-                    title={!event.isActive ? "Event is not accepting RSVPs" : ""}
-                  >
-                    RSVP
-                  </Button>
-                )}
+                <div className="flex items-center space-x-2">
+                  {user?.isAdmin && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleEditEvent(event)}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                  {user && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleRsvp(event)}
+                      disabled={!event.isActive}
+                      title={!event.isActive ? "Event is not accepting RSVPs" : ""}
+                    >
+                      RSVP
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -860,6 +930,82 @@ export default function EventsPage() {
                   </Button>
                   <Button type="submit" disabled={updateRsvpMutation.isPending}>
                     {updateRsvpMutation.isPending ? "Updating..." : "Update RSVP"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Event Modal */}
+        <Dialog open={isEditEventModalOpen} onOpenChange={setIsEditEventModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+              <DialogDescription>
+                Update the event details below.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter event name..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Event description..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="eventDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Date & Time</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Event location..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsEditEventModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateEventMutation.isPending}>
+                    {updateEventMutation.isPending ? "Updating..." : "Update Event"}
                   </Button>
                 </DialogFooter>
               </form>
