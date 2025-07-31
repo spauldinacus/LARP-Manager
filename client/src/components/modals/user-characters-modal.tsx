@@ -62,7 +62,7 @@ export default function UserCharactersModal({
   // Delete character mutation
   const deleteCharacterMutation = useMutation({
     mutationFn: (characterId: string) => 
-      apiRequest(`/api/characters/${characterId}`, "DELETE"),
+      apiRequest("DELETE", `/api/characters/${characterId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId, "characters"] });
       toast({

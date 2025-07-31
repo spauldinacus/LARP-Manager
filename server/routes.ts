@@ -233,11 +233,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/characters/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/characters/:id", requireAuth, async (req, res) => {
     try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+      
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       await storage.deleteCharacter(req.params.id);
       res.json({ message: "Character deleted successfully" });
     } catch (error) {
+      console.error("Character deletion error:", error);
       res.status(500).json({ message: "Failed to delete character" });
     }
   });

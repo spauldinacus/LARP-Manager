@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Users, Eye, Menu, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Users, Eye, Menu, Search, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CharactersPage() {
   const { user } = useAuth();
@@ -23,6 +25,7 @@ export default function CharactersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "playerName" | "heritage" | "experience" | "xpSpent" | "status">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const { toast } = useToast();
 
   const { data: characters, isLoading } = useQuery({
     queryKey: ["/api/characters"],
@@ -89,6 +92,26 @@ export default function CharactersPage() {
       return 0;
     });
   }, [characters, searchTerm, sortBy, sortOrder]);
+
+  // Delete character mutation
+  const deleteCharacterMutation = useMutation({
+    mutationFn: (characterId: string) => 
+      apiRequest("DELETE", `/api/characters/${characterId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      toast({
+        title: "Character deleted",
+        description: "Character has been successfully deleted.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete character",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   if (!user) {
     return (
@@ -241,14 +264,29 @@ export default function CharactersPage() {
                       </div>
                     </div>
 
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => setSelectedCharacterId(character.id)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Character Sheet
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => setSelectedCharacterId(character.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Sheet
+                      </Button>
+                      {(user?.isAdmin || character.userId === user?.id) && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to delete ${character.name}?`)) {
+                              deleteCharacterMutation.mutate(character.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
