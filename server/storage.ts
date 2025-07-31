@@ -284,8 +284,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(characters.createdAt));
   }
 
-  async getAllCharacters(): Promise<Character[]> {
-    return await db.select().from(characters).orderBy(desc(characters.createdAt));
+  async getAllCharacters(): Promise<any[]> {
+    const charactersWithPlayers = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        userId: characters.userId,
+        heritage: characters.heritage,
+        culture: characters.culture,
+        archetype: characters.archetype,
+        body: characters.body,
+        stamina: characters.stamina,
+        experience: characters.experience,
+        totalXpSpent: characters.totalXpSpent,
+        skills: characters.skills,
+        isActive: characters.isActive,
+        isRetired: characters.isRetired,
+        retiredAt: characters.retiredAt,
+        retirementReason: characters.retirementReason,
+        createdAt: characters.createdAt,
+        updatedAt: characters.updatedAt,
+        playerName: users.username,
+        playerNumber: users.playerNumber,
+      })
+      .from(characters)
+      .leftJoin(users, eq(characters.userId, users.id))
+      .orderBy(desc(characters.createdAt));
+
+    return charactersWithPlayers;
   }
 
   async createCharacter(insertCharacter: InsertCharacter): Promise<Character> {

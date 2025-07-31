@@ -252,6 +252,11 @@ export default function DashboardPage() {
                           <p className="text-xs text-muted-foreground">
                             {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
                           </p>
+                          {user?.isAdmin && character.playerName && (
+                            <p className="text-xs text-muted-foreground">
+                              Played by {character.playerName}
+                            </p>
+                          )}
                         </div>
                         <Badge variant={character.isRetired ? "destructive" : character.isActive ? "default" : "secondary"}>
                           {character.isRetired ? "Retired" : character.isActive ? "Active" : "Inactive"}
