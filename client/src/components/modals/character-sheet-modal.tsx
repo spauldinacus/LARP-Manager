@@ -44,7 +44,7 @@ export default function CharacterSheetModal({
             {characterLoading ? (
               <Skeleton className="h-6 w-48" />
             ) : (
-              character?.name || "Character Sheet"
+(character as any)?.name || "Character Sheet"
             )}
           </DialogTitle>
         </DialogHeader>
@@ -71,21 +71,21 @@ export default function CharacterSheetModal({
                     <CardContent className="space-y-3">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Character Name</p>
-                        <p className="text-lg font-semibold">{character.name}</p>
+                        <p className="text-lg font-semibold">{(character as any).name}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Player</p>
-                        <p>{character.playerName}</p>
+                        <p>{(character as any).playerName}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Badge variant="outline">{character.heritage}</Badge>
-                        <Badge variant="outline">{character.culture}</Badge>
-                        <Badge variant="outline">{character.archetype}</Badge>
+                        <Badge variant="outline">{(character as any).heritage}</Badge>
+                        <Badge variant="outline">{(character as any).culture}</Badge>
+                        <Badge variant="outline">{(character as any).archetype}</Badge>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Status</p>
-                        <Badge variant={character.isActive ? "default" : "secondary"}>
-                          {character.isActive ? "Active" : "Inactive"}
+                        <Badge variant={(character as any).isActive ? "default" : "secondary"}>
+                          {(character as any).isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -101,19 +101,19 @@ export default function CharacterSheetModal({
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-primary/10 rounded-lg">
-                          <p className="text-3xl font-bold text-primary">{character.body}</p>
+                          <p className="text-3xl font-bold text-primary">{(character as any).body}</p>
                           <p className="text-sm text-muted-foreground">Body</p>
                         </div>
                         <div className="text-center p-4 bg-accent/10 rounded-lg">
-                          <p className="text-3xl font-bold text-accent">{character.stamina}</p>
+                          <p className="text-3xl font-bold text-accent">{(character as any).stamina}</p>
                           <p className="text-sm text-muted-foreground">Stamina</p>
                         </div>
                         <div className="text-center p-4 bg-yellow-500/10 rounded-lg">
-                          <p className="text-3xl font-bold text-yellow-600">{character.experience}</p>
+                          <p className="text-3xl font-bold text-yellow-600">{(character as any).experience}</p>
                           <p className="text-sm text-muted-foreground">Experience</p>
                         </div>
                         <div className="text-center p-4 bg-green-500/10 rounded-lg">
-                          <p className="text-3xl font-bold text-green-600">{character.level}</p>
+                          <p className="text-3xl font-bold text-green-600">{(character as any).level}</p>
                           <p className="text-sm text-muted-foreground">Level</p>
                         </div>
                       </div>
@@ -143,9 +143,9 @@ export default function CharacterSheetModal({
                           </div>
                         ))}
                       </div>
-                    ) : experienceHistory && experienceHistory.length > 0 ? (
+                    ) : experienceHistory && (experienceHistory as any[]).length > 0 ? (
                       <div className="space-y-4">
-                        {experienceHistory.map((entry: any) => (
+                        {(experienceHistory as any[]).map((entry: any) => (
                           <div
                             key={entry.id}
                             className="flex items-start space-x-4 p-4 border border-border rounded-lg"
@@ -191,12 +191,12 @@ export default function CharacterSheetModal({
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>Character created</span>
-                      <span>{new Date(character.createdAt).toLocaleDateString()}</span>
+                      <span>{new Date((character as any).createdAt).toLocaleDateString()}</span>
                     </div>
-                    {character.updatedAt !== character.createdAt && (
+                    {(character as any).updatedAt !== (character as any).createdAt && (
                       <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
                         <span>Last updated</span>
-                        <span>{new Date(character.updatedAt).toLocaleDateString()}</span>
+                        <span>{new Date((character as any).updatedAt).toLocaleDateString()}</span>
                       </div>
                     )}
                   </CardContent>

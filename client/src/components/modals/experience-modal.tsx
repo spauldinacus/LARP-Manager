@@ -121,9 +121,9 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                     <p className="text-sm text-muted-foreground mt-2">Loading characters...</p>
                   </div>
-                ) : characters && characters.length > 0 ? (
+                ) : characters && (characters as any[]).length > 0 ? (
                   <div className="p-2">
-                    {characters.map((character: any) => (
+                    {(characters as any[]).map((character: any) => (
                       <label
                         key={character.id}
                         className="flex items-center space-x-3 p-3 hover:bg-accent/50 cursor-pointer rounded-md"
@@ -195,7 +195,7 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">No Event</SelectItem>
-                  {events?.map((event: any) => (
+                  {(events as any[])?.map((event: any) => (
                     <SelectItem key={event.id} value={event.id}>
                       {event.name} • {new Date(event.eventDate).toLocaleDateString()}
                     </SelectItem>

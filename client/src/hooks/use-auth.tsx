@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi, type AuthUser } from "@/lib/auth";
 import { toast } from "@/hooks/use-toast";
 
+export type { AuthUser };
+
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;

@@ -52,7 +52,7 @@ export default function DashboardPage() {
     );
   }
 
-  const recentCharacters = characters?.slice(0, 3) || [];
+  const recentCharacters = (characters as any[])?.slice(0, 3) || [];
 
   return (
     <div className="flex h-screen bg-background">
@@ -122,7 +122,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{stats?.totalCharacters || 0}</p>
+                        <p className="text-2xl font-bold">{(stats as any)?.totalCharacters || 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{stats?.activePlayers || 0}</p>
+                        <p className="text-2xl font-bold">{(stats as any)?.activePlayers || 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{stats?.totalExperience || 0}</p>
+                        <p className="text-2xl font-bold">{(stats as any)?.totalExperience || 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{stats?.upcomingEvents || 0}</p>
+                        <p className="text-2xl font-bold">{(stats as any)?.upcomingEvents || 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                   </div>
                 ) : recentCharacters.length > 0 ? (
                   <div className="space-y-4">
-                    {recentCharacters.map((character) => (
+                    {recentCharacters.map((character: any) => (
                       <div key={character.id} className="flex items-center space-x-4">
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                           <span className="text-sm font-medium text-primary">

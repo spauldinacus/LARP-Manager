@@ -14,7 +14,7 @@ import {
   type InsertExperienceEntry,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sum } from "drizzle-orm";
+import { eq, desc, and, sum, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
