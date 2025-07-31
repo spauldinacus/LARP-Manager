@@ -1300,6 +1300,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoints for custom achievements and milestones (read-only)
+  app.get("/api/achievements", requireAuth, async (req, res) => {
+    try {
+      const achievements = await storage.getAllAchievements();
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  app.get("/api/milestones", requireAuth, async (req, res) => {
+    try {
+      const milestones = await storage.getAllMilestones();
+      res.json(milestones);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch milestones" });
+    }
+  });
+
   // Achievement Settings API
   app.get("/api/admin/achievement-settings", requireAuth, requireAdmin, async (req, res) => {
     try {

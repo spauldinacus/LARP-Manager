@@ -207,13 +207,24 @@ export default function XPProgressionTracker({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch custom achievements and milestones for admin
+  // Fetch custom achievements and milestones for all users
   const { data: customAchievements = [] } = useQuery({
+    queryKey: ["/api/achievements"],
+    enabled: !!characterId,
+  });
+
+  const { data: customMilestones = [] } = useQuery({
+    queryKey: ["/api/milestones"],
+    enabled: !!characterId,
+  });
+
+  // Fetch admin-specific data only for admins
+  const { data: adminAchievements = [] } = useQuery({
     queryKey: ["/api/admin/achievements"],
     enabled: isAdmin,
   });
 
-  const { data: customMilestones = [] } = useQuery({
+  const { data: adminMilestones = [] } = useQuery({
     queryKey: ["/api/admin/milestones"],
     enabled: isAdmin,
   });
@@ -505,12 +516,12 @@ export default function XPProgressionTracker({
                   Manage custom achievements. Database achievements will appear below static ones.
                 </CardDescription>
               </CardHeader>
-              {(customAchievements as any[])?.length > 0 && (
+              {(adminAchievements as any[])?.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Achievements ({(customAchievements as any[])?.length})</h4>
+                    <h4 className="font-medium text-sm">Custom Achievements ({(adminAchievements as any[])?.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {(customAchievements as any[])?.map((achievement: any) => (
+                      {(adminAchievements as any[])?.map((achievement: any) => (
                         <div key={achievement.id} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{achievement.title}</p>
@@ -619,12 +630,12 @@ export default function XPProgressionTracker({
                   Manage custom milestones. Database milestones will appear below static ones.
                 </CardDescription>
               </CardHeader>
-              {(customMilestones as any[])?.length > 0 && (
+              {(adminMilestones as any[])?.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Milestones ({(customMilestones as any[])?.length})</h4>
+                    <h4 className="font-medium text-sm">Custom Milestones ({(adminMilestones as any[])?.length})</h4>
                     <div className="space-y-2">
-                      {(customMilestones as any[])?.map((milestone: any) => (
+                      {(adminMilestones as any[])?.map((milestone: any) => (
                         <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{milestone.title}</p>
