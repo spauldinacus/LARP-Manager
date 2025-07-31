@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings } from "lucide-react";
+import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings, MapPin, Trash2 } from "lucide-react";
 import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Skill } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -82,6 +82,9 @@ export default function CharacterSheetModal({
   const [showAdminSkills, setShowAdminSkills] = useState(false);
   const [selectedAdminSkill, setSelectedAdminSkill] = useState("");
   const [selectedRemoveSkill, setSelectedRemoveSkill] = useState("");
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState("");
+  const [xpAmount, setXpAmount] = useState(3);
 
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
@@ -93,6 +96,12 @@ export default function CharacterSheetModal({
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId, "experience"],
     enabled: isOpen && !!characterId,
+  });
+
+  // Fetch all events for admin event addition
+  const { data: allEvents } = useQuery({
+    queryKey: ["/api/events"],
+    enabled: user?.isAdmin && !!characterId,
   });
 
   // Helper function to calculate body/stamina cost
@@ -221,6 +230,59 @@ export default function CharacterSheetModal({
       toast({
         title: "Retirement failed",
         description: error.message || "Failed to retire character",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin add event attendance mutation
+  const addEventAttendanceMutation = useMutation({
+    mutationFn: async (data: { eventId: string; xpAmount: number; reason: string }) => {
+      const response = await apiRequest("POST", `/api/characters/${characterId}/experience`, {
+        amount: data.xpAmount,
+        reason: data.reason,
+        eventId: data.eventId,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setSelectedEvent("");
+      setXpAmount(3);
+      setShowAddEvent(false);
+      toast({
+        title: "Event attendance added",
+        description: "Event attendance has been successfully recorded.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add attendance",
+        description: error.message || "Failed to add event attendance",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Admin remove experience entry mutation
+  const removeExperienceEntryMutation = useMutation({
+    mutationFn: async (entryId: string) => {
+      const response = await apiRequest("DELETE", `/api/experience/${entryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      toast({
+        title: "Experience entry removed",
+        description: "The experience entry has been successfully removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to remove entry",
+        description: error.message || "Failed to remove experience entry",
         variant: "destructive",
       });
     },
@@ -782,6 +844,156 @@ export default function CharacterSheetModal({
                     )}
                   </Card>
                 )}
+
+                {/* Events Attended */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-5 w-5" />
+                        <span>Events Attended</span>
+                      </div>
+                      {user?.isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAddEvent(!showAddEvent)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Event
+                        </Button>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {user?.isAdmin && showAddEvent && (
+                      <div className="mb-6 p-4 border border-border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                        <h4 className="font-medium mb-3">Add Event Attendance</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <Label htmlFor="event-select">Select Event</Label>
+                            <Select value={selectedEvent} onValueChange={setSelectedEvent}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose an event..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(allEvents as any[])?.map((event: any) => (
+                                  <SelectItem key={event.id} value={event.id}>
+                                    {event.name} - {new Date(event.eventDate).toLocaleDateString()}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="xp-amount">Experience Points Awarded</Label>
+                            <Input
+                              id="xp-amount"
+                              type="number"
+                              min="0"
+                              max="20"
+                              value={xpAmount}
+                              onChange={(e) => setXpAmount(parseInt(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              onClick={() => {
+                                if (selectedEvent && xpAmount > 0) {
+                                  const event = (allEvents as any[])?.find(e => e.id === selectedEvent);
+                                  addEventAttendanceMutation.mutate({
+                                    eventId: selectedEvent,
+                                    xpAmount,
+                                    reason: `Event attendance: ${event?.name}`,
+                                  });
+                                }
+                              }}
+                              disabled={!selectedEvent || xpAmount <= 0 || addEventAttendanceMutation.isPending}
+                            >
+                              {addEventAttendanceMutation.isPending ? "Adding..." : "Add Attendance"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowAddEvent(false);
+                                setSelectedEvent("");
+                                setXpAmount(3);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {experienceLoading ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex items-center space-x-4">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-3 w-2/3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : experienceHistory && (experienceHistory as any[]).filter((entry: any) => entry.event).length > 0 ? (
+                      <div className="space-y-4">
+                        {(experienceHistory as any[])
+                          .filter((entry: any) => entry.event)
+                          .map((entry: any) => (
+                            <div
+                              key={entry.id}
+                              className="flex items-start space-x-4 p-4 border border-border rounded-lg"
+                            >
+                              <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                <MapPin className="h-5 w-5 text-green-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium">
+                                    {entry.event.name}
+                                  </p>
+                                  <div className="flex items-center space-x-2">
+                                    <Badge variant="outline">
+                                      +{entry.amount} XP
+                                    </Badge>
+                                    {user?.isAdmin && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                        onClick={() => removeExperienceEntryMutation.mutate(entry.id)}
+                                        disabled={removeExperienceEntryMutation.isPending}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {entry.reason}
+                                </p>
+                                <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>
+                                    {new Date(entry.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <MapPin className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                        <p className="text-muted-foreground">No events attended yet</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Experience History */}
                 <Card>

@@ -267,6 +267,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/experience/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteExperienceEntry(req.params.id);
+      res.json({ message: "Experience entry deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete experience entry" });
+    }
+  });
+
   // Event routes
   app.get("/api/events", requireAuth, async (req, res) => {
     try {

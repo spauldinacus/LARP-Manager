@@ -391,19 +391,29 @@ export class DatabaseStorage implements IStorage {
         rsvpId: experienceEntries.rsvpId,
         awardedBy: experienceEntries.awardedBy,
         createdAt: experienceEntries.createdAt,
-        updatedAt: experienceEntries.updatedAt,
-        event: {
-          id: events.id,
-          name: events.name,
-          eventDate: events.eventDate,
-        }
+        eventName: events.name,
+        eventDate: events.eventDate,
       })
       .from(experienceEntries)
       .leftJoin(events, eq(experienceEntries.eventId, events.id))
       .where(eq(experienceEntries.characterId, characterId))
       .orderBy(desc(experienceEntries.createdAt));
 
-    return experienceWithEvents;
+    // Transform the data to match expected format with nested event object
+    return experienceWithEvents.map(entry => ({
+      id: entry.id,
+      characterId: entry.characterId,
+      amount: entry.amount,
+      reason: entry.reason,
+      eventId: entry.eventId,
+      rsvpId: entry.rsvpId,
+      awardedBy: entry.awardedBy,
+      createdAt: entry.createdAt,
+      event: entry.eventName ? {
+        name: entry.eventName,
+        eventDate: entry.eventDate
+      } : null
+    }));
   }
 
   async createExperienceEntry(insertEntry: InsertExperienceEntry): Promise<ExperienceEntry> {
@@ -442,6 +452,22 @@ export class DatabaseStorage implements IStorage {
     
     // Add initial 25 XP that every character starts with (considered "spent" on creation)
     return totalSpent + 25;
+  }
+
+  async deleteExperienceEntry(id: string): Promise<void> {
+    // Get the entry before deleting to update character's total experience
+    const [entry] = await db.select().from(experienceEntries).where(eq(experienceEntries.id, id));
+    
+    if (entry) {
+      // Delete the entry
+      await db.delete(experienceEntries).where(eq(experienceEntries.id, id));
+      
+      // Update character's total experience
+      const totalExp = await this.getTotalExperienceByCharacter(entry.characterId);
+      await this.updateCharacter(entry.characterId, { 
+        experience: totalExp
+      });
+    }
   }
 
   // Event RSVP methods
