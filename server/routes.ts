@@ -426,6 +426,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/events/:id", requireAdmin, async (req, res) => {
+    try {
+      const eventData = insertEventSchema.partial().parse(req.body);
+      const event = await storage.updateEvent(req.params.id, eventData);
+      res.json(event);
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update event" });
+    }
+  });
+
+  app.patch("/api/events/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const { isActive } = z.object({ isActive: z.boolean() }).parse(req.body);
+      const event = await storage.updateEvent(req.params.id, { isActive });
+      res.json(event);
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update event status" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {
@@ -875,6 +895,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/events/:eventId/rsvp", requireAuth, async (req, res) => {
     try {
+      // Check if event is active and allows RSVPs
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      if (!event.isActive) {
+        return res.status(400).json({ message: "This event is no longer accepting RSVPs" });
+      }
+      
       const rsvpData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).parse(req.body);
       
       // Validate XP purchases limits

@@ -280,6 +280,26 @@ export default function EventsPage() {
     },
   });
 
+  // Admin event status toggle mutation
+  const toggleEventStatusMutation = useMutation({
+    mutationFn: ({ eventId, isActive }: { eventId: string; isActive: boolean }) =>
+      apiRequest("PATCH", `/api/events/${eventId}/status`, { isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Event Status Updated",
+        description: "Event status has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Status Update Error",
+        description: error.message || "Failed to update event status",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -491,9 +511,25 @@ export default function EventsPage() {
             <CardHeader>
               <CardTitle className="flex items-start justify-between">
                 <span className="flex-1">{event.name}</span>
-                <Badge variant={event.isActive ? "default" : "secondary"}>
-                  {event.isActive ? "Active" : "Inactive"}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={event.isActive ? "default" : "secondary"}>
+                    {event.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                  {user?.isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleEventStatusMutation.mutate({ 
+                        eventId: event.id, 
+                        isActive: !event.isActive 
+                      })}
+                      disabled={toggleEventStatusMutation.isPending}
+                      className="text-xs h-6"
+                    >
+                      {event.isActive ? "Mark Inactive" : "Reactivate"}
+                    </Button>
+                  )}
+                </div>
               </CardTitle>
               <CardDescription className="flex items-center space-x-4 text-sm">
                 <span className="flex items-center">
@@ -527,8 +563,13 @@ export default function EventsPage() {
                   <span>{getRsvpCount(event.id)} RSVPs</span>
                   {getRsvpCount(event.id) > 0 && <Eye className="w-3 h-3 ml-1" />}
                 </button>
-                {user && event.isActive && (
-                  <Button size="sm" onClick={() => handleRsvp(event)}>
+                {user && (
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleRsvp(event)}
+                    disabled={!event.isActive}
+                    title={!event.isActive ? "Event is not accepting RSVPs" : ""}
+                  >
                     RSVP
                   </Button>
                 )}
