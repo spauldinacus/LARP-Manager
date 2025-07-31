@@ -601,7 +601,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Calculate XP based on events attended (attendance-based progression)
+  // Calculate XP based on events attended (official Thrune LARP rulebook progression)
   async calculateEventAttendanceXP(characterId: string): Promise<number> {
     // Count total events attended by character
     const attendedEventsCount = await db
@@ -614,15 +614,20 @@ export class DatabaseStorage implements IStorage {
 
     const eventCount = attendedEventsCount[0]?.count || 0;
 
-    // Progressive XP system based on events attended
-    // First event: 3 XP, Second: 4 XP, Third: 5 XP, then 6 XP for all subsequent events
-    let baseXP = 0;
-    if (eventCount >= 1) baseXP += 3;
-    if (eventCount >= 2) baseXP += 4;
-    if (eventCount >= 3) baseXP += 5;
-    if (eventCount >= 4) baseXP += (eventCount - 3) * 6;
-
-    return baseXP;
+    // Official Thrune LARP XP progression (page 17):
+    // Events 0-10: 6 XP each
+    // Events 11-20: 5 XP each  
+    // Events 21-30: 4 XP each
+    // Events 31+: 3 XP each
+    if (eventCount <= 10) {
+      return 6;
+    } else if (eventCount <= 20) {
+      return 5;
+    } else if (eventCount <= 30) {
+      return 4;
+    } else {
+      return 3;
+    }
   }
 
   // Candle management methods
