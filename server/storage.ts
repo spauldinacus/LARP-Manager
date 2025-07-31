@@ -734,6 +734,15 @@ export class DatabaseStorage implements IStorage {
       await db
         .delete(experienceEntries)
         .where(eq(experienceEntries.rsvpId, rsvp.id));
+      
+      // Update character's total experience and XP spent after removing entries
+      const totalExp = await this.getTotalExperienceByCharacter(rsvp.characterId);
+      const totalXpSpent = await this.calculateTotalXpSpent(rsvp.characterId);
+      
+      await this.updateCharacter(rsvp.characterId, { 
+        experience: totalExp,
+        totalXpSpent: totalXpSpent
+      });
     }
 
     return rsvp;
