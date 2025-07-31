@@ -20,16 +20,22 @@ export default function UsersPage() {
     enabled: user?.isAdmin,
   });
 
-  if (!user?.isAdmin) {
+  // Loading state or not authenticated
+  if (!user) {
+    return null;
+  }
+
+  // Not an admin user
+  if (!user.isAdmin) {
     return (
       <div className="flex h-screen bg-background">
         <div className="hidden lg:block">
-          <Sidebar user={user!} currentPath={location} />
+          <Sidebar user={user} currentPath={location} />
         </div>
         <MobileNav 
           isOpen={mobileMenuOpen} 
           onClose={() => setMobileMenuOpen(false)} 
-          user={user!} 
+          user={user} 
           currentPath={location} 
         />
         <main className="flex-1 overflow-auto p-6 lg:ml-64">
@@ -49,14 +55,14 @@ export default function UsersPage() {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <Sidebar user={user!} currentPath={location} />
+        <Sidebar user={user} currentPath={location} />
       </div>
 
       {/* Mobile Navigation */}
       <MobileNav 
         isOpen={mobileMenuOpen} 
         onClose={() => setMobileMenuOpen(false)} 
-        user={user!} 
+        user={user} 
         currentPath={location} 
       />
 
