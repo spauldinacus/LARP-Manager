@@ -458,7 +458,7 @@ export default function EventsPage() {
                       />
                     </FormControl>
                     <p className="text-sm text-muted-foreground">
-                      Purchase additional experience points for your character (1 XP each).
+                      Purchase additional experience points for your character ($10 each).
                     </p>
                     <FormMessage />
                   </FormItem>
@@ -481,7 +481,7 @@ export default function EventsPage() {
                     </FormControl>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">
-                        Purchase XP candles for special benefits during the event (1 XP each). Costs 10 candles per purchase.
+                        Purchase additional experience points for your character (10 candles each).
                       </p>
                       <p className="text-sm font-medium text-orange-600">
                         Available Candles: {user?.candles || 0} | Cost: {(field.value || 0) * 10} candles
