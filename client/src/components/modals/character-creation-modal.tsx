@@ -198,17 +198,17 @@ export default function CharacterCreationModal({
   // Calculate used experience including body/stamina costs
   const usedExperience = selectedSkills.reduce((total, skill) => {
     const { heritage, culture, archetype } = form.getValues();
-    const { cost } = getSkillCost(skill.skill, heritage, culture, archetype);
+    const { cost } = getSkillCost(skill.name, heritage, culture, archetype);
     return total + cost;
   }, 0);
 
   // Get base body/stamina from heritage
-  const baseBody = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage.id)?.body || 0 : 0;
-  const baseStamina = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage.id)?.stamina || 0 : 0;
+  const baseBody = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage)?.body || 0 : 0;
+  const baseStamina = selectedHeritage ? HERITAGES.find(h => h.id === selectedHeritage)?.stamina || 0 : 0;
   
-  // Calculate attribute costs
-  const bodyCost = getAttributeCost(baseBody, additionalBody);
-  const staminaCost = getAttributeCost(baseStamina, additionalStamina);
+  // Calculate attribute costs based on incremental cost from current values
+  const bodyCost = additionalBody > 0 ? getAttributeCost(baseBody, additionalBody) : 0;
+  const staminaCost = additionalStamina > 0 ? getAttributeCost(baseStamina, additionalStamina) : 0;
   const totalAttributeCost = bodyCost + staminaCost;
 
   // Update available experience when skills, attributes, or selections change
@@ -659,12 +659,13 @@ export default function CharacterCreationModal({
                         variant="outline"
                         onClick={() => {
                           const newValue = additionalBody + 1;
-                          const newCost = getAttributeCost(baseBody, newValue);
-                          if (newCost <= availableExperience + totalAttributeCost) {
+                          const currentBodyValue = baseBody + additionalBody;
+                          const singlePointCost = getAttributeCost(currentBodyValue, 1);
+                          if (singlePointCost <= availableExperience) {
                             setAdditionalBody(newValue);
                           }
                         }}
-                        disabled={getAttributeCost(baseBody, additionalBody + 1) > availableExperience + totalAttributeCost}
+                        disabled={getAttributeCost(baseBody + additionalBody, 1) > availableExperience}
                         className="h-8 w-8 p-0"
                       >
                         <Plus className="h-4 w-4" />
@@ -694,12 +695,13 @@ export default function CharacterCreationModal({
                         variant="outline"
                         onClick={() => {
                           const newValue = additionalStamina + 1;
-                          const newCost = getAttributeCost(baseStamina, newValue);
-                          if (newCost <= availableExperience + totalAttributeCost) {
+                          const currentStaminaValue = baseStamina + additionalStamina;
+                          const singlePointCost = getAttributeCost(currentStaminaValue, 1);
+                          if (singlePointCost <= availableExperience) {
                             setAdditionalStamina(newValue);
                           }
                         }}
-                        disabled={getAttributeCost(baseStamina, additionalStamina + 1) > availableExperience + totalAttributeCost}
+                        disabled={getAttributeCost(baseStamina + additionalStamina, 1) > availableExperience}
                         className="h-8 w-8 p-0"
                       >
                         <Plus className="h-4 w-4" />
