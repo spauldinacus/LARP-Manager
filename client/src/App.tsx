@@ -7,6 +7,10 @@ import { AuthProvider } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
+import CharactersPage from "@/pages/characters";
+import EventsPage from "@/pages/events";
+import ExperiencePage from "@/pages/experience";
+import UsersPage from "@/pages/users";
 
 function Router() {
   return (
@@ -14,6 +18,10 @@ function Router() {
       <Route path="/" component={DashboardPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/dashboard" component={DashboardPage} />
+      <Route path="/characters" component={CharactersPage} />
+      <Route path="/events" component={EventsPage} />
+      <Route path="/experience" component={ExperiencePage} />
+      <Route path="/users" component={UsersPage} />
       <Route component={NotFound} />
     </Switch>
   );
