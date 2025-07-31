@@ -984,6 +984,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const rsvp = await storage.updateEventRsvp(req.params.id, updateData);
+
+      // If XP purchases were updated and character attended, update experience entry
+      if ((updateData.xpPurchases !== undefined || updateData.xpCandlePurchases !== undefined) && rsvp.attended) {
+        // Get the updated RSVP to calculate new XP
+        const baseXp = await storage.calculateEventAttendanceXP(rsvp.characterId);
+        const purchasedXp = (rsvp.xpPurchases || 0) + (rsvp.xpCandlePurchases || 0);
+        const totalXp = baseXp + purchasedXp;
+
+        // Update existing experience entry for this RSVP
+        await storage.updateExperienceEntryByRsvpId(rsvp.id, {
+          amount: totalXp,
+          reason: `Event attendance (${baseXp} base XP + ${purchasedXp} purchased XP)`,
+        });
+
+        // Recalculate character's total experience
+        const totalExp = await storage.getTotalExperienceByCharacter(rsvp.characterId);
+        const totalXpSpent = await storage.calculateTotalXpSpent(rsvp.characterId);
+        
+        await storage.updateCharacter(rsvp.characterId, { 
+          experience: totalExp,
+          totalXpSpent: totalXpSpent
+        });
+      }
+
       res.json(rsvp);
     } catch (error) {
       console.error("RSVP update error:", error);
