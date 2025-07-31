@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
-import { Users, UserCheck, Star, Calendar, Menu, Bell, UserPlus, Plus } from "lucide-react";
+import { Users, UserCheck, Star, Calendar, Menu, Bell, UserPlus, Plus, Flame } from "lucide-react";
 import { useState } from "react";
 
 export default function DashboardPage() {
@@ -132,7 +132,25 @@ export default function DashboardPage() {
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* Stats Cards */}
+          {/* Player Candles Card - Always visible */}
+          <Card className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Your Candles</p>
+                  <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{user.candles || 0}</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                    Use candles to purchase additional XP during event RSVPs
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                  <Flame className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Admin Stats Cards */}
           {user.isAdmin && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card>

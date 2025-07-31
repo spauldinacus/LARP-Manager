@@ -11,6 +11,10 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 31, 2025
+- **Enhanced dashboard with player candle display**
+  - Added prominent candle balance card visible to all players on dashboard
+  - Styled with orange gradient theme and flame icon
+  - Includes helpful explanation about using candles for XP purchases during events
 - **MAJOR UPDATE: Removed character levels system and implemented total XP spent tracking**
   - Removed level field from character database schema
   - Added totalXpSpent field to track cumulative experience point expenditure
