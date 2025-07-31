@@ -1,5 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import Sidebar from "@/components/layout/sidebar";
+import MobileNav from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,12 +12,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChapterSchema, type Chapter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Users, Hash } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Hash, Menu } from "lucide-react";
 import { z } from "zod";
 
 const chapterFormSchema = insertChapterSchema.extend({
@@ -22,9 +28,27 @@ const chapterFormSchema = insertChapterSchema.extend({
 type ChapterFormData = z.infer<typeof chapterFormSchema>;
 
 export default function ChaptersPage() {
+  const [, setLocation] = useLocation();
+  const { user, isLoading: authLoading } = useAuth();
+  const isMobile = useIsMobile();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const { toast } = useToast();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [authLoading, user, setLocation]);
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!authLoading && user && !user.isAdmin) {
+      setLocation("/dashboard");
+    }
+  }, [authLoading, user, setLocation]);
 
   const { data: chapters = [], isLoading } = useQuery<Chapter[]>({
     queryKey: ["/api/chapters"],
@@ -158,27 +182,104 @@ export default function ChaptersPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex h-screen bg-background">
+        {/* Desktop Sidebar */}
+        {!isMobile && (
+          <Sidebar 
+            user={user} 
+            currentPath="/chapters"
+          />
+        )}
+
+        {/* Mobile Navigation */}
+        {isMobile && (
+          <MobileNav
+            isOpen={isMobileNavOpen}
+            onClose={() => setIsMobileNavOpen(false)}
+            user={user}
+            currentPath="/chapters"
+          />
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header */}
+          {isMobile && (
+            <div className="border-b border-border bg-background p-4 flex items-center justify-between lg:hidden">
+              <h1 className="text-xl font-semibold">Chapter Management</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-foreground"
+                onClick={() => setIsMobileNavOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-auto">
+            <div className="container mx-auto py-8">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <Sidebar 
+          user={user} 
+          currentPath="/chapters"
+        />
+      )}
+
+      {/* Mobile Navigation */}
+      {isMobile && (
+        <MobileNav
+          isOpen={isMobileNavOpen}
+          onClose={() => setIsMobileNavOpen(false)}
+          user={user}
+          currentPath="/chapters"
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        {isMobile && (
+          <div className="border-b border-border bg-background p-4 flex items-center justify-between lg:hidden">
+            <h1 className="text-xl font-semibold">Chapter Management</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-foreground"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-auto">
+          <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Chapter Management</h1>
@@ -460,6 +561,9 @@ export default function ChaptersPage() {
           </Form>
         </DialogContent>
       </Dialog>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

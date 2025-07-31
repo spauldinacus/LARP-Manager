@@ -1,5 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import Sidebar from "@/components/layout/sidebar";
+import MobileNav from "@/components/layout/mobile-nav";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,11 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Users, Plus, MapPin, Clock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar, Users, Plus, MapPin, Clock, Menu } from "lucide-react";
 import { insertEventSchema, insertEventRsvpSchema, type Event, type Character } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
 
 const eventFormSchema = insertEventSchema.extend({
   eventDate: z.string().transform(val => new Date(val))
@@ -26,11 +31,21 @@ type EventFormData = z.infer<typeof eventFormSchema>;
 type RsvpFormData = z.infer<typeof rsvpFormSchema>;
 
 export default function EventsPage() {
+  const [, setLocation] = useLocation();
+  const { user, isLoading: authLoading } = useAuth();
+  const isMobile = useIsMobile();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRsvpModalOpen, setIsRsvpModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [authLoading, user, setLocation]);
 
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
@@ -126,31 +141,119 @@ export default function EventsPage() {
     setIsRsvpModalOpen(true);
   };
 
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <Skeleton className="h-8 w-48 mx-auto" />
+          <Skeleton className="h-4 w-32 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex h-screen bg-background">
+        {/* Desktop Sidebar */}
+        {!isMobile && (
+          <Sidebar 
+            user={user} 
+            currentPath="/events"
+          />
+        )}
+
+        {/* Mobile Navigation */}
+        {isMobile && (
+          <MobileNav
+            isOpen={isMobileNavOpen}
+            onClose={() => setIsMobileNavOpen(false)}
+            user={user}
+            currentPath="/events"
+          />
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header */}
+          {isMobile && (
+            <div className="border-b border-border bg-background p-4 flex items-center justify-between lg:hidden">
+              <h1 className="text-xl font-semibold">Events</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-foreground"
+                onClick={() => setIsMobileNavOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-auto">
+            <div className="container mx-auto py-8">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-gray-200 rounded"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <Sidebar 
+          user={user} 
+          currentPath="/events"
+        />
+      )}
+
+      {/* Mobile Navigation */}
+      {isMobile && (
+        <MobileNav
+          isOpen={isMobileNavOpen}
+          onClose={() => setIsMobileNavOpen(false)}
+          user={user}
+          currentPath="/events"
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        {isMobile && (
+          <div className="border-b border-border bg-background p-4 flex items-center justify-between lg:hidden">
+            <h1 className="text-xl font-semibold">Events</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-foreground"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-auto">
+          <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Events</h1>
@@ -395,6 +498,9 @@ export default function EventsPage() {
           </Form>
         </DialogContent>
       </Dialog>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
