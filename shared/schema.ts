@@ -253,101 +253,119 @@ export const HERITAGES = [
   {
     id: 'ar-nura',
     name: 'Ar-Nura',
-    secondarySkills: ['Navigation', 'Regional Lore', 'Sailing'],
+    secondarySkills: ['First Aid', 'Bard', 'Herbalism', 'Meditation'],
   },
   {
     id: 'human', 
     name: 'Human',
-    secondarySkills: ['Leadership', 'Regional Lore', 'Politics'],
+    secondarySkills: ['First Aid', 'Farming', 'Lumberjack', 'Mining'],
   },
   {
     id: 'stoneborn',
     name: 'Stoneborn', 
-    secondarySkills: ['Engineering', 'Regional Lore', 'Stone Masonry'],
+    secondarySkills: ['Blacksmithing', 'Cooking', 'Lumberjack', 'Mining'],
   },
   {
     id: 'ughol',
     name: 'Ughol',
-    secondarySkills: ['Tracking', 'Regional Lore', 'Survival'],
+    secondarySkills: ['Quick Search', 'Scavenging', 'Taunt', 'Trapper'],
   },
   {
     id: 'rystarri',
     name: 'Rystarri',
-    secondarySkills: ['Ancient Lore', 'Regional Lore', 'Arcane Lore'],
+    secondarySkills: ['Herbalism', 'Intercept', 'Mercantile', 'Scavenging'],
   },
 ];
 
 export const CULTURES = {
-  'ar-nura': [
-    {
-      id: 'navigator',
-      name: 'Navigator',
-      primarySkills: ['Navigation', 'Sailing'],
-      secondarySkills: ['Regional Lore', 'Cartography'],
+  "ar-nura": [
+    { 
+      id: "eisolae", 
+      name: "Eisolae",
+      primarySkills: ["Meditation", "Lore (Magic)"],
+      secondarySkills: ["Scribe", "First Aid"]
     },
-    {
-      id: 'merchant',
-      name: 'Merchant', 
-      primarySkills: ['Regional Lore', 'Politics'],
-      secondarySkills: ['Navigation', 'Economics'],
+    { 
+      id: "jhaniada", 
+      name: "Jhani'ada",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
+      secondarySkills: ["Courage", "Parry"]
     },
+    { 
+      id: "viskela", 
+      name: "Viskela",
+      primarySkills: ["Bard", "Socialite"],
+      secondarySkills: ["Wealth", "Mercantile"]
+    }
   ],
-  human: [
-    {
-      id: 'noble',
-      name: 'Noble',
-      primarySkills: ['Leadership', 'Politics'],
-      secondarySkills: ['Regional Lore', 'Economics'],
+  "human": [
+    { 
+      id: "erdanian", 
+      name: "Erdanian",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
+      secondarySkills: ["Courage", "Shield"]
     },
-    {
-      id: 'commoner',
-      name: 'Commoner',
-      primarySkills: ['Regional Lore'],
-      secondarySkills: ['Leadership', 'Survival'],
+    { 
+      id: "khemasuri", 
+      name: "Khemasuri",
+      primarySkills: ["Socialite", "Wealth"],
+      secondarySkills: ["Bard", "Mercantile"]
     },
+    { 
+      id: "saronean", 
+      name: "Saronean",
+      primarySkills: ["Weapon Focus (Bow)", "Herbalism"],
+      secondarySkills: ["Hunting", "Alertness"]
+    },
+    { 
+      id: "vyaldur", 
+      name: "Vyaldur",
+      primarySkills: ["Trapper", "Scavenging"],
+      secondarySkills: ["Lockpicking", "Quick Search"]
+    }
   ],
-  stoneborn: [
-    {
-      id: 'engineer',
-      name: 'Engineer',
-      primarySkills: ['Engineering', 'Stone Masonry'],
-      secondarySkills: ['Regional Lore', 'Arcane Lore'],
+  "stoneborn": [
+    { 
+      id: "dargadian", 
+      name: "Dargadian",
+      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Medium)"],
+      secondarySkills: ["Blacksmithing", "Toughness"]
     },
-    {
-      id: 'warrior',
-      name: 'Warrior',
-      primarySkills: ['Regional Lore'],
-      secondarySkills: ['Engineering', 'Leadership'],
-    },
+    { 
+      id: "akhunrasi", 
+      name: "Akhunrasi",
+      primarySkills: ["Blacksmithing", "Mining"],
+      secondarySkills: ["Merchant", "Metalworking"]
+    }
   ],
-  ughol: [
-    {
-      id: 'hunter',
-      name: 'Hunter',
-      primarySkills: ['Tracking', 'Survival'],
-      secondarySkills: ['Regional Lore', 'Navigation'],
+  "ughol": [
+    { 
+      id: "emorvek", 
+      name: "Emorvek",
+      primarySkills: ["Hunting", "Survival"],
+      secondarySkills: ["Cooking", "Herbalism"]
     },
-    {
-      id: 'shaman',
-      name: 'Shaman',
-      primarySkills: ['Regional Lore', 'Ancient Lore'],
-      secondarySkills: ['Tracking', 'Arcane Lore'],
-    },
+    { 
+      id: "theskra", 
+      name: "Theskra",
+      primarySkills: ["Shamanism", "First Aid"],
+      secondarySkills: ["Herbalism", "Lore (Spirit)"]
+    }
   ],
-  rystarri: [
-    {
-      id: 'scholar',
-      name: 'Scholar',
-      primarySkills: ['Ancient Lore', 'Arcane Lore'],
-      secondarySkills: ['Regional Lore', 'Politics'],
+  "rystarri": [
+    { 
+      id: "avanni", 
+      name: "Avanni",
+      primarySkills: ["Lore (Magic)", "Meditation"],
+      secondarySkills: ["Scribe", "Lore (Arcane)"]
     },
-    {
-      id: 'exile',
-      name: 'Exile',
-      primarySkills: ['Regional Lore'],
-      secondarySkills: ['Ancient Lore', 'Survival'],
-    },
-  ],
+    { 
+      id: "vashari", 
+      name: "Vashari",
+      primarySkills: ["Weapon Focus (Light)", "Lore (Magic)"],
+      secondarySkills: ["Dodge", "Alertness"]
+    }
+  ]
 };
 
 export const ARCHETYPES = [
