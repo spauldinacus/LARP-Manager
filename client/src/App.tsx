@@ -11,6 +11,7 @@ import CharactersPage from "@/pages/characters";
 import EventsPage from "@/pages/events";
 import ExperiencePage from "@/pages/experience";
 import UsersPage from "@/pages/users";
+import SettingsPage from "@/pages/settings";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/events" component={EventsPage} />
       <Route path="/experience" component={ExperiencePage} />
       <Route path="/users" component={UsersPage} />
+      <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>
   );
