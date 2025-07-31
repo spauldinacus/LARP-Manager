@@ -247,3 +247,166 @@ export const candleTransactionsRelations = relations(candleTransactions, ({ one 
     references: [users.id],
   }),
 }));
+
+// Heritage, Culture, and Archetype data for skill cost calculations
+export const HERITAGES = [
+  {
+    id: 'ar-nura',
+    name: 'Ar-Nura',
+    secondarySkills: ['Navigation', 'Regional Lore', 'Sailing'],
+  },
+  {
+    id: 'human', 
+    name: 'Human',
+    secondarySkills: ['Leadership', 'Regional Lore', 'Politics'],
+  },
+  {
+    id: 'stoneborn',
+    name: 'Stoneborn', 
+    secondarySkills: ['Engineering', 'Regional Lore', 'Stone Masonry'],
+  },
+  {
+    id: 'ughol',
+    name: 'Ughol',
+    secondarySkills: ['Tracking', 'Regional Lore', 'Survival'],
+  },
+  {
+    id: 'rystarri',
+    name: 'Rystarri',
+    secondarySkills: ['Ancient Lore', 'Regional Lore', 'Arcane Lore'],
+  },
+];
+
+export const CULTURES = {
+  'ar-nura': [
+    {
+      id: 'navigator',
+      name: 'Navigator',
+      primarySkills: ['Navigation', 'Sailing'],
+      secondarySkills: ['Regional Lore', 'Cartography'],
+    },
+    {
+      id: 'merchant',
+      name: 'Merchant', 
+      primarySkills: ['Regional Lore', 'Politics'],
+      secondarySkills: ['Navigation', 'Economics'],
+    },
+  ],
+  human: [
+    {
+      id: 'noble',
+      name: 'Noble',
+      primarySkills: ['Leadership', 'Politics'],
+      secondarySkills: ['Regional Lore', 'Economics'],
+    },
+    {
+      id: 'commoner',
+      name: 'Commoner',
+      primarySkills: ['Regional Lore'],
+      secondarySkills: ['Leadership', 'Survival'],
+    },
+  ],
+  stoneborn: [
+    {
+      id: 'engineer',
+      name: 'Engineer',
+      primarySkills: ['Engineering', 'Stone Masonry'],
+      secondarySkills: ['Regional Lore', 'Arcane Lore'],
+    },
+    {
+      id: 'warrior',
+      name: 'Warrior',
+      primarySkills: ['Regional Lore'],
+      secondarySkills: ['Engineering', 'Leadership'],
+    },
+  ],
+  ughol: [
+    {
+      id: 'hunter',
+      name: 'Hunter',
+      primarySkills: ['Tracking', 'Survival'],
+      secondarySkills: ['Regional Lore', 'Navigation'],
+    },
+    {
+      id: 'shaman',
+      name: 'Shaman',
+      primarySkills: ['Regional Lore', 'Ancient Lore'],
+      secondarySkills: ['Tracking', 'Arcane Lore'],
+    },
+  ],
+  rystarri: [
+    {
+      id: 'scholar',
+      name: 'Scholar',
+      primarySkills: ['Ancient Lore', 'Arcane Lore'],
+      secondarySkills: ['Regional Lore', 'Politics'],
+    },
+    {
+      id: 'exile',
+      name: 'Exile',
+      primarySkills: ['Regional Lore'],
+      secondarySkills: ['Ancient Lore', 'Survival'],
+    },
+  ],
+};
+
+export const ARCHETYPES = [
+  {
+    id: 'warrior',
+    name: 'Warrior',
+    primarySkills: ['Weapon Skill', 'Armor Training'],
+    secondarySkills: ['Leadership', 'Tactics'],
+  },
+  {
+    id: 'scholar',
+    name: 'Scholar', 
+    primarySkills: ['Ancient Lore', 'Arcane Lore'],
+    secondarySkills: ['Regional Lore', 'Politics'],
+  },
+  {
+    id: 'rogue',
+    name: 'Rogue',
+    primarySkills: ['Stealth', 'Lock Picking'],
+    secondarySkills: ['Navigation', 'Economics'],
+  },
+  {
+    id: 'artisan',
+    name: 'Artisan',
+    primarySkills: ['Crafting', 'Engineering'],
+    secondarySkills: ['Economics', 'Stone Masonry'],
+  },
+];
+
+// Skill cost calculation function
+export function getSkillCost(skill: string, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } {
+  const heritageData = HERITAGES.find(h => h.id === heritage);
+  const cultureData = culture ? CULTURES[heritage as keyof typeof CULTURES]?.find(c => c.id === culture) : null;
+  const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+
+  // Check if skill is primary for any of the selected options  
+  const heritageSecondarySkills = heritageData?.secondarySkills || [];
+  const culturePrimarySkills = cultureData?.primarySkills || [];
+  const archetypePrimarySkills = archetypeData?.primarySkills || [];
+  
+  if (
+    heritageSecondarySkills.some(s => s === skill) ||
+    culturePrimarySkills.some(s => s === skill) ||
+    archetypePrimarySkills.some(s => s === skill)
+  ) {
+    return { cost: 5, category: 'primary' };
+  }
+
+  // Check if skill is secondary for any of the selected options
+  const cultureSecondarySkills = cultureData?.secondarySkills || [];
+  const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+  
+  if (
+    cultureSecondarySkills.some(s => s === skill) ||
+    archetypeSecondarySkills.some(s => s === skill)
+  ) {
+    return { cost: 10, category: 'secondary' };
+  }
+
+  // Otherwise it's a general skill
+  return { cost: 20, category: 'other' };
+}
