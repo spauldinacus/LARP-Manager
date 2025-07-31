@@ -195,6 +195,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User settings routes
+  app.put("/api/users/settings", requireAuth, async (req, res) => {
+    try {
+      const { playerName, chapterId } = req.body;
+      
+      if (!playerName || typeof playerName !== 'string') {
+        return res.status(400).json({ message: "Player name is required" });
+      }
+      
+      const updateData = {
+        playerName: playerName.trim(),
+        chapterId: chapterId || null,
+      };
+      
+      const updatedUser = await storage.updateUser(req.session.userId!, updateData);
+      
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("User settings update error:", error);
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
   // Character routes
   app.get("/api/characters", requireAuth, async (req, res) => {
     try {

@@ -73,7 +73,7 @@ const navigationItems = [
     href: "/settings",
     icon: Settings,
     label: "Settings",
-    adminOnly: true,
+    adminOnly: false,
   },
 ];
 

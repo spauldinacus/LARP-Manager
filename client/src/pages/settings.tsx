@@ -1,71 +1,90 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Settings, Menu, User, Shield, Bell, Database, Edit2, Save, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
+import { Settings, Menu, Save, User, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+
+interface Chapter {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  isActive: boolean;
+}
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, refetch: refetchAuth } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [editingPlayerName, setEditingPlayerName] = useState(false);
   const [playerName, setPlayerName] = useState(user?.playerName || "");
-  const { toast } = useToast();
+  const [selectedChapterId, setSelectedChapterId] = useState(user?.chapterId || "");
+  
   const queryClient = useQueryClient();
 
-  const updatePlayerNameMutation = useMutation({
-    mutationFn: async (newPlayerName: string) => {
-      const response = await apiRequest("PATCH", "/api/user/profile", { playerName: newPlayerName });
+  // Fetch chapters for selection
+  const { data: chapters, isLoading: chaptersLoading } = useQuery({
+    queryKey: ["/api/chapters"],
+  });
+
+  // Update user settings mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { playerName: string; chapterId: string }) => {
+      const response = await apiRequest("PUT", "/api/users/settings", data);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      setEditingPlayerName(false);
+      refetchAuth();
       toast({
-        title: "Player name updated",
-        description: "Your player name has been successfully updated.",
+        title: "Settings updated",
+        description: "Your settings have been successfully updated.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
-        title: "Failed to update player name",
-        description: error.message,
+        title: "Update failed",
+        description: error.message || "Failed to update settings",
         variant: "destructive",
       });
     },
   });
 
-  const handleSavePlayerName = () => {
-    if (playerName.trim()) {
-      updatePlayerNameMutation.mutate(playerName.trim());
+  const handleSave = () => {
+    if (!playerName.trim()) {
+      toast({
+        title: "Validation error",
+        description: "Player name is required",
+        variant: "destructive",
+      });
+      return;
     }
+
+    updateUserMutation.mutate({
+      playerName: playerName.trim(),
+      chapterId: selectedChapterId,
+    });
   };
 
-  const handleCancelEdit = () => {
-    setPlayerName(user?.playerName || "");
-    setEditingPlayerName(false);
-  };
-
-  if (!user) {
-    return (
-      <div className="flex h-screen bg-background items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded mx-auto" />
-          <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
-        </div>
-      </div>
-    );
-  }
+  const hasChanges = 
+    playerName !== (user?.playerName || "") || 
+    selectedChapterId !== (user?.chapterId || "");
 
   return (
     <div className="flex h-screen bg-background">
@@ -83,10 +102,10 @@ export default function SettingsPage() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Header */}
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -98,232 +117,162 @@ export default function SettingsPage() {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold">Settings</h1>
-                <p className="text-muted-foreground">Manage your account and application preferences</p>
+                <p className="text-muted-foreground">Manage your account settings and preferences</p>
               </div>
             </div>
-          </div>
 
-          {/* Settings Sections */}
-          <div className="space-y-6">
             {/* Profile Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <User className="h-5 w-5" />
-                  <span>Profile Settings</span>
+                  <span>Profile Information</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
                     <Label htmlFor="username">Username</Label>
-                    <Input 
-                      id="username" 
-                      value={user.username} 
-                      disabled 
+                    <Input
+                      id="username"
+                      value={user?.username || ""}
+                      disabled
                       className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Username cannot be changed
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      value={user.email} 
-                      disabled 
+
+                  <div>
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      value={user?.email || ""}
+                      disabled
                       className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Contact admin to change email
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="playerName">Player Name</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input 
-                      id="playerName" 
+
+                  <div>
+                    <Label htmlFor="playerName">Player Name *</Label>
+                    <Input
+                      id="playerName"
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
-                      disabled={!editingPlayerName}
-                      className={!editingPlayerName ? "bg-muted" : ""}
                       placeholder="Enter your real name"
                     />
-                    {editingPlayerName ? (
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleSavePlayerName}
-                          disabled={updatePlayerNameMutation.isPending}
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancelEdit}
-                          disabled={updatePlayerNameMutation.isPending}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditingPlayerName(true)}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your real name as it should appear to other players
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="playerNumber">Player Number</Label>
+                    <Input
+                      id="playerNumber"
+                      value={user?.playerNumber || "Not assigned"}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Assigned by chapter administrators
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <CardTitle className="flex items-center space-x-2 mb-4">
+                    <MapPin className="h-5 w-5" />
+                    <span>Chapter Assignment</span>
+                  </CardTitle>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="chapter">Select Chapter</Label>
+                      <Select 
+                        value={selectedChapterId} 
+                        onValueChange={setSelectedChapterId}
+                        disabled={chaptersLoading}
                       >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your chapter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(chapters as Chapter[])?.filter(chapter => chapter.isActive).map((chapter) => (
+                            <SelectItem key={chapter.id} value={chapter.id}>
+                              {chapter.name} ({chapter.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Choose the LARP chapter you primarily play with
+                      </p>
+                    </div>
+
+                    {selectedChapterId && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-md">
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                          <strong>Note:</strong> Changing your chapter assignment may affect your player number 
+                          and character access. Contact your chapter admin if you have questions.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Input 
-                    id="role" 
-                    value={user.isAdmin ? "Administrator" : "Player"} 
-                    disabled 
-                    className="bg-muted"
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  You can edit your player name above. Contact an administrator to change other profile information.
-                </p>
-              </CardContent>
-            </Card>
 
-            {/* Notification Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Bell className="h-5 w-5" />
-                  <span>Notifications</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="experience-notifications">Experience Awards</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified when you receive experience points
-                    </p>
-                  </div>
-                  <Switch id="experience-notifications" defaultChecked />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="event-notifications">Event Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications about new events and updates
-                    </p>
-                  </div>
-                  <Switch id="event-notifications" defaultChecked />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="system-notifications">System Announcements</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Important system updates and maintenance notices
-                    </p>
-                  </div>
-                  <Switch id="system-notifications" defaultChecked />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSave}
+                    disabled={!hasChanges || updateUserMutation.isPending}
+                    className="min-w-[120px]"
+                  >
+                    {updateUserMutation.isPending ? (
+                      "Saving..."
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Admin Settings */}
-            {user.isAdmin && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Shield className="h-5 w-5" />
-                    <span>Administrator Settings</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="auto-approve">Auto-approve Characters</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically approve new character registrations
-                      </p>
-                    </div>
-                    <Switch id="auto-approve" />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="public-registration">Public Registration</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow public user registration without admin approval
-                      </p>
-                    </div>
-                    <Switch id="public-registration" defaultChecked />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label htmlFor="max-characters">Max Characters per Player</Label>
-                    <Input 
-                      id="max-characters" 
-                      type="number" 
-                      defaultValue="3" 
-                      min="1" 
-                      max="10"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Maximum number of characters each player can create
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* System Information */}
+            {/* Account Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Database className="h-5 w-5" />
-                  <span>System Information</span>
-                </CardTitle>
+                <CardTitle>Account Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="font-medium">Application Version</p>
-                    <p className="text-muted-foreground">1.0.0</p>
+                    <p className="text-muted-foreground">Account Type</p>
+                    <p className="font-medium">{user?.isAdmin ? "Administrator" : "Player"}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Database Status</p>
-                    <p className="text-green-600">Connected</p>
+                    <p className="text-muted-foreground">Candle Balance</p>
+                    <p className="font-medium">{user?.candles || 0} candles</p>
                   </div>
                   <div>
-                    <p className="font-medium">Last Updated</p>
-                    <p className="text-muted-foreground">
-                      {new Date().toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Account Type</p>
-                    <p className="text-muted-foreground">
-                      {user.isAdmin ? "Administrator" : "Standard Player"}
+                    <p className="text-muted-foreground">Member Since</p>
+                    <p className="font-medium">
+                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Actions */}
-            <div className="flex justify-end space-x-4">
-              <Button variant="outline">
-                Reset to Defaults
-              </Button>
-              <Button>
-                Save Changes
-              </Button>
-            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
