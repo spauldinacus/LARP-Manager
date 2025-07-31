@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu } from "lucide-react";
+import { Users, Shield, User, Menu, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
+import UserCharactersModal from "@/components/modals/user-characters-modal";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function UsersPage() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["/api/admin/users"],
@@ -138,13 +140,23 @@ export default function UsersPage() {
                         </div>
                       </div>
                       
-                      <div className="text-right space-y-1">
-                        <div className="text-sm font-medium">
-                          {userData.characterCount || 0} characters
+                      <div className="flex items-center space-x-2">
+                        <div className="text-right space-y-1 mr-4">
+                          <div className="text-sm font-medium">
+                            {userData.characterCount || 0} characters
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {userData.totalExperience || 0} total XP
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {userData.totalExperience || 0} total XP
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedUserId(userData.id)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Characters
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -162,6 +174,13 @@ export default function UsersPage() {
           )}
         </div>
       </main>
+
+      {/* User Characters Modal */}
+      <UserCharactersModal 
+        isOpen={!!selectedUserId}
+        onClose={() => setSelectedUserId(null)}
+        userId={selectedUserId}
+      />
     </div>
   );
 }

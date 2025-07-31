@@ -297,6 +297,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get specific user details for admin
+  app.get("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
+  // Get user's characters for admin
+  app.get("/api/admin/users/:id/characters", requireAdmin, async (req, res) => {
+    try {
+      const characters = await storage.getCharactersByUserId(req.params.id);
+      res.json(characters);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user characters" });
+    }
+  });
+
+  // Award experience to character (admin only)
+  app.post("/api/characters/:id/experience", requireAdmin, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      const entryData = insertExperienceEntrySchema.parse({
+        characterId: req.params.id,
+        amount: req.body.amount,
+        reason: req.body.reason,
+        awardedBy: req.session.userId,
+      });
+      
+      const entry = await storage.createExperienceEntry(entryData);
+      
+      // Update character's total experience
+      await storage.updateCharacter(req.params.id, {
+        experience: character.experience + req.body.amount
+      });
+      
+      res.status(201).json(entry);
+    } catch (error) {
+      console.error("Experience award error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to award experience" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
