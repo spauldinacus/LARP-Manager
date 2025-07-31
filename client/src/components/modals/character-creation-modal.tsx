@@ -78,6 +78,7 @@ export default function CharacterCreationModal({
         ...data,
         body: heritage.body,
         stamina: heritage.stamina,
+        experience: 25, // Starting experience per rulebook
       };
 
       const response = await apiRequest("POST", "/api/characters", characterData);
@@ -257,7 +258,7 @@ export default function CharacterCreationModal({
                   <p className="text-sm text-muted-foreground">Stamina</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-yellow-500">0</p>
+                  <p className="text-2xl font-bold text-yellow-500">25</p>
                   <p className="text-sm text-muted-foreground">Experience</p>
                 </div>
                 <div className="text-center">
