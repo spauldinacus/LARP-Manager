@@ -25,6 +25,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
+import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import { Users, Menu, Edit, Plus, Trash2, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -60,6 +61,7 @@ export default function PlayersPage() {
   const [newSkill, setNewSkill] = useState("");
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [isCharacterSheetOpen, setIsCharacterSheetOpen] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -262,7 +264,7 @@ export default function PlayersPage() {
                                   variant="ghost"
                                   onClick={() => {
                                     setSelectedCharacter(character);
-                                    setIsSkillModalOpen(true);
+                                    setIsCharacterSheetOpen(true);
                                   }}
                                 >
                                   <BookOpen className="h-4 w-4" />
@@ -406,6 +408,18 @@ export default function PlayersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Character Sheet Modal */}
+      {selectedCharacter && (
+        <CharacterSheetModal
+          character={selectedCharacter}
+          isOpen={isCharacterSheetOpen}
+          onClose={() => {
+            setIsCharacterSheetOpen(false);
+            setSelectedCharacter(null);
+          }}
+        />
+      )}
     </div>
   );
 }
