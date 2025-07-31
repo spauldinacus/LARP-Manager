@@ -640,81 +640,7 @@ export default function CharacterSheetModal({
                   </Card>
                 )}
 
-                {/* Character Retirement Section */}
-                {user && ((character as any)?.userId === user.id || user.isAdmin) && !(character as any)?.isRetired && (
-                  <Card className="border-red-200 dark:border-red-800">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-400">
-                        <UserX className="h-5 w-5" />
-                        <span>Retire Character</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                        <div className="flex items-start space-x-3">
-                          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm">
-                            <p className="font-medium text-red-800 dark:text-red-300 mb-2">
-                              Warning: This action cannot be undone
-                            </p>
-                            <p className="text-red-700 dark:text-red-400">
-                              Retiring a character will make them permanently unusable. The character will remain in the system for record-keeping but cannot participate in events or gain experience.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" className="w-full">
-                            <UserX className="h-4 w-4 mr-2" />
-                            Retire Character
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Retire Character: {(character as any)?.name}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently retire the character. They will no longer be able to participate in events or spend experience points. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <div className="space-y-3">
-                            <Label htmlFor="retirement-reason">Reason for retirement (required)</Label>
-                            <Textarea
-                              id="retirement-reason"
-                              placeholder="Enter the reason for retiring this character..."
-                              value={retirementReason}
-                              onChange={(e) => setRetirementReason(e.target.value)}
-                              className="min-h-[100px]"
-                            />
-                          </div>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setRetirementReason("")}>
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                if (retirementReason.trim()) {
-                                  retireCharacterMutation.mutate({ reason: retirementReason.trim() });
-                                } else {
-                                  toast({
-                                    title: "Retirement reason required",
-                                    description: "Please provide a reason for retiring this character.",
-                                    variant: "destructive",
-                                  });
-                                }
-                              }}
-                              disabled={retireCharacterMutation.isPending || !retirementReason.trim()}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              {retireCharacterMutation.isPending ? "Retiring..." : "Retire Character"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </CardContent>
-                  </Card>
-                )}
+
 
                 {/* Admin Skill Management */}
                 {user?.isAdmin && (
@@ -937,6 +863,82 @@ export default function CharacterSheetModal({
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Character Retirement Section - Moved to Bottom */}
+                {user && ((character as any)?.userId === user.id || user.isAdmin) && !(character as any)?.isRetired && (
+                  <Card className="border-red-200 dark:border-red-800">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-400">
+                        <UserX className="h-5 w-5" />
+                        <span>Retire Character</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                        <div className="flex items-start space-x-3">
+                          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium text-red-800 dark:text-red-300 mb-2">
+                              Warning: This action cannot be undone
+                            </p>
+                            <p className="text-red-700 dark:text-red-400">
+                              Retiring a character will make them permanently unusable. The character will remain in the system for record-keeping but cannot participate in events or gain experience.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" className="w-full">
+                            <UserX className="h-4 w-4 mr-2" />
+                            Retire Character
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Retire Character: {(character as any)?.name}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently retire the character. They will no longer be able to participate in events or spend experience points. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <div className="space-y-3">
+                            <Label htmlFor="retirement-reason">Reason for retirement (required)</Label>
+                            <Textarea
+                              id="retirement-reason"
+                              placeholder="Enter the reason for retiring this character..."
+                              value={retirementReason}
+                              onChange={(e) => setRetirementReason(e.target.value)}
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setRetirementReason("")}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                if (retirementReason.trim()) {
+                                  retireCharacterMutation.mutate({ reason: retirementReason.trim() });
+                                } else {
+                                  toast({
+                                    title: "Retirement reason required",
+                                    description: "Please provide a reason for retiring this character.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              disabled={retireCharacterMutation.isPending || !retirementReason.trim()}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {retireCharacterMutation.isPending ? "Retiring..." : "Retire Character"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             ) : (
               <div className="text-center py-8">
