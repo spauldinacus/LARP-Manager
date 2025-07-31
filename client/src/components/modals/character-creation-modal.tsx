@@ -108,8 +108,13 @@ export default function CharacterCreationModal({
   };
 
   const watchedHeritage = form.watch("heritage");
+  const watchedCulture = form.watch("culture");
+  const watchedArchetype = form.watch("archetype");
+  
   const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
   const availableCultures = watchedHeritage ? CULTURES[watchedHeritage as Heritage] || [] : [];
+  const selectedCultureData = availableCultures.find(c => c.id === watchedCulture);
+  const selectedArchetypeData = ARCHETYPES.find(a => a.id === watchedArchetype);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -244,26 +249,120 @@ export default function CharacterCreationModal({
             </div>
           </div>
 
-          {/* Character Stats Display */}
+          {/* Character Stats and Skills Display */}
           {selectedHeritageData && (
-            <div className="bg-muted/50 rounded-lg p-4">
-              <h4 className="font-medium mb-3">Character Statistics</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{selectedHeritageData.body}</p>
-                  <p className="text-sm text-muted-foreground">Body</p>
+            <div className="space-y-4">
+              {/* Stats */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Character Statistics</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{selectedHeritageData.body}</p>
+                    <p className="text-sm text-muted-foreground">Body</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-accent">{selectedHeritageData.stamina}</p>
+                    <p className="text-sm text-muted-foreground">Stamina</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-yellow-500">25</p>
+                    <p className="text-sm text-muted-foreground">Experience</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-500">1</p>
+                    <p className="text-sm text-muted-foreground">Level</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">{selectedHeritageData.stamina}</p>
-                  <p className="text-sm text-muted-foreground">Stamina</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-yellow-500">25</p>
-                  <p className="text-sm text-muted-foreground">Experience</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-500">1</p>
-                  <p className="text-sm text-muted-foreground">Level</p>
+              </div>
+
+              {/* Skills */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-3">Starting Skills</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Heritage Skills */}
+                  <div>
+                    <h5 className="text-sm font-medium text-primary mb-2">Heritage: {selectedHeritageData.name}</h5>
+                    <div className="space-y-1">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedHeritageData.primarySkills.map((skill, index) => (
+                            <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedHeritageData.secondarySkills.map((skill, index) => (
+                            <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Culture Skills */}
+                  {selectedCultureData && (
+                    <div>
+                      <h5 className="text-sm font-medium text-accent mb-2">Culture: {selectedCultureData.name}</h5>
+                      <div className="space-y-1">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedCultureData.primarySkills.map((skill, index) => (
+                              <span key={index} className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedCultureData.secondarySkills.map((skill, index) => (
+                              <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Archetype Skills */}
+                  {selectedArchetypeData && (
+                    <div>
+                      <h5 className="text-sm font-medium text-yellow-600 mb-2">Archetype: {selectedArchetypeData.name}</h5>
+                      <div className="space-y-1">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedArchetypeData.primarySkills.map((skill, index) => (
+                              <span key={index} className="text-xs bg-yellow-500/20 text-yellow-600 px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedArchetypeData.secondarySkills.map((skill, index) => (
+                              <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
