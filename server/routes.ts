@@ -1279,6 +1279,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievement Settings API
+  app.get("/api/admin/achievement-settings", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getAchievementSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch achievement settings" });
+    }
+  });
+
+  app.put("/api/admin/achievement-settings", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.updateAchievementSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update achievement settings" });
+    }
+  });
+
+  app.post("/api/admin/recalculate-achievement-rarities", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      await storage.recalculateAchievementRarities();
+      res.json({ message: "Achievement rarities recalculated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to recalculate achievement rarities" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

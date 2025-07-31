@@ -9,6 +9,7 @@ import AchievementBadge from "./achievement-badge";
 import MilestoneProgress from "./milestone-progress";
 import AchievementManagementModal from "../modals/achievement-management-modal";
 import MilestoneManagementModal from "../modals/milestone-management-modal";
+import AchievementSettingsModal from "../modals/achievement-settings-modal";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -180,6 +181,7 @@ export default function XPProgressionTracker({
   const [selectedTab, setSelectedTab] = useState("overview");
   const [showAchievementModal, setShowAchievementModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
   const [selectedMilestone, setSelectedMilestone] = useState<any>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -410,10 +412,15 @@ export default function XPProgressionTracker({
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Achievement Management</span>
-                  <Button onClick={handleCreateAchievement} size="sm">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Achievement
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button onClick={() => setShowSettingsModal(true)} variant="outline" size="sm">
+                      Settings
+                    </Button>
+                    <Button onClick={handleCreateAchievement} size="sm">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Achievement
+                    </Button>
+                  </div>
                 </CardTitle>
                 <CardDescription>
                   Manage custom achievements. Database achievements will appear below static ones.
@@ -663,6 +670,10 @@ export default function XPProgressionTracker({
             onClose={() => setShowMilestoneModal(false)}
             milestone={selectedMilestone}
             mode={modalMode}
+          />
+          <AchievementSettingsModal
+            isOpen={showSettingsModal}
+            onClose={() => setShowSettingsModal(false)}
           />
         </>
       )}

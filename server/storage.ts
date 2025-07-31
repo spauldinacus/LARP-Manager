@@ -132,6 +132,11 @@ export interface IStorage {
   updateMilestone(id: string, milestone: Partial<CustomMilestone>): Promise<CustomMilestone>;
   deleteMilestone(id: string): Promise<void>;
 
+  // Achievement settings methods
+  getAchievementSettings(): Promise<any>;
+  updateAchievementSettings(settings: any): Promise<any>;
+  recalculateAchievementRarities(): Promise<void>;
+
   // Dashboard stats
   getStats(): Promise<{
     totalCharacters: number;
@@ -822,23 +827,7 @@ export class DatabaseStorage implements IStorage {
     return rsvp;
   }
 
-  // Candle transaction methods
-  async createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction> {
-    // Create transaction record
-    const [created] = await db.insert(candleTransactions).values(transaction).returning();
-    
-    // Update user's candle balance
-    const user = await this.getUser(transaction.userId);
-    if (user) {
-      const newBalance = (user.candles || 0) + transaction.amount;
-      await db
-        .update(users)
-        .set({ candles: Math.max(0, newBalance) }) // Ensure non-negative balance
-        .where(eq(users.id, transaction.userId));
-    }
-    
-    return created;
-  }
+
 
   // Role management methods
   async getAllRoles(): Promise<Role[]> {
@@ -993,6 +982,91 @@ export class DatabaseStorage implements IStorage {
     await db.update(customMilestones)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(customMilestones.id, id));
+  }
+
+  // Achievement settings methods
+  async getAchievementSettings(): Promise<any> {
+    const [settings] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "achievement_rarity_settings"));
+    
+    if (settings) {
+      return JSON.parse(settings.value);
+    }
+    
+    // Default settings
+    return {
+      commonThreshold: 50,
+      rareThreshold: 25,
+      epicThreshold: 10,
+      legendaryThreshold: 2,
+      enableDynamicRarity: true,
+    };
+  }
+
+  async updateAchievementSettings(newSettings: any): Promise<any> {
+    await db
+      .insert(systemSettings)
+      .values({
+        key: "achievement_rarity_settings",
+        value: JSON.stringify(newSettings),
+      })
+      .onConflictDoUpdate({
+        target: systemSettings.key,
+        set: {
+          value: JSON.stringify(newSettings),
+          updatedAt: new Date(),
+        },
+      });
+    
+    return newSettings;
+  }
+
+  async recalculateAchievementRarities(): Promise<void> {
+    const settings = await this.getAchievementSettings();
+    if (!settings.enableDynamicRarity) return;
+
+    // Get total number of active characters
+    const [totalCharsResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(characters)
+      .where(eq(characters.isActive, true));
+    
+    const totalChars = totalCharsResult?.count || 0;
+    if (totalChars === 0) return;
+
+    // Get all achievements and calculate their completion rates
+    const achievements = await db
+      .select({
+        id: customAchievements.id,
+        completionCount: sql<number>`count(${characterAchievements.id})`,
+      })
+      .from(customAchievements)
+      .leftJoin(characterAchievements, eq(customAchievements.id, characterAchievements.achievementId))
+      .where(eq(customAchievements.isActive, true))
+      .groupBy(customAchievements.id);
+
+    // Update rarity for each achievement based on completion rate
+    for (const achievement of achievements) {
+      const completionRate = (achievement.completionCount / totalChars) * 100;
+      
+      let newRarity: "common" | "rare" | "epic" | "legendary";
+      if (completionRate >= settings.commonThreshold) {
+        newRarity = "common";
+      } else if (completionRate >= settings.rareThreshold) {
+        newRarity = "rare";
+      } else if (completionRate >= settings.epicThreshold) {
+        newRarity = "epic";
+      } else {
+        newRarity = "legendary";
+      }
+
+      await db
+        .update(customAchievements)
+        .set({ rarity: newRarity, updatedAt: new Date() })
+        .where(eq(customAchievements.id, achievement.id));
+    }
   }
 
   // System initialization

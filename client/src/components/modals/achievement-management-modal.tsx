@@ -196,7 +196,7 @@ export default function AchievementManagementModal({
 
             <div className="space-y-2">
               <Label htmlFor="rarity">Rarity</Label>
-              <Select value={rarity} onValueChange={setRarity}>
+              <Select value={rarity} onValueChange={(value: any) => setRarity(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select rarity" />
                 </SelectTrigger>
@@ -214,7 +214,7 @@ export default function AchievementManagementModal({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="conditionType">Condition Type</Label>
-              <Select value={conditionType} onValueChange={setConditionType}>
+              <Select value={conditionType} onValueChange={(value: any) => setConditionType(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select condition type" />
                 </SelectTrigger>

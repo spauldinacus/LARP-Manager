@@ -52,7 +52,7 @@ export default function MilestoneManagementModal({
   const [description, setDescription] = useState(milestone?.description || "");
   const [threshold, setThreshold] = useState(milestone?.threshold?.toString() || "");
   const [icon, setIcon] = useState(milestone?.iconName || "star");
-  const [color, setColor] = useState(milestone?.iconColor || "text-blue-600");
+  const [color, setColor] = useState(milestone?.color || "text-blue-600");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
