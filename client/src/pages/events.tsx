@@ -57,7 +57,7 @@ export default function EventsPage() {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: EventFormData) => apiRequest("/api/events", "POST", data),
+    mutationFn: (data: EventFormData) => apiRequest("POST", "/api/events", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       setIsCreateModalOpen(false);
@@ -78,7 +78,7 @@ export default function EventsPage() {
 
   const createRsvpMutation = useMutation({
     mutationFn: ({ eventId, data }: { eventId: string; data: RsvpFormData }) =>
-      apiRequest(`/api/events/${eventId}/rsvp`, "POST", data),
+      apiRequest("POST", `/api/events/${eventId}/rsvp`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       setIsRsvpModalOpen(false);
