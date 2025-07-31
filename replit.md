@@ -47,6 +47,10 @@ Preferred communication style: Simple, everyday language.
   - Applied consistent sidebar layout across all pages
   - Fixed sidebar disappearing when navigating to chapters or events pages
   - Added mobile navigation support for all sections
+- **Fixed user management character editing**
+  - Connected Edit button in user characters modal to open character sheet modal
+  - Added CharacterSheetModal import and integration to user management screen
+  - Edit functionality now opens the same character sheet interface as the main characters page
 - **Previous updates:**
   - Fixed character creation system to match Thrune LARP rulebook specifications (pages 19-39)
   - Corrected heritage body/stamina values: Ar-Nura (8/12), Human (10/10), Stoneborn (15/5), Ughol (12/8), Rystarri (12/8)
