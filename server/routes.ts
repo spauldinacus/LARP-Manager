@@ -362,6 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventData = insertEventSchema.parse({
         ...req.body,
+        eventDate: new Date(req.body.eventDate),
         createdBy: req.session.userId,
       });
       
@@ -705,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chapter routes
-  app.get("/api/chapters", requireAuth, async (req, res) => {
+  app.get("/api/chapters", async (req, res) => {
     try {
       const chapters = await storage.getAllChapters();
       res.json(chapters);
