@@ -219,7 +219,7 @@ export default function UserCharactersModal({
                           <div>
                             <CardTitle className="text-lg">{character.name}</CardTitle>
                             <p className="text-sm text-muted-foreground">
-                              {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} • {character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} • {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} • {character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')} • {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
                             </p>
                           </div>
                           <Badge variant={character.isActive ? "default" : "secondary"}>

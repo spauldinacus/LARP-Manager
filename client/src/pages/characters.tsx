@@ -121,9 +121,9 @@ export default function CharactersPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex space-x-2">
-                      <Badge variant="outline">{character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge>
-                      <Badge variant="outline">{character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge>
-                      <Badge variant="outline">{character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</Badge>
+                      <Badge variant="outline">{character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')}</Badge>
+                      <Badge variant="outline">{character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')}</Badge>
+                      <Badge variant="outline">{character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}</Badge>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 text-sm">

@@ -317,9 +317,9 @@ export default function CharacterSheetModal({
                         <p>{(character as any).playerName}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Badge variant="outline">{((character as any).heritage.charAt(0).toUpperCase() + (character as any).heritage.slice(1).replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()))}</Badge>
-                        <Badge variant="outline">{((character as any).culture.charAt(0).toUpperCase() + (character as any).culture.slice(1).replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()))}</Badge>
-                        <Badge variant="outline">{((character as any).archetype.charAt(0).toUpperCase() + (character as any).archetype.slice(1).replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()))}</Badge>
+                        <Badge variant="outline">{((character as any).heritage.charAt(0).toUpperCase() + (character as any).heritage.slice(1).replace(/-/g, ' '))}</Badge>
+                        <Badge variant="outline">{((character as any).culture.charAt(0).toUpperCase() + (character as any).culture.slice(1).replace(/-/g, ' '))}</Badge>
+                        <Badge variant="outline">{((character as any).archetype.charAt(0).toUpperCase() + (character as any).archetype.slice(1).replace(/-/g, ' '))}</Badge>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Status</p>

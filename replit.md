@@ -35,8 +35,8 @@ Preferred communication style: Simple, everyday language.
   - Implemented actual next event countdown with event names
   - All dashboard metrics now reflect authentic data from the database
 - **Enhanced character display formatting**
-  - Capitalized heritage, culture, and archetype names across all pages
-  - Converted kebab-case to proper title case (e.g., "ar-nura" → "Ar Nura")
+  - Capitalized first letter only of heritage, culture, and archetype names across all pages
+  - Converted kebab-case with first letter capitalization (e.g., "ar-nura" → "Ar nura")
   - Applied consistent formatting to character cards, sheets, modals, and admin views
 - **Enhanced chapter management system**
   - Added complete chapter management with database schema and API endpoints
