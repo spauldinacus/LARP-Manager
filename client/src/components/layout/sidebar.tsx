@@ -12,6 +12,7 @@ import {
   LogOut,
   Building2,
   Shield,
+  TrendingUp,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -30,6 +31,12 @@ const navigationItems = [
     href: "/characters",
     icon: Users,
     label: "Characters",
+    adminOnly: false,
+  },
+  {
+    href: "/progression",
+    icon: TrendingUp,
+    label: "XP Progression",
     adminOnly: false,
   },
   {

@@ -11,6 +11,7 @@ import CharactersPage from "@/pages/characters";
 import ChaptersPage from "@/pages/chapters";
 import EventsPage from "@/pages/events";
 import PlayersPage from "@/pages/players";
+import ProgressionPage from "@/pages/progression";
 
 import UsersPage from "@/pages/users";
 import RolesPage from "@/pages/roles";
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/login" component={LoginPage} />
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/characters" component={CharactersPage} />
+      <Route path="/progression" component={ProgressionPage} />
       <Route path="/chapters" component={ChaptersPage} />
       <Route path="/events" component={EventsPage} />
       <Route path="/players" component={PlayersPage} />
