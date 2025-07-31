@@ -1,4 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +13,36 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, User, Shield, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus } from "lucide-react";
+import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Skill } from "@/lib/constants";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+
+// Experience spending schemas
+const skillPurchaseSchema = z.object({
+  skill: z.string().min(1, "Skill is required"),
+  cost: z.number().min(1),
+});
+
+const attributeSpendSchema = z.object({
+  attribute: z.enum(["body", "stamina"]),
+  amount: z.number().min(1, "Amount must be at least 1"),
+});
+
+type SkillPurchaseForm = z.infer<typeof skillPurchaseSchema>;
+type AttributeSpendForm = z.infer<typeof attributeSpendSchema>;
 
 interface CharacterSheetModalProps {
   isOpen: boolean;
@@ -22,6 +55,13 @@ export default function CharacterSheetModal({
   onClose,
   characterId,
 }: CharacterSheetModalProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showExperienceSpending, setShowExperienceSpending] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<string>("");
+  const [additionalBody, setAdditionalBody] = useState(0);
+  const [additionalStamina, setAdditionalStamina] = useState(0);
+
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["/api/characters", characterId],
@@ -32,6 +72,113 @@ export default function CharacterSheetModal({
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId, "experience"],
     enabled: isOpen && !!characterId,
+  });
+
+  // Helper function to calculate body/stamina cost
+  const getAttributeCost = (currentValue: number, increaseAmount: number): number => {
+    let totalCost = 0;
+    let currentVal = currentValue;
+    
+    for (let i = 0; i < increaseAmount; i++) {
+      if (currentVal < 20) totalCost += 1;
+      else if (currentVal < 40) totalCost += 2;
+      else if (currentVal < 60) totalCost += 3;
+      else if (currentVal < 80) totalCost += 4;
+      else if (currentVal < 100) totalCost += 5;
+      else if (currentVal < 120) totalCost += 6;
+      else if (currentVal < 140) totalCost += 7;
+      else if (currentVal < 160) totalCost += 8;
+      else if (currentVal < 180) totalCost += 9;
+      else totalCost += 10;
+      
+      currentVal++;
+    }
+    
+    return totalCost;
+  };
+
+  // Helper function to get skill cost
+  const getSkillCost = (skill: Skill, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
+    const heritageData = HERITAGES.find(h => h.id === heritage);
+    const cultureData = culture ? CULTURES[heritage as Heritage]?.find(c => c.id === culture) : null;
+    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+
+    const skillString = String(skill);
+
+    // Check if skill is primary for any of the selected options  
+    const heritageSecondarySkills = heritageData?.secondarySkills || [];
+    const culturePrimarySkills = cultureData?.primarySkills || [];
+    const archetypePrimarySkills = archetypeData?.primarySkills || [];
+    
+    if (
+      heritageSecondarySkills.some(s => s === skillString) ||
+      culturePrimarySkills.some(s => s === skillString) ||
+      archetypePrimarySkills.some(s => s === skillString)
+    ) {
+      return { cost: 5, category: 'primary' };
+    }
+
+    // Check if skill is secondary for any of the selected options
+    const cultureSecondarySkills = cultureData?.secondarySkills || [];
+    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+    
+    if (
+      cultureSecondarySkills.some(s => s === skillString) ||
+      archetypeSecondarySkills.some(s => s === skillString)
+    ) {
+      return { cost: 10, category: 'secondary' };
+    }
+
+    // Otherwise it's a general skill
+    return { cost: 20, category: 'other' };
+  };
+
+  // Mutations for spending experience
+  const purchaseSkillMutation = useMutation({
+    mutationFn: async (data: { skill: string; cost: number }) => {
+      const response = await apiRequest("POST", `/api/characters/${characterId}/purchase-skill`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setSelectedSkill("");
+      toast({
+        title: "Skill purchased!",
+        description: "The skill has been added to your character.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Purchase failed",
+        description: error.message || "Failed to purchase skill",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const increaseAttributeMutation = useMutation({
+    mutationFn: async (data: { attribute: string; amount: number; cost: number }) => {
+      const response = await apiRequest("POST", `/api/characters/${characterId}/increase-attribute`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setAdditionalBody(0);
+      setAdditionalStamina(0);
+      toast({
+        title: "Attribute increased!",
+        description: "Your character's attribute has been improved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Increase failed",
+        description: error.message || "Failed to increase attribute",
+        variant: "destructive",
+      });
+    },
   });
 
   if (!characterId) return null;
@@ -120,6 +267,246 @@ export default function CharacterSheetModal({
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Skills Section */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <BookOpen className="h-5 w-5" />
+                        <span>Skills</span>
+                      </div>
+                      {(character as any)?.skills?.length > 0 && (
+                        <Badge variant="secondary">
+                          {(character as any).skills.length} skill{(character as any).skills.length !== 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(character as any)?.skills?.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {(character as any).skills.map((skill: string, index: number) => {
+                          const skillData = getSkillCost(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                          return (
+                            <Badge
+                              key={index}
+                              variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                              className="text-sm"
+                            >
+                              {skill}
+                              <span className="ml-1 text-xs opacity-70">({skillData.cost} XP)</span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <BookOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                        <p className="text-muted-foreground">No skills learned yet</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          All characters start with Weapon Proficiency (Unarmed) and Weapon Proficiency (Small)
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Experience Spending Section */}
+                {user && ((character as any)?.userId === user.id || user.isAdmin) && (character as any)?.experience > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Zap className="h-5 w-5" />
+                          <span>Spend Experience Points</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowExperienceSpending(!showExperienceSpending)}
+                        >
+                          {showExperienceSpending ? 'Hide' : 'Show'} Spending Options
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    {showExperienceSpending && (
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Skill Purchase */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Purchase Skills</h4>
+                            <div className="space-y-3">
+                              <Label htmlFor="skill-select">Select Skill</Label>
+                              <Select value={selectedSkill} onValueChange={setSelectedSkill}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Choose a skill" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
+                                    const skillData = getSkillCost(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    return (
+                                      <SelectItem key={skill} value={skill}>
+                                        <div className="flex items-center justify-between w-full">
+                                          <span>{skill}</span>
+                                          <Badge
+                                            variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                                            className="ml-2 text-xs"
+                                          >
+                                            {skillData.cost} XP
+                                          </Badge>
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              {selectedSkill && (
+                                <Button
+                                  onClick={() => {
+                                    const skillData = getSkillCost(selectedSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    if (skillData.cost <= (character as any).experience) {
+                                      purchaseSkillMutation.mutate({ skill: selectedSkill, cost: skillData.cost });
+                                    } else {
+                                      toast({
+                                        title: "Insufficient Experience",
+                                        description: `This skill costs ${skillData.cost} XP, but you only have ${(character as any).experience} XP.`,
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                  disabled={!selectedSkill || purchaseSkillMutation.isPending}
+                                  className="w-full"
+                                >
+                                  {purchaseSkillMutation.isPending ? "Purchasing..." : `Purchase Skill`}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Attribute Increases */}
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Increase Attributes</h4>
+                            
+                            {/* Body */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label>Body (Current: {(character as any)?.body})</Label>
+                                <span className="text-sm text-muted-foreground">
+                                  {additionalBody > 0 ? `${getAttributeCost((character as any)?.body, additionalBody)} XP` : ''}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setAdditionalBody(Math.max(0, additionalBody - 1))}
+                                  disabled={additionalBody === 0}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="text-lg font-mono w-12 text-center">{additionalBody}</span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const newCost = getAttributeCost((character as any)?.body, additionalBody + 1);
+                                    if (newCost <= (character as any)?.experience) {
+                                      setAdditionalBody(additionalBody + 1);
+                                    }
+                                  }}
+                                  disabled={getAttributeCost((character as any)?.body, additionalBody + 1) > (character as any)?.experience}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              {additionalBody > 0 && (
+                                <Button
+                                  onClick={() => {
+                                    const cost = getAttributeCost((character as any)?.body, additionalBody);
+                                    increaseAttributeMutation.mutate({ 
+                                      attribute: 'body', 
+                                      amount: additionalBody, 
+                                      cost 
+                                    });
+                                  }}
+                                  disabled={increaseAttributeMutation.isPending}
+                                  size="sm"
+                                  className="w-full"
+                                >
+                                  {increaseAttributeMutation.isPending ? "Increasing..." : `Increase Body (+${additionalBody})`}
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Stamina */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label>Stamina (Current: {(character as any)?.stamina})</Label>
+                                <span className="text-sm text-muted-foreground">
+                                  {additionalStamina > 0 ? `${getAttributeCost((character as any)?.stamina, additionalStamina)} XP` : ''}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setAdditionalStamina(Math.max(0, additionalStamina - 1))}
+                                  disabled={additionalStamina === 0}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="text-lg font-mono w-12 text-center">{additionalStamina}</span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const newCost = getAttributeCost((character as any)?.stamina, additionalStamina + 1);
+                                    if (newCost <= (character as any)?.experience) {
+                                      setAdditionalStamina(additionalStamina + 1);
+                                    }
+                                  }}
+                                  disabled={getAttributeCost((character as any)?.stamina, additionalStamina + 1) > (character as any)?.experience}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              {additionalStamina > 0 && (
+                                <Button
+                                  onClick={() => {
+                                    const cost = getAttributeCost((character as any)?.stamina, additionalStamina);
+                                    increaseAttributeMutation.mutate({ 
+                                      attribute: 'stamina', 
+                                      amount: additionalStamina, 
+                                      cost 
+                                    });
+                                  }}
+                                  disabled={increaseAttributeMutation.isPending}
+                                  size="sm"
+                                  className="w-full"
+                                >
+                                  {increaseAttributeMutation.isPending ? "Increasing..." : `Increase Stamina (+${additionalStamina})`}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
+                          <p className="font-medium mb-2">Experience Point Costs:</p>
+                          <p>• Primary Skills: 5 XP (Heritage secondary, Culture/Archetype primary)</p>
+                          <p>• Secondary Skills: 10 XP (Culture/Archetype secondary)</p>
+                          <p>• Other Skills: 20 XP (All other skills)</p>
+                          <p>• Body/Stamina: Variable XP (1-10 XP per point based on current value)</p>
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                )}
 
                 {/* Experience History */}
                 <Card>

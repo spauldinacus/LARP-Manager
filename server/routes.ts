@@ -349,6 +349,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase skill for character (player or admin)
+  app.post("/api/characters/:id/purchase-skill", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { skill, cost } = req.body;
+      
+      if (!skill || !cost || cost <= 0) {
+        return res.status(400).json({ message: "Invalid skill or cost" });
+      }
+
+      if (character.experience < cost) {
+        return res.status(400).json({ message: "Insufficient experience points" });
+      }
+
+      // Check if character already has this skill
+      if (character.skills.includes(skill)) {
+        return res.status(400).json({ message: "Character already has this skill" });
+      }
+
+      // Add skill to character and deduct experience
+      const updatedSkills = [...character.skills, skill];
+      await storage.updateCharacter(req.params.id, {
+        skills: updatedSkills,
+        experience: character.experience - cost
+      });
+
+      // Create experience entry for the spending
+      await storage.createExperienceEntry({
+        characterId: req.params.id,
+        amount: -cost,
+        reason: `Purchased skill: ${skill}`,
+        awardedBy: req.session.userId!,
+      });
+
+      res.json({ message: "Skill purchased successfully" });
+    } catch (error) {
+      console.error("Skill purchase error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to purchase skill" });
+    }
+  });
+
+  // Increase character attribute (player or admin)
+  app.post("/api/characters/:id/increase-attribute", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { attribute, amount, cost } = req.body;
+      
+      if (!attribute || !amount || !cost || amount <= 0 || cost <= 0) {
+        return res.status(400).json({ message: "Invalid attribute, amount, or cost" });
+      }
+
+      if (attribute !== 'body' && attribute !== 'stamina') {
+        return res.status(400).json({ message: "Invalid attribute type" });
+      }
+
+      if (character.experience < cost) {
+        return res.status(400).json({ message: "Insufficient experience points" });
+      }
+
+      // Update character attribute and deduct experience
+      const updates: any = {
+        experience: character.experience - cost
+      };
+      
+      if (attribute === 'body') {
+        updates.body = character.body + amount;
+      } else {
+        updates.stamina = character.stamina + amount;
+      }
+
+      await storage.updateCharacter(req.params.id, updates);
+
+      // Create experience entry for the spending
+      await storage.createExperienceEntry({
+        characterId: req.params.id,
+        amount: -cost,
+        reason: `Increased ${attribute} by ${amount} point${amount !== 1 ? 's' : ''}`,
+        awardedBy: req.session.userId!,
+      });
+
+      res.json({ message: "Attribute increased successfully" });
+    } catch (error) {
+      console.error("Attribute increase error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to increase attribute" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
