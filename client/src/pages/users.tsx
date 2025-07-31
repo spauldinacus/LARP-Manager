@@ -126,8 +126,9 @@ export default function UsersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Force refetch immediately
+      queryClient.refetchQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
       setShowCandleModal(false);
       setSelectedUserForCandles(null);
       setCandleAmount("");
