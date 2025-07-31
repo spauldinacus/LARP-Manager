@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AchievementBadge from "./achievement-badge";
 import MilestoneProgress from "./milestone-progress";
-import XPEfficiencyTracker from "./xp-efficiency-tracker";
+
 import { 
   Trophy, 
   Target, 
@@ -47,8 +47,6 @@ interface XPProgressionTrackerProps {
   characterId: string;
   character?: Character;
   isAdmin?: boolean;
-  onEditExperience?: (entry: any) => void;
-  onDeleteExperience?: (entryId: string) => void;
 }
 
 // XP milestone definitions
@@ -172,9 +170,7 @@ const ACHIEVEMENTS = [
 export default function XPProgressionTracker({ 
   characterId, 
   character, 
-  isAdmin = false, 
-  onEditExperience, 
-  onDeleteExperience 
+  isAdmin = false
 }: XPProgressionTrackerProps) {
   const [selectedTab, setSelectedTab] = useState("overview");
 
@@ -241,11 +237,10 @@ export default function XPProgressionTracker({
 
       {/* Detailed Tabs */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
-          <TabsTrigger value="efficiency">Efficiency</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
@@ -319,6 +314,18 @@ export default function XPProgressionTracker({
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-4">
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Achievement Management</span>
+                  <div className="text-sm text-muted-foreground">
+                    Admin can add/edit/delete custom achievements from database
+                  </div>
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
           <div className="space-y-4">
             {/* Unlocked Achievements */}
             {unlockedAchievements.length > 0 && (
@@ -367,6 +374,18 @@ export default function XPProgressionTracker({
         </TabsContent>
 
         <TabsContent value="milestones" className="space-y-4">
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Milestone Management</span>
+                  <div className="text-sm text-muted-foreground">
+                    Admin can add/edit/delete custom milestones from database
+                  </div>
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
           <div className="space-y-4">
             {XP_MILESTONES.map((milestone, index) => {
               const isUnlocked = totalXpEarned >= milestone.threshold;
@@ -411,9 +430,7 @@ export default function XPProgressionTracker({
           </div>
         </TabsContent>
 
-        <TabsContent value="efficiency" className="space-y-4">
-          <XPEfficiencyTracker character={character} />
-        </TabsContent>
+
 
         <TabsContent value="history" className="space-y-4">
           <Card>
@@ -444,25 +461,7 @@ export default function XPProgressionTracker({
                         <Badge variant={entry.amount > 0 ? "default" : "destructive"}>
                           {entry.amount > 0 ? "+" : ""}{entry.amount} XP
                         </Badge>
-                        {isAdmin && (
-                          <div className="flex space-x-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => onEditExperience?.(entry)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => onDeleteExperience?.(entry.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
+
                       </div>
                     </div>
                   ))}

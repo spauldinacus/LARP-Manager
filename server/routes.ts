@@ -1193,6 +1193,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievement management routes (admin only)
+  app.get("/api/admin/achievements", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const achievements = await storage.getAllAchievements();
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  app.post("/api/admin/achievements", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const achievementData = {
+        ...req.body,
+        createdBy: req.session.userId,
+      };
+      const achievement = await storage.createAchievement(achievementData);
+      res.json(achievement);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid achievement data" });
+    }
+  });
+
+  app.put("/api/admin/achievements/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const achievement = await storage.updateAchievement(id, req.body);
+      res.json(achievement);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update achievement" });
+    }
+  });
+
+  app.delete("/api/admin/achievements/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAchievement(id);
+      res.json({ message: "Achievement deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete achievement" });
+    }
+  });
+
+  // Milestone management routes (admin only)
+  app.get("/api/admin/milestones", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const milestones = await storage.getAllMilestones();
+      res.json(milestones);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch milestones" });
+    }
+  });
+
+  app.post("/api/admin/milestones", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const milestoneData = {
+        ...req.body,
+        createdBy: req.session.userId,
+      };
+      const milestone = await storage.createMilestone(milestoneData);
+      res.json(milestone);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid milestone data" });
+    }
+  });
+
+  app.put("/api/admin/milestones/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const milestone = await storage.updateMilestone(id, req.body);
+      res.json(milestone);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update milestone" });
+    }
+  });
+
+  app.delete("/api/admin/milestones/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteMilestone(id);
+      res.json({ message: "Milestone deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete milestone" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

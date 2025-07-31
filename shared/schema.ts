@@ -146,6 +146,45 @@ export const candleTransactions = pgTable("candle_transactions", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+// Custom achievements table
+export const customAchievements = pgTable("custom_achievements", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  iconName: text("icon_name").notNull(), // Lucide icon name
+  rarity: text("rarity", { enum: ["common", "rare", "epic", "legendary"] }).notNull().default("common"),
+  conditionType: text("condition_type", { 
+    enum: ["skill_count", "xp_spent", "attribute_value", "manual"] 
+  }).notNull(),
+  conditionValue: integer("condition_value"), // For automated conditions
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+// Custom milestones table
+export const customMilestones = pgTable("custom_milestones", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  threshold: integer("threshold").notNull(), // XP threshold
+  iconName: text("icon_name").notNull(), // Lucide icon name
+  color: text("color").notNull().default("text-blue-600"), // Tailwind color class
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+// Character achievements table (tracks unlocked achievements per character)
+export const characterAchievements = pgTable("character_achievements", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  achievementId: uuid("achievement_id").notNull().references(() => customAchievements.id, { onDelete: "cascade" }),
+  unlockedAt: timestamp("unlocked_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const chaptersRelations = relations(chapters, ({ one, many }) => ({
   createdBy: one(users, {
@@ -164,6 +203,7 @@ export const charactersRelations = relations(characters, ({ one, many }) => ({
   }),
   experienceEntries: many(experienceEntries),
   rsvps: many(eventRsvps),
+  achievements: many(characterAchievements),
 }));
 
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -249,6 +289,23 @@ export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit
   updatedAt: true,
 });
 
+export const insertCustomAchievementSchema = createInsertSchema(customAchievements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCustomMilestoneSchema = createInsertSchema(customMilestones).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCharacterAchievementSchema = createInsertSchema(characterAchievements).omit({
+  id: true,
+  unlockedAt: true,
+});
+
 // Types
 export type Chapter = typeof chapters.$inferSelect;
 export type InsertChapter = z.infer<typeof insertChapterSchema>;
@@ -272,6 +329,12 @@ export type Permission = typeof permissions.$inferSelect;
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type RolePermission = typeof rolePermissions.$inferSelect;
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type CustomAchievement = typeof customAchievements.$inferSelect;
+export type InsertCustomAchievement = z.infer<typeof insertCustomAchievementSchema>;
+export type CustomMilestone = typeof customMilestones.$inferSelect;
+export type InsertCustomMilestone = z.infer<typeof insertCustomMilestoneSchema>;
+export type CharacterAchievement = typeof characterAchievements.$inferSelect;
+export type InsertCharacterAchievement = z.infer<typeof insertCharacterAchievementSchema>;
 
 export const insertCandleTransactionSchema = createInsertSchema(candleTransactions).omit({
   id: true,
@@ -324,6 +387,32 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   permission: one(permissions, {
     fields: [rolePermissions.permissionId],
     references: [permissions.id],
+  }),
+}));
+
+export const customAchievementsRelations = relations(customAchievements, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [customAchievements.createdBy],
+    references: [users.id],
+  }),
+  characterAchievements: many(characterAchievements),
+}));
+
+export const customMilestonesRelations = relations(customMilestones, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [customMilestones.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const characterAchievementsRelations = relations(characterAchievements, ({ one }) => ({
+  character: one(characters, {
+    fields: [characterAchievements.characterId],
+    references: [characters.id],
+  }),
+  achievement: one(customAchievements, {
+    fields: [characterAchievements.achievementId],
+    references: [customAchievements.id],
   }),
 }));
 

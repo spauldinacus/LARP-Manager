@@ -10,6 +10,9 @@ import {
   roles,
   permissions,
   rolePermissions,
+  customAchievements,
+  customMilestones,
+  characterAchievements,
   defaultPermissions,
   type Chapter,
   type InsertChapter,
@@ -33,6 +36,12 @@ import {
   type InsertPermission,
   type RolePermission,
   type InsertRolePermission,
+  type CustomAchievement,
+  type InsertCustomAchievement,
+  type CustomMilestone,
+  type InsertCustomMilestone,
+  type CharacterAchievement,
+  type InsertCharacterAchievement,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -106,6 +115,22 @@ export interface IStorage {
 
   // Candle transaction methods
   createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction>;
+
+  // Achievement management methods
+  getAllAchievements(): Promise<CustomAchievement[]>;
+  getAchievement(id: string): Promise<CustomAchievement | undefined>;
+  createAchievement(achievement: InsertCustomAchievement): Promise<CustomAchievement>;
+  updateAchievement(id: string, achievement: Partial<CustomAchievement>): Promise<CustomAchievement>;
+  deleteAchievement(id: string): Promise<void>;
+  getCharacterAchievements(characterId: string): Promise<CharacterAchievement[]>;
+  unlockAchievement(characterId: string, achievementId: string): Promise<CharacterAchievement>;
+
+  // Milestone management methods
+  getAllMilestones(): Promise<CustomMilestone[]>;
+  getMilestone(id: string): Promise<CustomMilestone | undefined>;
+  createMilestone(milestone: InsertCustomMilestone): Promise<CustomMilestone>;
+  updateMilestone(id: string, milestone: Partial<CustomMilestone>): Promise<CustomMilestone>;
+  deleteMilestone(id: string): Promise<void>;
 
   // Dashboard stats
   getStats(): Promise<{
@@ -892,6 +917,82 @@ export class DatabaseStorage implements IStorage {
   async createPermission(insertPermission: InsertPermission): Promise<Permission> {
     const [permission] = await db.insert(permissions).values(insertPermission).returning();
     return permission;
+  }
+
+  // Achievement management methods
+  async getAllAchievements(): Promise<CustomAchievement[]> {
+    return await db.select().from(customAchievements).where(eq(customAchievements.isActive, true)).orderBy(customAchievements.rarity, customAchievements.title);
+  }
+
+  async getAchievement(id: string): Promise<CustomAchievement | undefined> {
+    const [achievement] = await db.select().from(customAchievements).where(eq(customAchievements.id, id));
+    return achievement || undefined;
+  }
+
+  async createAchievement(insertAchievement: InsertCustomAchievement): Promise<CustomAchievement> {
+    const [achievement] = await db.insert(customAchievements).values(insertAchievement).returning();
+    return achievement;
+  }
+
+  async updateAchievement(id: string, updateData: Partial<CustomAchievement>): Promise<CustomAchievement> {
+    const [achievement] = await db
+      .update(customAchievements)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(customAchievements.id, id))
+      .returning();
+    return achievement;
+  }
+
+  async deleteAchievement(id: string): Promise<void> {
+    await db.update(customAchievements)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(customAchievements.id, id));
+  }
+
+  async getCharacterAchievements(characterId: string): Promise<CharacterAchievement[]> {
+    return await db
+      .select()
+      .from(characterAchievements)
+      .where(eq(characterAchievements.characterId, characterId))
+      .orderBy(desc(characterAchievements.unlockedAt));
+  }
+
+  async unlockAchievement(characterId: string, achievementId: string): Promise<CharacterAchievement> {
+    const [achievement] = await db
+      .insert(characterAchievements)
+      .values({ characterId, achievementId })
+      .returning();
+    return achievement;
+  }
+
+  // Milestone management methods
+  async getAllMilestones(): Promise<CustomMilestone[]> {
+    return await db.select().from(customMilestones).where(eq(customMilestones.isActive, true)).orderBy(customMilestones.threshold);
+  }
+
+  async getMilestone(id: string): Promise<CustomMilestone | undefined> {
+    const [milestone] = await db.select().from(customMilestones).where(eq(customMilestones.id, id));
+    return milestone || undefined;
+  }
+
+  async createMilestone(insertMilestone: InsertCustomMilestone): Promise<CustomMilestone> {
+    const [milestone] = await db.insert(customMilestones).values(insertMilestone).returning();
+    return milestone;
+  }
+
+  async updateMilestone(id: string, updateData: Partial<CustomMilestone>): Promise<CustomMilestone> {
+    const [milestone] = await db
+      .update(customMilestones)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(customMilestones.id, id))
+      .returning();
+    return milestone;
+  }
+
+  async deleteMilestone(id: string): Promise<void> {
+    await db.update(customMilestones)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(customMilestones.id, id));
   }
 
   // System initialization
