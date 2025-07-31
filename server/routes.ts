@@ -851,6 +851,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Check if user has enough candles for XP candle purchases
+      if (rsvpData.xpCandlePurchases > 0) {
+        const user = await storage.getUser(req.session.userId!);
+        const candlesNeeded = rsvpData.xpCandlePurchases * 10; // 10 candles per XP candle purchase
+        
+        if (!user || user.candles < candlesNeeded) {
+          return res.status(400).json({ 
+            message: `Insufficient candles. Need ${candlesNeeded} candles, but you have ${user?.candles || 0}` 
+          });
+        }
+
+        // Spend the candles
+        await storage.updateUser(req.session.userId!, { 
+          candles: user.candles - candlesNeeded 
+        });
+
+        // Create candle transaction record
+        await storage.createCandleTransaction({
+          userId: req.session.userId!,
+          amount: -candlesNeeded,
+          reason: `XP candle purchases for event RSVP (${rsvpData.xpCandlePurchases} purchases)`,
+          createdBy: req.session.userId!,
+        });
+      }
+
       const rsvp = await storage.createEventRsvp({
         ...rsvpData,
         eventId: req.params.eventId,

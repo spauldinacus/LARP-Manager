@@ -474,14 +474,19 @@ export default function EventsPage() {
                       <Input
                         type="number"
                         min={0}
-                        max={2}
+                        max={Math.min(2, Math.floor((user?.candles || 0) / 10))}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
                     </FormControl>
-                    <p className="text-sm text-muted-foreground">
-                      Purchase XP candles for special benefits during the event (1 XP each).
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Purchase XP candles for special benefits during the event (1 XP each). Costs 10 candles per purchase.
+                      </p>
+                      <p className="text-sm font-medium text-orange-600">
+                        Available Candles: {user?.candles || 0} | Cost: {(field.value || 0) * 10} candles
+                      </p>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

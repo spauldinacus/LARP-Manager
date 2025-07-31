@@ -74,6 +74,9 @@ export interface IStorage {
   getTotalExperienceByCharacter(characterId: string): Promise<number>;
   calculateTotalXpSpent(characterId: string): Promise<number>;
 
+  // Candle transaction methods
+  createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction>;
+
   // Dashboard stats
   getStats(): Promise<{
     totalCharacters: number;
@@ -678,6 +681,12 @@ export class DatabaseStorage implements IStorage {
     }
 
     return rsvp;
+  }
+
+  // Candle transaction methods
+  async createCandleTransaction(insertTransaction: InsertCandleTransaction): Promise<CandleTransaction> {
+    const [transaction] = await db.insert(candleTransactions).values(insertTransaction).returning();
+    return transaction;
   }
 
   // Refresh character XP values (utility function)
