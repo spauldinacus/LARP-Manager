@@ -87,19 +87,28 @@ export default function CharacterCreationModal({
     const cultureData = culture ? CULTURES[heritage as Heritage]?.find(c => c.id === culture) : null;
     const archetypeData = ARCHETYPES.find(a => a.id === archetype);
 
-    // Check if skill is primary for any of the selected options
+    const skillString = String(skill);
+
+    // Check if skill is primary for any of the selected options  
+    const heritageSecondarySkills = heritageData?.secondarySkills || [];
+    const culturePrimarySkills = cultureData?.primarySkills || [];
+    const archetypePrimarySkills = archetypeData?.primarySkills || [];
+    
     if (
-      (heritageData?.secondarySkills || []).includes(skill as any) ||
-      (cultureData?.primarySkills || []).includes(skill as any) ||
-      (archetypeData?.primarySkills || []).includes(skill as any)
+      heritageSecondarySkills.some(s => s === skillString) ||
+      culturePrimarySkills.some(s => s === skillString) ||
+      archetypePrimarySkills.some(s => s === skillString)
     ) {
       return { cost: 5, category: 'primary' };
     }
 
     // Check if skill is secondary for any of the selected options
+    const cultureSecondarySkills = cultureData?.secondarySkills || [];
+    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+    
     if (
-      (cultureData?.secondarySkills || []).includes(skill as any) ||
-      (archetypeData?.secondarySkills || []).includes(skill as any)
+      cultureSecondarySkills.some(s => s === skillString) ||
+      archetypeSecondarySkills.some(s => s === skillString)
     ) {
       return { cost: 10, category: 'secondary' };
     }
