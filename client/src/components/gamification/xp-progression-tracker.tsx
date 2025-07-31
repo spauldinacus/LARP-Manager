@@ -323,6 +323,23 @@ export default function XPProgressionTracker({
     unlockAchievementMutation.mutate(achievementId);
   };
 
+  const handleEditStaticMilestone = (milestone: any, index: number) => {
+    // Convert static milestone to editable format
+    const editableMilestone = {
+      id: `static-${index}`,
+      title: milestone.title,
+      description: milestone.description,
+      threshold: milestone.threshold,
+      iconName: milestone.icon.name || 'trophy',
+      color: milestone.color,
+      isStatic: true,
+      staticIndex: index
+    };
+    setSelectedMilestone(editableMilestone);
+    setModalMode("edit");
+    setShowMilestoneModal(true);
+  };
+
   // Fetch character experience history
   const { data: experienceHistory = [] } = useQuery({
     queryKey: ["/api/characters", characterId, "experience"],
@@ -627,45 +644,75 @@ export default function XPProgressionTracker({
                   </Button>
                 </CardTitle>
                 <CardDescription>
-                  Manage custom milestones. Database milestones will appear below static ones.
+                  Edit any milestone including static ones. Changes to static milestones are saved to the database.
                 </CardDescription>
               </CardHeader>
-              {(adminMilestones as any[])?.length > 0 && (
-                <CardContent>
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Milestones ({(adminMilestones as any[])?.length})</h4>
+              
+              {/* Static Milestones - Editable */}
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-2">Static Milestones (Editable)</h4>
                     <div className="space-y-2">
-                      {(adminMilestones as any[])?.map((milestone: any) => (
-                        <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{milestone.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {milestone.description} • {milestone.threshold} XP
-                            </p>
+                      {XP_MILESTONES.map((milestone, index) => (
+                        <div key={`static-${index}`} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center space-x-3">
+                            <milestone.icon className={`h-6 w-6 ${milestone.color}`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{milestone.title}</p>
+                              <p className="text-xs text-muted-foreground">{milestone.description}</p>
+                              <p className="text-xs text-muted-foreground">{milestone.threshold} XP required</p>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditMilestone(milestone)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => deleteMilestoneMutation.mutate(milestone.id)}
-                              disabled={deleteMilestoneMutation.isPending}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditStaticMilestone(milestone, index)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
                         </div>
                       ))}
                     </div>
                   </div>
-                </CardContent>
-              )}
+
+                  {/* Custom Milestones */}
+                  {(adminMilestones as any[])?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Custom Milestones ({(adminMilestones as any[])?.length})</h4>
+                      <div className="space-y-2">
+                        {(adminMilestones as any[])?.map((milestone: any) => (
+                          <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{milestone.title}</p>
+                              <p className="text-xs text-muted-foreground truncate">{milestone.description}</p>
+                              <p className="text-xs text-muted-foreground">{milestone.threshold} XP</p>
+                            </div>
+                            <div className="flex items-center space-x-1 ml-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEditMilestone(milestone)}
+                                disabled={deleteMilestoneMutation.isPending}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deleteMilestoneMutation.mutate(milestone.id)}
+                                disabled={deleteMilestoneMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
             </Card>
           )}
           <div className="space-y-4">

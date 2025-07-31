@@ -146,6 +146,18 @@ export const candleTransactions = pgTable("candle_transactions", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+// Static milestone overrides table
+export const staticMilestoneOverrides = pgTable("static_milestone_overrides", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  milestoneIndex: integer("milestone_index").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  threshold: integer("threshold").notNull(),
+  iconName: text("icon_name").notNull(),
+  color: text("color").notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 // Custom achievements table
 export const customAchievements = pgTable("custom_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -323,6 +335,8 @@ export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 export type CandleTransaction = typeof candleTransactions.$inferSelect;
 export type InsertCandleTransaction = z.infer<typeof insertCandleTransactionSchema>;
+export type StaticMilestoneOverride = typeof staticMilestoneOverrides.$inferSelect;
+export type InsertStaticMilestoneOverride = z.infer<typeof insertStaticMilestoneOverrideSchema>;
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Permission = typeof permissions.$inferSelect;
@@ -339,6 +353,11 @@ export type InsertCharacterAchievement = z.infer<typeof insertCharacterAchieveme
 export const insertCandleTransactionSchema = createInsertSchema(candleTransactions).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertStaticMilestoneOverrideSchema = createInsertSchema(staticMilestoneOverrides).omit({
+  id: true,
+  updatedAt: true,
 });
 
 export const insertRoleSchema = createInsertSchema(roles).omit({

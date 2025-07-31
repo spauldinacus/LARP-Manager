@@ -1279,6 +1279,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Static milestone editing
+  app.put("/api/admin/static-milestones/:index", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const index = parseInt(req.params.index);
+      const milestoneData = z.object({
+        title: z.string(),
+        description: z.string(),
+        threshold: z.number(),
+        iconName: z.string(),
+        color: z.string(),
+      }).parse(req.body);
+
+      await storage.updateStaticMilestone(index, milestoneData);
+      res.json({ message: "Static milestone updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update static milestone" });
+    }
+  });
+
   // Character achievements API
   app.get("/api/characters/:id/achievements", requireAuth, async (req, res) => {
     try {

@@ -82,11 +82,21 @@ export default function MilestoneManagementModal({
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/admin/milestones/${milestone!.id}`, data);
-      return response.json();
+      // Handle static milestone updates differently
+      if ((milestone as any)?.isStatic) {
+        const response = await apiRequest("PUT", `/api/admin/static-milestones/${(milestone as any).staticIndex}`, data);
+        return response.json();
+      } else {
+        const response = await apiRequest("PUT", `/api/admin/milestones/${milestone!.id}`, data);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/milestones"] });
+      if ((milestone as any)?.isStatic) {
+        // Force a reload of the page to refresh static milestones
+        window.location.reload();
+      }
       toast({
         title: "Milestone updated",
         description: "Milestone has been updated successfully.",

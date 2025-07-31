@@ -42,6 +42,9 @@ import {
   type InsertCustomMilestone,
   type CharacterAchievement,
   type InsertCharacterAchievement,
+  staticMilestoneOverrides,
+  type StaticMilestoneOverride,
+  type InsertStaticMilestoneOverride,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -1237,6 +1240,28 @@ export class DatabaseStorage implements IStorage {
       count: eventCount?.count || 0,
       nextEvent: nextEventInfo
     };
+  }
+
+  // Static milestone overrides
+  async updateStaticMilestone(index: number, data: { title: string, description: string, threshold: number, iconName: string, color: string }): Promise<void> {
+    await db
+      .insert(staticMilestoneOverrides)
+      .values({ 
+        milestoneIndex: index,
+        ...data,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: staticMilestoneOverrides.milestoneIndex,
+        set: { 
+          ...data,
+          updatedAt: new Date()
+        }
+      });
+  }
+
+  async getStaticMilestoneOverrides(): Promise<StaticMilestoneOverride[]> {
+    return await db.select().from(staticMilestoneOverrides);
   }
 }
 
