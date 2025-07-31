@@ -610,7 +610,7 @@ export default function XPProgressionTracker({
                               <p className="font-medium text-sm">{achievement.title}</p>
                               <p className="text-xs text-muted-foreground">{achievement.description}</p>
                               <p className="text-xs text-muted-foreground">
-                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType === 'manual' ? 'Manual' : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`}
+                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType === 'manual' ? 'Manual' : achievement.conditionType ? `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}` : 'Static Achievement'}
                               </p>
                             </div>
                           </div>
