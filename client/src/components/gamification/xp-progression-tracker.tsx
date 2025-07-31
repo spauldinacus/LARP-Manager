@@ -604,7 +604,7 @@ export default function XPProgressionTracker({
                         <div key={`static-${index}`} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex items-center space-x-3">
                             <div className={`p-2 rounded-full ${achievement.rarity === 'common' ? 'bg-gray-100' : achievement.rarity === 'rare' ? 'bg-blue-100' : achievement.rarity === 'epic' ? 'bg-purple-100' : 'bg-yellow-100'}`}>
-                              {React.createElement(LucideIcons[achievement.icon as keyof typeof LucideIcons] || Trophy, { className: "h-4 w-4" })}
+                              {React.createElement(achievement.icon, { className: "h-4 w-4" })}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm">{achievement.title}</p>
