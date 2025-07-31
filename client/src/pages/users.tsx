@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame } from "lucide-react";
+import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame, Search, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
@@ -28,12 +29,69 @@ export default function UsersPage() {
   const [selectedUserForCandles, setSelectedUserForCandles] = useState<string | null>(null);
   const [candleAmount, setCandleAmount] = useState("");
   const [candleReason, setCandleReason] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"playerName" | "username" | "playerNumber" | "characterCount">("playerName");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["/api/admin/users"],
     enabled: user?.isAdmin,
   });
+
+  // Filter and sort users
+  const filteredAndSortedUsers = useMemo(() => {
+    if (!users) return [];
+
+    let filtered = users.filter((userData: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      const playerName = (userData.playerName || "").toLowerCase();
+      const username = userData.username.toLowerCase();
+      const playerNumber = (userData.playerNumber || "").toLowerCase();
+      
+      // Search in character names too
+      const characterNames = userData.characters?.map((char: any) => char.name.toLowerCase()).join(" ") || "";
+      
+      return playerName.includes(searchLower) ||
+             username.includes(searchLower) ||
+             playerNumber.includes(searchLower) ||
+             characterNames.includes(searchLower);
+    });
+
+    return filtered.sort((a: any, b: any) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "playerName":
+          aValue = (a.playerName || a.username || "").toLowerCase();
+          bValue = (b.playerName || b.username || "").toLowerCase();
+          break;
+        case "username":
+          aValue = a.username.toLowerCase();
+          bValue = b.username.toLowerCase();
+          break;
+        case "playerNumber":
+          aValue = a.playerNumber || "";
+          bValue = b.playerNumber || "";
+          break;
+        case "characterCount":
+          aValue = a.characterCount || 0;
+          bValue = b.characterCount || 0;
+          break;
+        default:
+          aValue = (a.playerName || a.username || "").toLowerCase();
+          bValue = (b.playerName || b.username || "").toLowerCase();
+      }
+
+      if (sortBy === "characterCount") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [users, searchTerm, sortBy, sortOrder]);
 
   // Player number update mutation
   const updatePlayerNumberMutation = useMutation({
@@ -159,6 +217,46 @@ export default function UsersPage() {
             </div>
           </div>
 
+          {/* Search and Sort Controls */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search by player name, username, player number, or character name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Sort by..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="playerName">Player Name</SelectItem>
+                      <SelectItem value="username">Username</SelectItem>
+                      <SelectItem value="playerNumber">Player Number</SelectItem>
+                      <SelectItem value="characterCount">Character Count</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  >
+                    {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground mt-2">
+                {filteredAndSortedUsers.length} user{filteredAndSortedUsers.length !== 1 ? "s" : ""} found
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Users List */}
           {isLoading ? (
             <div className="space-y-4">
@@ -176,9 +274,9 @@ export default function UsersPage() {
                 </Card>
               ))}
             </div>
-          ) : (users as any[])?.length > 0 ? (
+          ) : filteredAndSortedUsers.length > 0 ? (
             <div className="space-y-4">
-              {(users as any[]).map((userData: any) => (
+              {filteredAndSortedUsers.map((userData: any) => (
                 <Card key={userData.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -305,6 +403,17 @@ export default function UsersPage() {
                 </Card>
               ))}
             </div>
+          ) : searchTerm ? (
+            <Card className="p-12 text-center">
+              <Search className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Users Found</h3>
+              <p className="text-muted-foreground mb-4">
+                No users match your search for "{searchTerm}". Try a different search term.
+              </p>
+              <Button variant="outline" onClick={() => setSearchTerm("")}>
+                Clear Search
+              </Button>
+            </Card>
           ) : (
             <Card className="p-12 text-center">
               <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Users, Eye, Menu } from "lucide-react";
+import { Plus, Users, Eye, Menu, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
 import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import Sidebar from "@/components/layout/sidebar";
@@ -18,10 +20,75 @@ export default function CharactersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "playerName" | "heritage" | "experience" | "xpSpent" | "status">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: characters, isLoading } = useQuery({
     queryKey: ["/api/characters"],
   });
+
+  // Filter and sort characters
+  const filteredAndSortedCharacters = useMemo(() => {
+    if (!characters) return [];
+
+    let filtered = (characters as any[]).filter((character: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      const name = character.name.toLowerCase();
+      const playerName = (character.playerName || "").toLowerCase();
+      const heritage = character.heritage.toLowerCase();
+      const culture = character.culture.toLowerCase();
+      const archetype = character.archetype.toLowerCase();
+      
+      return name.includes(searchLower) ||
+             playerName.includes(searchLower) ||
+             heritage.includes(searchLower) ||
+             culture.includes(searchLower) ||
+             archetype.includes(searchLower);
+    });
+
+    return filtered.sort((a: any, b: any) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "name":
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case "playerName":
+          aValue = (a.playerName || "").toLowerCase();
+          bValue = (b.playerName || "").toLowerCase();
+          break;
+        case "heritage":
+          aValue = a.heritage.toLowerCase();
+          bValue = b.heritage.toLowerCase();
+          break;
+        case "experience":
+          aValue = a.experience || 0;
+          bValue = b.experience || 0;
+          break;
+        case "xpSpent":
+          aValue = a.totalXpSpent || 25;
+          bValue = b.totalXpSpent || 25;
+          break;
+        case "status":
+          aValue = a.isRetired ? 2 : (a.isActive ? 0 : 1);
+          bValue = b.isRetired ? 2 : (b.isActive ? 0 : 1);
+          break;
+        default:
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+      }
+
+      if (sortBy === "experience" || sortBy === "xpSpent" || sortBy === "status") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [characters, searchTerm, sortBy, sortOrder]);
 
   if (!user) {
     return (
@@ -74,6 +141,48 @@ export default function CharactersPage() {
             </Button>
           </div>
 
+          {/* Search and Sort Controls */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search by character name, player name, heritage, culture, or archetype..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Sort by..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Character Name</SelectItem>
+                      <SelectItem value="playerName">Player Name</SelectItem>
+                      <SelectItem value="heritage">Heritage</SelectItem>
+                      <SelectItem value="experience">Experience</SelectItem>
+                      <SelectItem value="xpSpent">XP Spent</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  >
+                    {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground mt-2">
+                {filteredAndSortedCharacters.length} character{filteredAndSortedCharacters.length !== 1 ? "s" : ""} found
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Characters Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,22 +206,17 @@ export default function CharactersPage() {
                 </Card>
               ))}
             </div>
-          ) : (characters as any[])?.length > 0 ? (
+          ) : filteredAndSortedCharacters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(characters as any[]).map((character: any) => (
+              {filteredAndSortedCharacters.map((character: any) => (
                 <Card key={character.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{character.name}</span>
                       <div className="flex space-x-2">
-                        <Badge variant={character.isActive ? "default" : "secondary"}>
-                          {character.isActive ? "Active" : "Inactive"}
+                        <Badge variant={character.isRetired ? "destructive" : (character.isActive ? "default" : "secondary")}>
+                          {character.isRetired ? "Retired" : (character.isActive ? "Active" : "Inactive")}
                         </Badge>
-                        {(character as any).isRetired && (
-                          <Badge variant="destructive">
-                            Retired
-                          </Badge>
-                        )}
                       </div>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
@@ -149,6 +253,17 @@ export default function CharactersPage() {
                 </Card>
               ))}
             </div>
+          ) : searchTerm ? (
+            <Card className="p-12 text-center">
+              <Search className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Characters Found</h3>
+              <p className="text-muted-foreground mb-4">
+                No characters match your search for "{searchTerm}". Try a different search term.
+              </p>
+              <Button variant="outline" onClick={() => setSearchTerm("")}>
+                Clear Search
+              </Button>
+            </Card>
           ) : (
             <Card className="p-12 text-center">
               <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
