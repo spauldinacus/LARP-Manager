@@ -959,7 +959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rsvps/:id/attendance", requireAdmin, async (req, res) => {
     try {
       const { attended } = req.body;
-      const rsvp = await storage.markAttendance(req.params.id, attended);
+      const rsvp = await storage.markAttendance(req.params.id, attended, req.session.userId!);
       res.json(rsvp);
     } catch (error) {
       console.error("Attendance marking error:", error);

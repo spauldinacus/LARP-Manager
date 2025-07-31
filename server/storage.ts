@@ -94,7 +94,7 @@ export interface IStorage {
   updateEventRsvp(id: string, rsvp: Partial<EventRsvp>): Promise<EventRsvp>;
   getEventRsvps(eventId: string): Promise<EventRsvp[]>;
   getCharacterRsvps(characterId: string): Promise<EventRsvp[]>;
-  markAttendance(rsvpId: string, attended: boolean): Promise<EventRsvp>;
+  markAttendance(rsvpId: string, attended: boolean, adminUserId: string): Promise<EventRsvp>;
 
   // Experience methods
   getExperienceByCharacterId(characterId: string): Promise<ExperienceEntry[]>;
@@ -694,7 +694,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(eventRsvps.createdAt));
   }
 
-  async markAttendance(rsvpId: string, attended: boolean): Promise<EventRsvp> {
+  async markAttendance(rsvpId: string, attended: boolean, adminUserId: string): Promise<EventRsvp> {
     const [rsvp] = await db
       .update(eventRsvps)
       .set({ attended, updatedAt: new Date() })
@@ -703,18 +703,24 @@ export class DatabaseStorage implements IStorage {
 
     // Award XP based on attendance and purchases
     if (attended && rsvp) {
-      const baseXp = 3; // Base XP for attending event
+      // Calculate progressive base XP based on number of events attended
+      const baseXp = await this.calculateEventAttendanceXP(rsvp.characterId);
       const purchasedXp = (rsvp.xpPurchases * 1) + (rsvp.xpCandlePurchases * 1); // 1 XP per purchase
       const totalXp = baseXp + purchasedXp;
 
       await this.createExperienceEntry({
         characterId: rsvp.characterId,
         amount: totalXp,
-        reason: `Event attendance with ${rsvp.xpPurchases} XP purchases and ${rsvp.xpCandlePurchases} XP candle purchases`,
+        reason: `Event attendance (${baseXp} base XP + ${purchasedXp} purchased XP)`,
         eventId: rsvp.eventId,
         rsvpId: rsvp.id,
-        awardedBy: rsvp.userId,
+        awardedBy: adminUserId,
       });
+    } else if (!attended && rsvp) {
+      // Remove any existing XP entry for this RSVP if marking as not attended
+      await db
+        .delete(experienceEntries)
+        .where(eq(experienceEntries.rsvpId, rsvp.id));
     }
 
     return rsvp;

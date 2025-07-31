@@ -183,6 +183,27 @@ export default function EventsPage() {
     setIsRsvpListModalOpen(true);
   };
 
+  // Admin attendance marking mutation
+  const markAttendanceMutation = useMutation({
+    mutationFn: ({ rsvpId, attended }: { rsvpId: string; attended: boolean }) =>
+      apiRequest("POST", `/api/rsvps/${rsvpId}/attendance`, { attended }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      toast({
+        title: "Attendance Updated",
+        description: "RSVP attendance has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Attendance Error",
+        description: error.message || "Failed to update attendance",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -572,7 +593,7 @@ export default function EventsPage() {
                       return (
                         <div key={rsvp.id} className="border rounded-lg p-4 space-y-2">
                           <div className="flex justify-between items-start">
-                            <div>
+                            <div className="flex-1">
                               <h4 className="font-medium">{character?.name || 'Unknown Character'}</h4>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {character?.heritage && character?.culture && character?.archetype 
@@ -581,10 +602,32 @@ export default function EventsPage() {
                                 }
                               </p>
                             </div>
-                            <div className="text-right text-sm">
+                            <div className="flex items-center space-x-2">
                               <Badge variant={rsvp.attended ? "default" : "secondary"}>
-                                {rsvp.attended ? "Attended" : "Not Attended"}
+                                {rsvp.attended ? "Attended" : "RSVPed"}
                               </Badge>
+                              {user?.isAdmin && (
+                                <div className="flex space-x-1">
+                                  <Button
+                                    size="sm"
+                                    variant={rsvp.attended ? "default" : "outline"}
+                                    onClick={() => markAttendanceMutation.mutate({ rsvpId: rsvp.id, attended: true })}
+                                    disabled={markAttendanceMutation.isPending}
+                                    className="text-xs px-2 py-1"
+                                  >
+                                    ✓ Attended
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={!rsvp.attended ? "default" : "outline"}
+                                    onClick={() => markAttendanceMutation.mutate({ rsvpId: rsvp.id, attended: false })}
+                                    disabled={markAttendanceMutation.isPending}
+                                    className="text-xs px-2 py-1"
+                                  >
+                                    ✗ No-Show
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                           {(rsvp.xpPurchases > 0 || rsvp.xpCandlePurchases > 0) && (
