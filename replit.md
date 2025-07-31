@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
   - Applied consistent formatting to character cards, sheets, modals, and admin views
 - **Enhanced chapter management system**
   - Added complete chapter management with database schema and API endpoints
-  - Implemented player number generation system (format: FL07310001)
+  - Implemented player number generation system (format: FL25070001 - chapter code + year + month + sequence)
   - Created admin chapter management interface with create, edit, deactivate functions
   - Integrated chapters into navigation sidebar
 - **Fixed navigation layout issues**
