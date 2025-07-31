@@ -33,11 +33,7 @@ export default function DashboardPage() {
     enabled: !!user?.isAdmin,
   });
 
-  // Fetch upcoming events for all users
-  const { data: upcomingEvents, isLoading: eventsLoading } = useQuery({
-    queryKey: ["/api/events/upcoming"],
-    enabled: !!user,
-  });
+
 
   // Calculate percentage changes
   const calculatePercentageChange = (current: number, previous: number) => {
@@ -166,33 +162,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Upcoming Events Section - For All Users */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Upcoming Events</p>
-                  {eventsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-2" />
-                  ) : (
-                    <p className="text-2xl font-bold">{upcomingEvents?.count || 0}</p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-blue-500" />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {upcomingEvents?.nextEvent ? (
-                  upcomingEvents.nextEvent.daysUntil === 0 ? 
-                    `${upcomingEvents.nextEvent.name} is today!` :
-                    upcomingEvents.nextEvent.daysUntil === 1 ? 
-                      `${upcomingEvents.nextEvent.name} tomorrow` :
-                      `${upcomingEvents.nextEvent.name} in ${upcomingEvents.nextEvent.daysUntil} days`
-                ) : "No upcoming events"}
-              </p>
-            </CardContent>
-          </Card>
+
 
           {/* Admin Stats Cards */}
           {user.isAdmin && (
@@ -245,7 +215,7 @@ export default function DashboardPage() {
 
 
 
-              <Card>
+              <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation("/events")}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
