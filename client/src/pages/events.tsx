@@ -17,8 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, Plus, MapPin, Clock, Menu } from "lucide-react";
-import { insertEventSchema, insertEventRsvpSchema, type Event, type Character } from "@shared/schema";
+import { Calendar, Users, Plus, MapPin, Clock, Menu, Eye } from "lucide-react";
+import { insertEventSchema, insertEventRsvpSchema, type Event, type Character, type EventRsvp } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -37,6 +37,7 @@ export default function EventsPage() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRsvpModalOpen, setIsRsvpModalOpen] = useState(false);
+  const [isRsvpListModalOpen, setIsRsvpListModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { toast } = useToast();
 
@@ -55,6 +56,41 @@ export default function EventsPage() {
     queryKey: ["/api/characters"],
     enabled: !!user,
   });
+
+  // Fetch RSVPs for all events at once
+  const { data: allEventRsvps = {} } = useQuery({
+    queryKey: ["/api/events/rsvps"],
+    queryFn: async () => {
+      const rsvpData: Record<string, EventRsvp[]> = {};
+      
+      // Fetch RSVPs for each event
+      for (const event of events) {
+        try {
+          const response = await fetch(`/api/events/${event.id}/rsvps`);
+          if (response.ok) {
+            rsvpData[event.id] = await response.json();
+          } else {
+            rsvpData[event.id] = [];
+          }
+        } catch (error) {
+          rsvpData[event.id] = [];
+        }
+      }
+      
+      return rsvpData;
+    },
+    enabled: events.length > 0,
+  });
+
+  // Function to get RSVP count for an event
+  const getRsvpCount = (eventId: string) => {
+    return allEventRsvps[eventId]?.length || 0;
+  };
+
+  // Function to get RSVP data for an event
+  const getRsvpData = (eventId: string) => {
+    return allEventRsvps[eventId] || [];
+  };
 
   const createEventMutation = useMutation({
     mutationFn: (data: EventFormData) => apiRequest("POST", "/api/events", data),
@@ -81,6 +117,7 @@ export default function EventsPage() {
       apiRequest("POST", `/api/events/${eventId}/rsvp`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
       setIsRsvpModalOpen(false);
       setSelectedEvent(null);
       rsvpForm.reset();
@@ -139,6 +176,11 @@ export default function EventsPage() {
   const handleRsvp = (event: Event) => {
     setSelectedEvent(event);
     setIsRsvpModalOpen(true);
+  };
+
+  const handleViewRsvps = (event: Event) => {
+    setSelectedEvent(event);
+    setIsRsvpListModalOpen(true);
   };
 
   if (authLoading || !user) {
@@ -380,10 +422,14 @@ export default function EventsPage() {
                 </div>
               )}
               <div className="flex justify-between items-center pt-4">
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <button
+                  onClick={() => handleViewRsvps(event)}
+                  className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
                   <Users className="w-4 h-4 mr-1" />
-                  <span>0 RSVPs</span>
-                </div>
+                  <span>{getRsvpCount(event.id)} RSVPs</span>
+                  {getRsvpCount(event.id) > 0 && <Eye className="w-3 h-3 ml-1" />}
+                </button>
                 {user && event.isActive && (
                   <Button size="sm" onClick={() => handleRsvp(event)}>
                     RSVP
@@ -505,6 +551,66 @@ export default function EventsPage() {
       </Dialog>
           </div>
         </div>
+
+        {/* RSVP List Modal */}
+        <Dialog open={isRsvpListModalOpen} onOpenChange={setIsRsvpListModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>RSVPs for {selectedEvent?.name}</DialogTitle>
+              <DialogDescription>
+                Players who have RSVPed to this event
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-96 overflow-y-auto">
+              {selectedEvent && (
+                <div className="space-y-3">
+                  {getRsvpData(selectedEvent.id).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No RSVPs yet</p>
+                  ) : (
+                    getRsvpData(selectedEvent.id).map((rsvp) => {
+                      const character = characters.find(c => c.id === rsvp.characterId);
+                      return (
+                        <div key={rsvp.id} className="border rounded-lg p-4 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium">{character?.name || 'Unknown Character'}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {character?.heritage && character?.culture && character?.archetype 
+                                  ? `${character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace('-', ' ')} ${character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace('-', ' ')} ${character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace('-', ' ')}`
+                                  : 'Character details unavailable'
+                                }
+                              </p>
+                            </div>
+                            <div className="text-right text-sm">
+                              <Badge variant={rsvp.attended ? "default" : "secondary"}>
+                                {rsvp.attended ? "Attended" : "Not Attended"}
+                              </Badge>
+                            </div>
+                          </div>
+                          {(rsvp.xpPurchases > 0 || rsvp.xpCandlePurchases > 0) && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              <p>
+                                XP Purchases: {rsvp.xpPurchases} | XP Candle Purchases: {rsvp.xpCandlePurchases}
+                              </p>
+                            </div>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            RSVPed on {new Date(rsvp.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsRsvpListModalOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
