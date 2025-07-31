@@ -438,10 +438,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/events/:id", requireAdmin, async (req, res) => {
     try {
-      const eventData = insertEventSchema.partial().parse(req.body);
+      // Transform eventDate string to Date if present
+      const body = { ...req.body };
+      if (body.eventDate && typeof body.eventDate === 'string') {
+        body.eventDate = new Date(body.eventDate);
+      }
+      
+      const eventData = insertEventSchema.partial().parse(body);
       const event = await storage.updateEvent(req.params.id, eventData);
       res.json(event);
     } catch (error) {
+      console.error("Event update error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update event" });
     }
   });
