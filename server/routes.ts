@@ -634,6 +634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(user);
     } catch (error) {
+      console.error("getUserWithDetails error:", error);
       res.status(500).json({ message: "Failed to get user details" });
     }
   });

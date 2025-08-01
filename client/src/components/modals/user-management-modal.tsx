@@ -24,11 +24,14 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   const queryClient = useQueryClient();
 
   // Fetch user details
-  const { data: userDetails, isLoading } = useQuery({
+  const { data: userDetails, isLoading, error } = useQuery({
     queryKey: ["/api/admin/users", userId],
     queryFn: () => apiRequest("GET", `/api/admin/users/${userId}`),
     enabled: !!userId,
+    retry: 1,
   });
+
+  console.log("UserManagementModal - userId:", userId, "userDetails:", userDetails, "error:", error);
 
   // Fetch available roles
   const { data: roles } = useQuery({
@@ -109,6 +112,13 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-20 w-full" />
+            </div>
+          ) : error ? (
+            <div className="p-4 text-center text-red-600">
+              <p>Error loading user details: {error?.message || "Unknown error"}</p>
+              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId] })}>
+                Retry
+              </Button>
             </div>
           ) : (
             editedUser && (
