@@ -608,33 +608,65 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateTotalXpSpent(characterId: string): Promise<number> {
-    // Get all negative experience entries (spent XP)
-    const spentEntries = await db
-      .select({ amount: experienceEntries.amount })
-      .from(experienceEntries)
-      .where(and(
-        eq(experienceEntries.characterId, characterId),
-        sql`${experienceEntries.amount} < 0`
-      ));
+    // Get character data to calculate skill costs properly
+    const character = await this.getCharacter(characterId);
+    if (!character) return 0;
 
-    // Get all skill refund entries (positive amounts from admin refunds)
-    const refundEntries = await db
-      .select({ amount: experienceEntries.amount })
-      .from(experienceEntries)
-      .where(and(
-        eq(experienceEntries.characterId, characterId),
-        sql`${experienceEntries.amount} > 0`,
-        sql`${experienceEntries.reason} LIKE '%refunded skill%'`
-      ));
+    // Import skill cost calculation from shared schema
+    const { getSkillCost } = await import('@shared/schema');
+    
+    // Calculate XP spent on skills using the proper cost calculation
+    let skillXpSpent = 0;
+    if (character.skills && character.skills.length > 0) {
+      for (const skill of character.skills) {
+        const { cost } = getSkillCost(skill, character.heritage, character.culture, character.archetype);
+        skillXpSpent += cost;
+      }
+    }
 
-    // Sum all spent XP (convert negative to positive)
-    const totalSpent = spentEntries.reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+    // Calculate XP spent on body/stamina upgrades
+    let attributeXpSpent = 0;
     
-    // Sum all refunded XP
-    const totalRefunded = refundEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    // Body upgrades from base (heritage determines base body)
+    const heritageBodyMap: { [key: string]: number } = {
+      'ar-nura': 8,
+      'human': 10, 
+      'stoneborn': 15,
+      'ughol': 12,
+      'rystarri': 12
+    };
     
-    // Return spent XP minus refunded XP
-    return Math.max(0, totalSpent - totalRefunded);
+    const baseBody = heritageBodyMap[character.heritage] || 10;
+    const bodyUpgrades = character.body - baseBody;
+    if (bodyUpgrades > 0) {
+      // Each body point costs: (current value - base) * 5 XP
+      for (let i = 1; i <= bodyUpgrades; i++) {
+        attributeXpSpent += (baseBody + i - 1) * 5;
+      }
+    }
+
+    // Stamina upgrades from base (heritage determines base stamina)
+    const heritageStaminaMap: { [key: string]: number } = {
+      'ar-nura': 12,
+      'human': 10,
+      'stoneborn': 5, 
+      'ughol': 8,
+      'rystarri': 8
+    };
+    
+    const baseStamina = heritageStaminaMap[character.heritage] || 10;
+    const staminaUpgrades = character.stamina - baseStamina;
+    if (staminaUpgrades > 0) {
+      // Each stamina point costs: (current value - base) * 5 XP  
+      for (let i = 1; i <= staminaUpgrades; i++) {
+        attributeXpSpent += (baseStamina + i - 1) * 5;
+      }
+    }
+
+    // Add initial 25 XP that every character starts with spent
+    const initialXpSpent = 25;
+    
+    return initialXpSpent + skillXpSpent + attributeXpSpent;
   }
 
   async deleteExperienceEntry(id: string): Promise<void> {

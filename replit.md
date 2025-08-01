@@ -11,6 +11,16 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 31, 2025
+- **CRITICAL FIX: Corrected XP spent calculation system to use actual skill costs**
+  - Fixed calculateTotalXpSpent function to properly calculate XP based on heritage/culture/archetype skill costs
+  - Replaced experience entry tracking with direct skill cost calculation using getSkillCost function
+  - Primary skills now correctly cost 5 XP, secondary skills 10 XP, other skills 20 XP
+  - Added proper body/stamina upgrade cost calculation based on heritage base values
+  - Character XP spent totals now accurately reflect actual skill purchase costs from Thrune rulebook
+- **MAJOR UPDATE: Implemented all 32 official archetypes from Thrune Core Rulebook**
+  - Extracted complete archetype data from official PDF with accurate primary/secondary skill lists
+  - Updated backend schema with all 32 archetypes: Adviser, Apothecary, Archer, Berserker, Brute, Chef, Courtesan, Ecomancer, Elementalist, Entertainer, Erudite, Farmer, Forester, Forgewright, Gunslinger, Juggernaut, Merchant, Mystic, Physician, Rogue, Scholar, Scoundrel, Shadowcaster, Skirmisher, Slayer, Soldier, Spellblade, Sorcerer, Thaumaturgist, Tinker, Warden, Wizard
+  - Centralized skill cost calculation logic in shared schema for consistency across frontend and backend
 - **CRITICAL FIX: Events attended tracking now shows actual attendance**
   - Fixed XP progression page to track only events marked as attended by admins, not just RSVPs
   - Added new `getAttendedEventsCount` storage method to count only `attended = true` events
