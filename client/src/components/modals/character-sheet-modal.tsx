@@ -37,7 +37,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings, MapPin, Trash2 } from "lucide-react";
-import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Skill } from "@/lib/constants";
+import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Culture, type Archetype, type Skill } from "@/lib/constants";
 // Note: getSkillCost import removed due to compatibility issues
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -128,10 +128,42 @@ export default function CharacterSheetModal({
     return totalCost;
   };
 
-  // Simple skill cost calculation (fallback implementation)
-  const getSkillCostForCharacter = (skill: Skill, heritage: string, culture: string, archetype: string) => {
-    // Simple fallback: average cost of 10 XP per skill
-    return { cost: 10, category: 'secondary' as const };
+  // Calculate skill cost based on character's heritage/culture/archetype
+  const getSkillCostForCharacter = (skill: string, heritage: string, culture: string, archetype: string) => {
+    // Get heritage and archetype data
+    const heritageData = HERITAGES.find(h => h.id === heritage);
+    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+    
+    // Get culture data from the nested structure
+    const culturesForHeritage = CULTURES[heritage as keyof typeof CULTURES] || [];
+    const cultureData = culturesForHeritage.find(c => c.id === culture);
+    
+    // Check if skill is PRIMARY (5 XP) for any of the selected options  
+    const culturePrimarySkills = cultureData?.primarySkills || [];
+    const archetypePrimarySkills = archetypeData?.primarySkills || [];
+    
+    if (
+      culturePrimarySkills.some(s => s === skill) ||
+      archetypePrimarySkills.some(s => s === skill)
+    ) {
+      return { cost: 5, category: 'primary' as const };
+    }
+
+    // Check if skill is SECONDARY (10 XP) for any of the selected options
+    const heritageSecondarySkills = heritageData?.secondarySkills || [];
+    const cultureSecondarySkills = cultureData?.secondarySkills || [];
+    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+    
+    if (
+      heritageSecondarySkills.some(s => s === skill) ||
+      cultureSecondarySkills.some(s => s === skill) ||
+      archetypeSecondarySkills.some(s => s === skill)
+    ) {
+      return { cost: 10, category: 'secondary' as const };
+    }
+
+    // Otherwise it's a general skill (20 XP)
+    return { cost: 20, category: 'other' as const };
   };
 
   // Mutations for spending experience
