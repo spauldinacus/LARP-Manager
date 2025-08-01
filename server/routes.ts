@@ -293,8 +293,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.session.userId,
       });
       
+      // Create character with initial data
       const character = await storage.createCharacter(characterData);
-      res.status(201).json(character);
+      
+      // Calculate XP spent on creation (skills + attributes)
+      const totalXpSpent = await storage.calculateTotalXpSpent(character.id);
+      
+      // Update character with correct experience values
+      const updatedCharacter = await storage.updateCharacter(character.id, {
+        totalXpSpent,
+        experience: 25 - totalXpSpent // Remaining XP after initial purchases
+      });
+      
+      res.status(201).json(updatedCharacter);
     } catch (error) {
       console.error("Character creation error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create character" });

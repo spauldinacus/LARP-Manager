@@ -147,11 +147,9 @@ export default function CharacterCreationModal({
     form.setValue("selectedSkills", updatedSkills.map(s => s.name));
   };
 
-  // Calculate used experience including body/stamina costs
+  // Calculate used experience from selected skills only
   const usedExperience = selectedSkills.reduce((total, skill) => {
-    const { heritage, culture, archetype } = form.getValues();
-    const { cost } = getSkillCost(skill.name, heritage, culture, archetype);
-    return total + cost;
+    return total + skill.cost; // Use the cost already calculated and stored when skill was added
   }, 0);
 
   // Get base body/stamina from heritage using centralized values
@@ -161,13 +159,14 @@ export default function CharacterCreationModal({
   const baseStamina = heritageBaseValues.stamina;
   
   // Calculate attribute costs based on incremental cost from current values
-  const bodyCost = additionalBody > 0 ? getAttributeCost(baseBody, additionalBody) : 0;
-  const staminaCost = additionalStamina > 0 ? getAttributeCost(baseStamina, additionalStamina) : 0;
-  const totalAttributeCost = bodyCost + staminaCost;
+  const bodyCost = (additionalBody > 0 && baseBody) ? getAttributeCost(baseBody, additionalBody) : 0;
+  const staminaCost = (additionalStamina > 0 && baseStamina) ? getAttributeCost(baseStamina, additionalStamina) : 0;
+  const totalAttributeCost = (bodyCost || 0) + (staminaCost || 0);
 
   // Update available experience when skills, attributes, or selections change
   useEffect(() => {
-    setAvailableExperience(25 - usedExperience - totalAttributeCost);
+    const remaining = 25 - (usedExperience || 0) - (totalAttributeCost || 0);
+    setAvailableExperience(Math.max(0, remaining)); // Ensure it's never negative or NaN
   }, [usedExperience, totalAttributeCost]);
 
   const createCharacterMutation = useMutation({
@@ -178,7 +177,7 @@ export default function CharacterCreationModal({
         ...data,
         body: heritageValues.body + additionalBody,
         stamina: heritageValues.stamina + additionalStamina,
-        experience: availableExperience, // Remaining experience after skill purchases
+        experience: 25, // Start with full 25 XP - server will calculate total spent
         skills: selectedSkills.map(s => s.name), // Add selected skills
       };
 
@@ -373,11 +372,11 @@ export default function CharacterCreationModal({
                     )}
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-yellow-500">{availableExperience}</p>
+                    <p className="text-2xl font-bold text-yellow-500">{availableExperience || 0}</p>
                     <p className="text-sm text-muted-foreground">XP Remaining</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-500">25</p>
+                    <p className="text-2xl font-bold text-green-500">{(usedExperience || 0) + (totalAttributeCost || 0)}</p>
                     <p className="text-sm text-muted-foreground">XP Spent</p>
                   </div>
                 </div>
@@ -500,7 +499,7 @@ export default function CharacterCreationModal({
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-medium">Experience Points</h4>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600">{availableExperience}</p>
+                    <p className="text-2xl font-bold text-blue-600">{availableExperience || 0}</p>
                     <p className="text-sm text-muted-foreground">XP Remaining</p>
                   </div>
                 </div>
@@ -513,8 +512,8 @@ export default function CharacterCreationModal({
                 {(totalAttributeCost > 0) && (
                   <div className="mt-2 text-sm">
                     <p className="font-medium">Current Spending:</p>
-                    <p className="text-muted-foreground">Skills: {usedExperience} XP</p>
-                    <p className="text-muted-foreground">Body/Stamina: {totalAttributeCost} XP</p>
+                    <p className="text-muted-foreground">Skills: {usedExperience || 0} XP</p>
+                    <p className="text-muted-foreground">Body/Stamina: {totalAttributeCost || 0} XP</p>
                   </div>
                 )}
               </div>
