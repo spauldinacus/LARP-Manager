@@ -488,17 +488,26 @@ export class DatabaseStorage implements IStorage {
       const { getSkillCost } = await import("../shared/schema");
       
       for (const skill of insertCharacter.skills) {
-        const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.archetype as any);
-        if (isNaN(skillData.cost)) {
-          console.error(`Invalid skill cost for ${skill}: ${skillData.cost}`);
-          continue;
+        console.log(`Processing skill: ${skill}, heritage: ${insertCharacter.heritage}, archetype: ${insertCharacter.archetype}`);
+        try {
+          const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.archetype as any);
+          console.log(`Skill cost result:`, skillData);
+          
+          if (isNaN(skillData.cost)) {
+            console.error(`Invalid skill cost for ${skill}: ${skillData.cost}`);
+            continue;
+          }
+          
+          await this.createExperienceEntry({
+            characterId: character.id,
+            amount: -skillData.cost, // Negative because it's spending XP
+            reason: `Skill purchase: ${skill}`,
+            awardedBy: insertCharacter.userId,
+          });
+          console.log(`Created experience entry for skill: ${skill} (${skillData.cost} XP)`);
+        } catch (error) {
+          console.error(`Error processing skill ${skill}:`, error);
         }
-        await this.createExperienceEntry({
-          characterId: character.id,
-          amount: -skillData.cost, // Negative because it's spending XP
-          reason: `Skill purchase: ${skill}`,
-          awardedBy: insertCharacter.userId,
-        });
       }
     }
     
