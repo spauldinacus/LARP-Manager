@@ -3,6 +3,13 @@
 ## Overview
 This is a modern full-stack web application for a LARP (Live Action Role Playing) character management system. Its main purpose is to facilitate character creation, experience tracking, and event management, including robust admin capabilities. The project aims to provide a comprehensive tool for LARP communities, streamlining character progression and event organization with a focus on adherence to the Thrune rulebook.
 
+## Recent Changes (January 2025)
+- **XP System Overhaul**: Consolidated all XP cost calculations into a single source of truth in `shared/schema.ts`
+- **Fixed Heritage Base Values**: Corrected ar-nura body from 10 to 8, ensuring consistency with Thrune rulebook
+- **Centralized Calculations**: All components now use unified `getAttributeCost()` and `HERITAGE_BASES` constants
+- **Database Consistency**: Rebuilt all character XP tracking to eliminate discrepancies between character lists and sheets
+- **Character Creation Fix**: Resolved frontend errors and ensured proper attribute cost tracking during character creation
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

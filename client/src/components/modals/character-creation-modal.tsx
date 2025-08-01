@@ -493,7 +493,7 @@ export default function CharacterCreationModal({
           )}
 
           {/* Skill Selection */}
-          {selectedHeritageData && selectedCultureData && selectedArchetypeData && (
+          {watchedHeritage && selectedCultureData && selectedArchetypeData && (
             <div className="space-y-4">
               {/* Experience Points Display */}
               <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
