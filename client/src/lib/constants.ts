@@ -173,8 +173,8 @@ export const ARCHETYPES = [
     secondarySkills: ["Intimidation", "Meditation", "Plead for Mercy"]
   },
   { 
-    id: "alchemystic", 
-    name: "Alchemystic", 
+    id: "alchemist", 
+    name: "Alchemist", 
     description: "All things may be transformed",
     primarySkills: ["Alchemy", "Lore (Magic)", "Meditation", "Magic Path (Apprentice): Path of Flesh", "Magic Path (Journeyman): Path of Flesh", "Magic Path (Apprentice): Path of Thorns", "Magic Path (Journeyman): Path of Thorns", "Stored Spell", "Weapon Proficiency (Staff)", "Herbalism"],
     secondarySkills: ["Magic Path (Master): Path of Flesh", "Magic Path (Master): Path of Thorns", "First Aid"]
