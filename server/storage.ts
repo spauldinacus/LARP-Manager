@@ -1575,7 +1575,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    for (const [, entry] of uniqueEntries) {
+    for (const [, entry] of Array.from(uniqueEntries)) {
       if (entry.eventId && entry.characterId && entry.userId) {
         // Check if RSVP already exists
         const existingRsvp = await this.getEventRsvp(entry.eventId, entry.characterId);

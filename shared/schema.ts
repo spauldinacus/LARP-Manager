@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   playerName: text("player_name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  title: text("title"), // Custom user title/role display name
   playerNumber: text("player_number").unique(),
   chapterId: uuid("chapter_id"), // Will add references after chapters are defined
   isAdmin: boolean("is_admin").default(false).notNull(),
