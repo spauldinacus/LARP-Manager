@@ -618,9 +618,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {
-      const users = await storage.getAllUsersWithDetails();
+      const users = await storage.getAllUsers();
       res.json(users);
     } catch (error) {
+      console.error("getAllUsers error:", error);
       res.status(500).json({ message: "Failed to get users" });
     }
   });
