@@ -89,9 +89,12 @@ export default function CharacterCreationModal({
   };
 
   // Use the corrected skill cost calculation from shared schema
-  const getSkillCostForCharacter = (skill: Skill, heritage: string, archetype: string) => {
+  const getSkillCostForCharacter = (skill: Skill, heritage: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
     const cost = getSkillCost(String(skill), heritage, archetype);
-    return { cost, category: cost === 5 ? 'primary' : cost === 10 ? 'secondary' : 'other' };
+    return { 
+      cost, 
+      category: cost === 5 ? 'primary' as const : cost === 10 ? 'secondary' as const : 'other' as const 
+    };
   };
 
   const addSkill = (skill: Skill) => {
@@ -437,7 +440,7 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {selectedCultureData.primarySkills.map((skill, index) => (
+                            {(selectedCultureData.primarySkills || []).map((skill: string, index: number) => (
                               <span key={index} className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
                                 {skill}
                               </span>
@@ -447,7 +450,7 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {selectedCultureData.secondarySkills.map((skill, index) => (
+                            {(selectedCultureData.secondarySkills || []).map((skill: string, index: number) => (
                               <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
                                 {skill}
                               </span>
@@ -466,7 +469,7 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {selectedArchetypeData.primarySkills.map((skill, index) => (
+                            {(selectedArchetypeData.primarySkills || []).map((skill: string, index: number) => (
                               <span key={index} className="text-xs bg-yellow-500/20 text-yellow-600 px-2 py-1 rounded">
                                 {skill}
                               </span>
@@ -476,7 +479,7 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {selectedArchetypeData.secondarySkills.map((skill, index) => (
+                            {(selectedArchetypeData.secondarySkills || []).map((skill: string, index: number) => (
                               <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
                                 {skill}
                               </span>
