@@ -951,17 +951,40 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // ===========================
 
 // Function to calculate skill XP cost
-export function getSkillCost(skill: string, heritage: string): number {
+export function getSkillCost(skill: string, heritage: string, culture: string, archetype: string): number {
   const heritageData = HERITAGES.find(h => h.id === heritage);
-  if (!heritageData) return 1; // default primary cost
+  const archetypeData = ARCHETYPES.find(a => a.id === archetype);
   
-  // If it's a heritage secondary skill, it costs 1 XP (primary)
-  if (heritageData.secondarySkills.includes(skill)) {
-    return 1;
+  // Get culture data from the nested structure
+  const culturesForHeritage = CULTURES[heritage as keyof typeof CULTURES] || [];
+  const cultureData = culturesForHeritage.find(c => c.id === culture);
+  
+  // Check if skill is PRIMARY (5 XP) for any of the selected options  
+  const culturePrimarySkills = cultureData?.primarySkills || [];
+  const archetypePrimarySkills = archetypeData?.primarySkills || [];
+  const heritageSecondarySkills = heritageData?.secondarySkills || [];
+  
+  if (
+    heritageSecondarySkills.includes(skill) ||
+    culturePrimarySkills.includes(skill) ||
+    archetypePrimarySkills.includes(skill)
+  ) {
+    return 5;
   }
+
+  // Check if skill is SECONDARY (10 XP) for any of the selected options
+  const cultureSecondarySkills = cultureData?.secondarySkills || [];
+  const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
   
-  // Otherwise it costs 2 XP (secondary)
-  return 2;
+  if (
+    cultureSecondarySkills.includes(skill) ||
+    archetypeSecondarySkills.includes(skill)
+  ) {
+    return 10;
+  }
+
+  // Otherwise it's a general skill (20 XP)
+  return 20;
 }
 
 
