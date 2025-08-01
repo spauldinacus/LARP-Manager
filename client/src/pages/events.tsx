@@ -627,8 +627,17 @@ export default function EventsPage() {
                   className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <Users className="w-4 h-4 mr-1" />
-                  <span>{getRsvpCount(event.id)} RSVPs</span>
-                  {getRsvpCount(event.id) > 0 && <Eye className="w-3 h-3 ml-1" />}
+                  {event.isActive ? (
+                    <>
+                      <span>{getRsvpCount(event.id)} RSVPs</span>
+                      {getRsvpCount(event.id) > 0 && <Eye className="w-3 h-3 ml-1" />}
+                    </>
+                  ) : (
+                    <>
+                      <span>{getRsvpData(event.id).filter(rsvp => rsvp.attended === true).length} Attended</span>
+                      {getRsvpData(event.id).filter(rsvp => rsvp.attended === true).length > 0 && <Eye className="w-3 h-3 ml-1" />}
+                    </>
+                  )}
                 </button>
                 <div className="flex items-center space-x-2">
                   {user?.isAdmin && (
@@ -641,12 +650,10 @@ export default function EventsPage() {
                       Edit
                     </Button>
                   )}
-                  {user && (
+                  {user && event.isActive && (
                     <Button 
                       size="sm" 
                       onClick={() => handleRsvp(event)}
-                      disabled={!event.isActive}
-                      title={!event.isActive ? "Event is not accepting RSVPs" : ""}
                     >
                       RSVP
                     </Button>
@@ -773,18 +780,30 @@ export default function EventsPage() {
         <Dialog open={isRsvpListModalOpen} onOpenChange={setIsRsvpListModalOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>RSVPs for {selectedEvent?.name}</DialogTitle>
+              <DialogTitle>
+                {selectedEvent?.isActive ? "RSVPs" : "Attendees"} for {selectedEvent?.name}
+              </DialogTitle>
               <DialogDescription>
-                Players who have RSVPed to this event
+                {selectedEvent?.isActive 
+                  ? "Players who have RSVPed to this event"
+                  : "Characters who attended this past event"
+                }
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-96 overflow-y-auto">
               {selectedEvent && (
                 <div className="space-y-3">
-                  {getRsvpData(selectedEvent.id).length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No RSVPs yet</p>
-                  ) : (
-                    getRsvpData(selectedEvent.id).map((rsvp) => {
+                  {(() => {
+                    const filteredRsvps = selectedEvent.isActive 
+                      ? getRsvpData(selectedEvent.id)
+                      : getRsvpData(selectedEvent.id).filter(rsvp => rsvp.attended === true);
+                    
+                    return filteredRsvps.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        {selectedEvent.isActive ? "No RSVPs yet" : "No attendees recorded"}
+                      </p>
+                    ) : (
+                      filteredRsvps.map((rsvp) => {
                       const character = publicCharacters.find(c => c.id === rsvp.characterId);
                       return (
                         <div key={rsvp.id} className="border rounded-lg p-4 space-y-2">
@@ -860,8 +879,9 @@ export default function EventsPage() {
                           </div>
                         </div>
                       );
-                    })
-                  )}
+                      })
+                    );
+                  })()}
                 </div>
               )}
             </div>
