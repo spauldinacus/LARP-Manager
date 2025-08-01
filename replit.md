@@ -10,6 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### February 1, 2025
+- **COMPLETED: Admin role assignment functionality for user management**
+  - Added complete API endpoint (PATCH /api/users/:id/role) for updating user roles
+  - Supports both simple admin/user roles and complex role system (moderator, super_admin)
+  - Fixed duplicate mutation declarations and connection issues in user management interface
+  - Role management modal allows admins to assign user, moderator, admin, or super_admin roles
+  - Successfully tested role assignments with confirmed API responses and UI updates
+  - Delete user functionality also implemented with proper error handling and confirmation dialogs
+
 ### January 31, 2025
 - **CRITICAL FIX: Corrected XP spent calculation system to use actual skill costs**
   - Fixed calculateTotalXpSpent function to properly calculate XP based on heritage/culture/archetype skill costs
