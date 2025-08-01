@@ -15,6 +15,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Auto-RSVP Feature**: When admins award event-related experience to characters, the system automatically creates/updates RSVPs marking characters as attended
 - **RSVP Migration Fix**: Fixed historical data where characters previously marked as attended by admin were missing RSVP records
 - **Sidebar Navigation Update**: Added chapters page to left sidebar menu for all authenticated users
+- **Deployment Health Check Fix**: Added comprehensive health check endpoints and proper server configuration for reliable deployment verification
+- **Database Schema Fix**: Restored missing user title field and resolved database query errors affecting characters and players pages
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
