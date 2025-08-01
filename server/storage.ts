@@ -490,21 +490,21 @@ export class DatabaseStorage implements IStorage {
       for (const skill of insertCharacter.skills) {
         console.log(`Processing skill: ${skill}, heritage: ${insertCharacter.heritage}, archetype: ${insertCharacter.archetype}`);
         try {
-          const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.archetype as any);
-          console.log(`Skill cost result:`, skillData);
+          const skillCost = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.archetype as any);
+          console.log(`Skill cost result:`, skillCost);
           
-          if (isNaN(skillData.cost)) {
-            console.error(`Invalid skill cost for ${skill}: ${skillData.cost}`);
+          if (isNaN(skillCost)) {
+            console.error(`Invalid skill cost for ${skill}: ${skillCost}`);
             continue;
           }
           
           await this.createExperienceEntry({
             characterId: character.id,
-            amount: -skillData.cost, // Negative because it's spending XP
+            amount: -skillCost, // Negative because it's spending XP
             reason: `Skill purchase: ${skill}`,
             awardedBy: insertCharacter.userId,
           });
-          console.log(`Created experience entry for skill: ${skill} (${skillData.cost} XP)`);
+          console.log(`Created experience entry for skill: ${skill} (${skillCost} XP)`);
         } catch (error) {
           console.error(`Error processing skill ${skill}:`, error);
         }
