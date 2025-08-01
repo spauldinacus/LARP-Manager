@@ -69,7 +69,7 @@ export default function CandlesPage() {
 
   const candleTransactionMutation = useMutation({
     mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
-      return apiRequest(`/api/users/${userId}/candles`, "POST", { amount, reason });
+      return apiRequest("POST", `/api/users/${userId}/candles`, { amount, reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
