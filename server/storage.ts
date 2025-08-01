@@ -1403,6 +1403,63 @@ export class DatabaseStorage implements IStorage {
   async getStaticAchievementOverrides(): Promise<StaticAchievementOverride[]> {
     return await db.select().from(staticAchievementOverrides);
   }
+
+  // Migration method to create RSVPs for existing event experience entries
+  async createMissingRSVPs(): Promise<{ created: number, updated: number }> {
+    let created = 0;
+    let updated = 0;
+
+    // Get all experience entries that have an eventId but no corresponding RSVP
+    const experienceWithEvents = await db
+      .select({
+        characterId: experienceEntries.characterId,
+        eventId: experienceEntries.eventId,
+        userId: characters.userId
+      })
+      .from(experienceEntries)
+      .leftJoin(characters, eq(experienceEntries.characterId, characters.id))
+      .where(and(
+        sql`${experienceEntries.eventId} IS NOT NULL`,
+        sql`${characters.userId} IS NOT NULL`
+      ));
+
+    // Group by character and event to avoid duplicates
+    const uniqueEntries = new Map();
+    for (const entry of experienceWithEvents) {
+      const key = `${entry.characterId}-${entry.eventId}`;
+      if (!uniqueEntries.has(key)) {
+        uniqueEntries.set(key, entry);
+      }
+    }
+
+    for (const [, entry] of uniqueEntries) {
+      if (entry.eventId && entry.characterId && entry.userId) {
+        // Check if RSVP already exists
+        const existingRsvp = await this.getEventRsvp(entry.eventId, entry.characterId);
+        
+        if (existingRsvp) {
+          // Update existing RSVP to mark as attended if not already
+          if (!existingRsvp.attended) {
+            await this.updateEventRsvp(existingRsvp.id, { attended: true });
+            updated++;
+          }
+        } else {
+          // Create new RSVP marked as attended
+          await this.createEventRsvp({
+            eventId: entry.eventId,
+            characterId: entry.characterId,
+            userId: entry.userId,
+            attended: true,
+            xpPurchases: 0,
+            xpCandlePurchases: 0
+          });
+          created++;
+        }
+      }
+    }
+
+    return { created, updated };
+  }
 }
 
 export const storage = new DatabaseStorage();

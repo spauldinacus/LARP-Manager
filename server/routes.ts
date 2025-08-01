@@ -399,8 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 userId: character.userId,
                 attended: true,
                 xpPurchases: 0,
-                xpCandlePurchases: 0,
-                notes: "Auto-created by admin experience award"
+                xpCandlePurchases: 0
               });
             }
           }
@@ -480,6 +479,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Rebuild all character XP error:", error);
       res.status(500).json({ message: "Failed to rebuild character XP tracking" });
+    }
+  });
+
+  // Create missing RSVPs for existing event experience entries (admin only)
+  app.post("/api/admin/create-missing-rsvps", requireAdmin, async (req, res) => {
+    try {
+      const result = await storage.createMissingRSVPs();
+      res.json({
+        message: `Successfully processed RSVPs: ${result.created} created, ${result.updated} updated`,
+        created: result.created,
+        updated: result.updated
+      });
+    } catch (error) {
+      console.error("Create missing RSVPs error:", error);
+      res.status(500).json({ message: "Failed to create missing RSVPs" });
     }
   });
 
@@ -848,8 +862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               userId: character.userId,
               attended: true,
               xpPurchases: 0,
-              xpCandlePurchases: 0,
-              notes: "Auto-created by admin experience award"
+              xpCandlePurchases: 0
             });
           }
         } catch (rsvpError) {
