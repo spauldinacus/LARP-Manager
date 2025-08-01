@@ -257,7 +257,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const nextNumber = String(usersThisMonth.length + 1).padStart(4, '0');
+    const nextNumber = String(usersThisMonth.length + 1).padStart(3, '0');
     return `${chapter.code.toUpperCase()}${year}${month}${nextNumber}`;
   }
 

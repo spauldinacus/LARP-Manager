@@ -375,7 +375,7 @@ export default function UsersPage() {
                               <Input
                                 value={newPlayerNumber}
                                 onChange={(e) => setNewPlayerNumber(e.target.value)}
-                                placeholder="FL07310001"
+                                placeholder="FL2507001"
                                 className="h-6 text-xs max-w-[120px]"
                               />
                               <Button

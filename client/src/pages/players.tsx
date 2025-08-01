@@ -317,7 +317,7 @@ export default function PlayersPage() {
                 id="playerNumber"
                 value={newPlayerNumber}
                 onChange={(e) => setNewPlayerNumber(e.target.value)}
-                placeholder="e.g., FL07310001"
+                placeholder="e.g., FL2507001"
               />
             </div>
           </div>
