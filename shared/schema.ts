@@ -487,100 +487,70 @@ export const CULTURES = {
     { 
       id: "eisolae", 
       name: "Eisolae",
-      primarySkills: ["Meditation", "Lore (Magic)"],
-      secondarySkills: ["Scribe", "First Aid"]
     },
     { 
       id: "jhaniada", 
       name: "Jhani'ada",
-      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
-      secondarySkills: ["Courage", "Parry"]
     },
     { 
       id: "viskela", 
       name: "Viskela",
-      primarySkills: ["Bard", "Socialite"],
-      secondarySkills: ["Wealth", "Mercantile"]
     }
   ],
   "human": [
     { 
       id: "erdanian", 
       name: "Erdanian",
-      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Light)"],
-      secondarySkills: ["Courage", "Shield"]
     },
     { 
       id: "khemasuri", 
       name: "Khemasuri",
-      primarySkills: ["Socialite", "Wealth"],
-      secondarySkills: ["Bard", "Mercantile"]
     },
     { 
       id: "saronean", 
       name: "Saronean",
-      primarySkills: ["Weapon Focus (Bow)", "Herbalism"],
-      secondarySkills: ["Hunting", "Alertness"]
     },
     { 
       id: "vyaldur", 
       name: "Vyaldur",
-      primarySkills: ["Trapper", "Scavenging"],
-      secondarySkills: ["Lockpicking", "Quick Search"]
     }
   ],
   "stoneborn": [
     { 
       id: "dargadian", 
       name: "Dargadian",
-      primarySkills: ["Weapon Focus (Medium)", "Armor Training (Medium)"],
-      secondarySkills: ["Blacksmithing", "Toughness"]
     },
     { 
       id: "akhunrasi", 
       name: "Akhunrasi",
-      primarySkills: ["Blacksmithing", "Mining"],
-      secondarySkills: ["Armor Smithing", "Weapon Smithing"]
     },
     { 
       id: "kahrnuthaen", 
       name: "Kahrnuthaen",
-      primarySkills: ["Lore (Engineering)", "Scavenging"],
-      secondarySkills: ["Fortify Armor", "Alchemy"]
     }
   ],
   "ughol": [
     { 
       id: "gragrimn", 
       name: "Gragrimn",
-      primarySkills: ["Weapon Focus (Medium)", "Intimidation"],
-      secondarySkills: ["Brutal Blow", "Knockback"]
     },
     { 
       id: "skraata", 
       name: "Skraata",
-      primarySkills: ["Hide", "Stealth"],
-      secondarySkills: ["Backstab", "Weapon Focus (Small)"]
     },
     { 
       id: "voruk", 
       name: "Voruk",
-      primarySkills: ["Hunting", "Herbalism"],
-      secondarySkills: ["Weapon Focus (Bow)", "Lore (Nature)"]
     }
   ],
   "rystarri": [
     { 
       id: "maolawki", 
       name: "Maolawki",
-      primarySkills: ["Meditation", "Dodge"],
-      secondarySkills: ["Weapon Focus (Unarmed)", "Iron Will"]
     },
     { 
       id: "yarowi", 
       name: "Yarowi",
-      primarySkills: ["Trader", "Mercantile"],
-      secondarySkills: ["Socialite", "Wealth"]
     }
   ]
 } as const;

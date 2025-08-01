@@ -794,6 +794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         characterId: req.params.id,
         amount: req.body.amount,
         reason: req.body.reason,
+        eventId: req.body.eventId || null,
         awardedBy: req.session.userId,
       });
       
