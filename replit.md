@@ -28,6 +28,10 @@ Preferred communication style: Simple, everyday language.
   - XP purchases and XP candle purchases only visible to admins and character owner
   - Other players can no longer see purchase details in RSVP lists
   - Maintains privacy while allowing necessary admin oversight
+- **FIXED: Character names in RSVP displays**
+  - Created new public API endpoint for basic character information visible to all players
+  - Character names, heritage, culture, and archetype now display correctly in RSVP lists
+  - All players can see who RSVPed while keeping sensitive purchase data private
 - **CRITICAL FIX: Admin RSVP XP purchase updates now sync to character sheets**
   - Fixed React Query cache invalidation to refresh character data when admin modifies RSVP XP purchases
   - Experience entries and character totals now update immediately across all UI components

@@ -60,6 +60,12 @@ export default function EventsPage() {
     enabled: !!user,
   });
 
+  // Load public character data for RSVP displays
+  const { data: publicCharacters = [] } = useQuery({
+    queryKey: ["/api/characters/public"],
+    enabled: !!user,
+  });
+
   // Fetch RSVPs for all events at once
   const { data: allEventRsvps = {} } = useQuery({
     queryKey: ["/api/events/rsvps"],
@@ -262,7 +268,7 @@ export default function EventsPage() {
   };
 
   const handleDeleteRsvp = (rsvp: EventRsvp) => {
-    if (window.confirm(`Remove ${characters.find(c => c.id === rsvp.characterId)?.name || 'this character'} from the event?`)) {
+    if (window.confirm(`Remove ${publicCharacters.find(c => c.id === rsvp.characterId)?.name || 'this character'} from the event?`)) {
       deleteRsvpMutation.mutate(rsvp.id);
     }
   };
@@ -779,7 +785,7 @@ export default function EventsPage() {
                     <p className="text-center text-gray-500 py-8">No RSVPs yet</p>
                   ) : (
                     getRsvpData(selectedEvent.id).map((rsvp) => {
-                      const character = characters.find(c => c.id === rsvp.characterId);
+                      const character = publicCharacters.find(c => c.id === rsvp.characterId);
                       return (
                         <div key={rsvp.id} className="border rounded-lg p-4 space-y-2">
                           <div className="flex justify-between items-start">

@@ -244,6 +244,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public character names endpoint - returns basic info for all characters for RSVP displays
+  app.get("/api/characters/public", requireAuth, async (req, res) => {
+    try {
+      const characters = await storage.getAllCharacters();
+      
+      // Return only public information needed for RSVPs
+      const publicCharacters = characters.map(character => ({
+        id: character.id,
+        name: character.name,
+        heritage: character.heritage,
+        culture: character.culture,
+        archetype: character.archetype,
+        userId: character.userId,
+        isActive: character.isActive
+      }));
+      
+      res.json(publicCharacters);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get public character data" });
+    }
+  });
+
   app.get("/api/characters/:id", requireAuth, async (req, res) => {
     try {
       const character = await storage.getCharacter(req.params.id);
