@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@/lib/constants";
-import { getSkillCost } from "@shared/schema";
+import { getSkillCost, getAttributeCost, HERITAGE_BASES } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -84,27 +84,9 @@ export default function CharacterCreationModal({
     },
   });
 
-  // Helper function to calculate body/stamina cost
-  const getAttributeCost = (currentValue: number, increaseAmount: number): number => {
-    let totalCost = 0;
-    let currentVal = currentValue;
-    
-    for (let i = 0; i < increaseAmount; i++) {
-      if (currentVal < 20) totalCost += 1;
-      else if (currentVal < 40) totalCost += 2;
-      else if (currentVal < 60) totalCost += 3;
-      else if (currentVal < 80) totalCost += 4;
-      else if (currentVal < 100) totalCost += 5;
-      else if (currentVal < 120) totalCost += 6;
-      else if (currentVal < 140) totalCost += 7;
-      else if (currentVal < 160) totalCost += 8;
-      else if (currentVal < 180) totalCost += 9;
-      else totalCost += 10;
-      
-      currentVal++;
-    }
-    
-    return totalCost;
+  // Get heritage base values for attributes
+  const getHeritageBaseValues = (heritage: string) => {
+    return HERITAGE_BASES[heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
   };
 
   // Use the corrected skill cost calculation from shared schema
@@ -172,11 +154,11 @@ export default function CharacterCreationModal({
     return total + cost;
   }, 0);
 
-  // Get base body/stamina from heritage
+  // Get base body/stamina from heritage using centralized values
   const watchedHeritage = form.watch("heritage");
-  const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
-  const baseBody = selectedHeritageData?.body || 0;
-  const baseStamina = selectedHeritageData?.stamina || 0;
+  const heritageBaseValues = getHeritageBaseValues(watchedHeritage);
+  const baseBody = heritageBaseValues.body;
+  const baseStamina = heritageBaseValues.stamina;
   
   // Calculate attribute costs based on incremental cost from current values
   const bodyCost = additionalBody > 0 ? getAttributeCost(baseBody, additionalBody) : 0;
@@ -190,13 +172,12 @@ export default function CharacterCreationModal({
 
   const createCharacterMutation = useMutation({
     mutationFn: async (data: CharacterForm) => {
-      const heritage = HERITAGES.find(h => h.id === data.heritage);
-      if (!heritage) throw new Error("Invalid heritage selected");
+      const heritageValues = getHeritageBaseValues(data.heritage);
 
       const characterData = {
         ...data,
-        body: heritage.body + additionalBody,
-        stamina: heritage.stamina + additionalStamina,
+        body: heritageValues.body + additionalBody,
+        stamina: heritageValues.stamina + additionalStamina,
         experience: availableExperience, // Remaining experience after skill purchases
         skills: selectedSkills.map(s => s.name), // Add selected skills
       };
@@ -371,7 +352,7 @@ export default function CharacterCreationModal({
           </div>
 
           {/* Character Stats and Skills Display */}
-          {selectedHeritageData && (
+          {watchedHeritage && (
             <div className="space-y-4">
               {/* Stats */}
               <div className="bg-muted/50 rounded-lg p-4">
@@ -403,41 +384,46 @@ export default function CharacterCreationModal({
               </div>
 
               {/* Heritage Details */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h4 className="font-medium mb-3">Heritage Details: {selectedHeritageData.name}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Description</p>
-                      <p className="text-sm">{selectedHeritageData.description}</p>
+              {(() => {
+                const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
+                return selectedHeritageData ? (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <h4 className="font-medium mb-3">Heritage Details: {selectedHeritageData.name}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Description</p>
+                          <p className="text-sm">{selectedHeritageData.description}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Costume Requirements</p>
+                          <p className="text-sm">{selectedHeritageData.costumeRequirements}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-green-600">Benefit</p>
+                          <p className="text-sm">{selectedHeritageData.benefit}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-red-600">Weakness</p>
+                          <p className="text-sm">{selectedHeritageData.weakness}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Costume Requirements</p>
-                      <p className="text-sm">{selectedHeritageData.costumeRequirements}</p>
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-muted-foreground">Secondary Skills Available</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedHeritageData.secondarySkills.map((skill: string, index: number) => (
+                          <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-green-600">Benefit</p>
-                      <p className="text-sm">{selectedHeritageData.benefit}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-red-600">Weakness</p>
-                      <p className="text-sm">{selectedHeritageData.weakness}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <p className="text-sm font-medium text-muted-foreground">Secondary Skills Available</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedHeritageData.secondarySkills.map((skill, index) => (
-                      <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                ) : null;
+              })()}
 
               {/* Skills */}
               <div className="bg-muted/50 rounded-lg p-4">

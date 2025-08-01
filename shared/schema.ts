@@ -331,6 +331,55 @@ export const insertCharacterAchievementSchema = createInsertSchema(characterAchi
   unlockedAt: true,
 });
 
+// Centralized XP Cost Calculation System
+export const HERITAGE_BASES = {
+  'ar-nura': { body: 8, stamina: 12 },
+  'human': { body: 10, stamina: 10 },
+  'stoneborn': { body: 15, stamina: 5 },
+  'ughol': { body: 12, stamina: 8 },
+  'rystarri': { body: 12, stamina: 8 }
+} as const;
+
+export function getAttributeCost(currentValue: number, points: number = 1): number {
+  let totalCost = 0;
+  for (let i = 0; i < points; i++) {
+    const valueAtThisStep = currentValue + i;
+    if (valueAtThisStep < 20) totalCost += 1;
+    else if (valueAtThisStep < 40) totalCost += 2;
+    else if (valueAtThisStep < 60) totalCost += 3;
+    else if (valueAtThisStep < 80) totalCost += 4;
+    else if (valueAtThisStep < 100) totalCost += 5;
+    else if (valueAtThisStep < 120) totalCost += 6;
+    else if (valueAtThisStep < 140) totalCost += 7;
+    else if (valueAtThisStep < 160) totalCost += 8;
+    else if (valueAtThisStep < 180) totalCost += 9;
+    else totalCost += 10;
+  }
+  return totalCost;
+}
+
+export function calculateAttributePurchaseCost(heritage: string, currentBody: number, currentStamina: number): number {
+  const bases = HERITAGE_BASES[heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
+  
+  let totalCost = 0;
+  
+  // Body costs
+  if (currentBody > bases.body) {
+    for (let i = bases.body; i < currentBody; i++) {
+      totalCost += getAttributeCost(i, 1);
+    }
+  }
+  
+  // Stamina costs
+  if (currentStamina > bases.stamina) {
+    for (let i = bases.stamina; i < currentStamina; i++) {
+      totalCost += getAttributeCost(i, 1);
+    }
+  }
+  
+  return totalCost;
+}
+
 // Types
 export type Chapter = typeof chapters.$inferSelect;
 export type InsertChapter = z.infer<typeof insertChapterSchema>;

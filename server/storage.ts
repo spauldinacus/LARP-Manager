@@ -443,33 +443,13 @@ export class DatabaseStorage implements IStorage {
     });
     
     // Create experience entries for body/stamina purchases during character creation
-    const heritageBodyBases = {
-      'ar-nura': 10,
-      'human': 10,
-      'stoneborn': 15,
-      'ughol': 12,
-      'rystarri': 8
-    };
-    
-    const heritageStaminaBases = {
-      'ar-nura': 12,
-      'human': 10,
-      'stoneborn': 5,
-      'ughol': 8,
-      'rystarri': 8
-    };
-    
-    const baseBody = heritageBodyBases[insertCharacter.heritage as keyof typeof heritageBodyBases] || 10;
-    const baseStamina = heritageStaminaBases[insertCharacter.heritage as keyof typeof heritageStaminaBases] || 10;
+    const { HERITAGE_BASES, getAttributeCost } = await import("@shared/schema");
+    const bases = HERITAGE_BASES[insertCharacter.heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
     
     // Track body purchases
-    if (insertCharacter.body > baseBody) {
-      for (let i = baseBody; i < insertCharacter.body; i++) {
-        let cost = 1; // Default cost
-        if (i >= 20) cost = 2;
-        else if (i >= 40) cost = 3;
-        else if (i >= 60) cost = 4;
-        else if (i >= 80) cost = 5;
+    if (insertCharacter.body > bases.body) {
+      for (let i = bases.body; i < insertCharacter.body; i++) {
+        const cost = getAttributeCost(i, 1);
         
         await this.createExperienceEntry({
           characterId: character.id,
@@ -481,13 +461,9 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Track stamina purchases
-    if (insertCharacter.stamina > baseStamina) {
-      for (let i = baseStamina; i < insertCharacter.stamina; i++) {
-        let cost = 1; // Default cost
-        if (i >= 20) cost = 2;
-        else if (i >= 40) cost = 3;
-        else if (i >= 60) cost = 4;
-        else if (i >= 80) cost = 5;
+    if (insertCharacter.stamina > bases.stamina) {
+      for (let i = bases.stamina; i < insertCharacter.stamina; i++) {
+        const cost = getAttributeCost(i, 1);
         
         await this.createExperienceEntry({
           characterId: character.id,
@@ -1141,33 +1117,13 @@ export class DatabaseStorage implements IStorage {
     const hasBodyEntries = existingEntries.some(e => e.reason.includes('Body increase'));
     const hasStaminaEntries = existingEntries.some(e => e.reason.includes('Stamina increase'));
 
-    const heritageBodyBases = {
-      'ar-nura': 10,
-      'human': 10,
-      'stoneborn': 15,
-      'ughol': 12,
-      'rystarri': 8
-    };
-    
-    const heritageStaminaBases = {
-      'ar-nura': 12,
-      'human': 10,
-      'stoneborn': 5,
-      'ughol': 8,
-      'rystarri': 8
-    };
-    
-    const baseBody = heritageBodyBases[character.heritage as keyof typeof heritageBodyBases] || 10;
-    const baseStamina = heritageStaminaBases[character.heritage as keyof typeof heritageStaminaBases] || 10;
+    const { HERITAGE_BASES, getAttributeCost } = await import("@shared/schema");
+    const bases = HERITAGE_BASES[character.heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
 
     // Add missing body entries
-    if (!hasBodyEntries && character.body > baseBody) {
-      for (let i = baseBody; i < character.body; i++) {
-        let cost = 1;
-        if (i >= 20) cost = 2;
-        else if (i >= 40) cost = 3;
-        else if (i >= 60) cost = 4;
-        else if (i >= 80) cost = 5;
+    if (!hasBodyEntries && character.body > bases.body) {
+      for (let i = bases.body; i < character.body; i++) {
+        const cost = getAttributeCost(i, 1);
         
         await db.insert(experienceEntries).values({
           characterId: character.id,
@@ -1180,13 +1136,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Add missing stamina entries
-    if (!hasStaminaEntries && character.stamina > baseStamina) {
-      for (let i = baseStamina; i < character.stamina; i++) {
-        let cost = 1;
-        if (i >= 20) cost = 2;
-        else if (i >= 40) cost = 3;
-        else if (i >= 60) cost = 4;
-        else if (i >= 80) cost = 5;
+    if (!hasStaminaEntries && character.stamina > bases.stamina) {
+      for (let i = bases.stamina; i < character.stamina; i++) {
+        const cost = getAttributeCost(i, 1);
         
         await db.insert(experienceEntries).values({
           characterId: character.id,
