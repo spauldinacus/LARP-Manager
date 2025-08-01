@@ -215,7 +215,12 @@ export default function PlayersPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
                         <div>
-                          <span>{player.playerName}</span>
+                          <span>
+                            {player.playerName}
+                            {player.title && (
+                              <span className="text-primary ml-2 font-normal">"{player.title}"</span>
+                            )}
+                          </span>
                           <p className="text-sm text-muted-foreground font-normal">@{player.username}</p>
                         </div>
                         <Button

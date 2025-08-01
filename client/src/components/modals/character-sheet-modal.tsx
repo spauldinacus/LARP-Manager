@@ -385,7 +385,12 @@ export default function CharacterSheetModal({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Player</p>
-                        <p>{(character as any).playerName}</p>
+                        <p>
+                          {(character as any).playerName}
+                          {(character as any).playerTitle && (
+                            <span className="text-primary ml-2">"{(character as any).playerTitle}"</span>
+                          )}
+                        </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Badge variant="outline">{((character as any).heritage.charAt(0).toUpperCase() + (character as any).heritage.slice(1).replace(/-/g, ' '))}</Badge>

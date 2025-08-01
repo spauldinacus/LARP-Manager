@@ -282,6 +282,9 @@ export default function DashboardPage() {
                           {user?.isAdmin && character.playerName && (
                             <p className="text-xs text-muted-foreground">
                               Played by {character.playerName}
+                              {character.playerTitle && (
+                                <span className="text-primary ml-1">"{character.playerTitle}"</span>
+                              )}
                             </p>
                           )}
                         </div>

@@ -489,6 +489,8 @@ export class DatabaseStorage implements IStorage {
         id: users.id,
         username: users.username,
         email: users.email,
+        playerName: users.playerName,
+        title: users.title,
         playerNumber: users.playerNumber,
         chapterId: users.chapterId,
       })
@@ -599,7 +601,8 @@ export class DatabaseStorage implements IStorage {
         retirementReason: characters.retirementReason,
         createdAt: characters.createdAt,
         updatedAt: characters.updatedAt,
-        playerName: users.username,
+        playerName: users.playerName,
+        playerTitle: users.title,
         playerNumber: users.playerNumber,
       })
       .from(characters)
