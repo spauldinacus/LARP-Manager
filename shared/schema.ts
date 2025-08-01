@@ -103,7 +103,7 @@ export const events = pgTable("events", {
   name: text("name").notNull(),
   description: text("description"),
   eventDate: timestamp("event_date").notNull(),
-  location: text("location"),
+  chapterId: uuid("chapter_id").references(() => chapters.id).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdBy: uuid("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
@@ -221,6 +221,7 @@ export const chaptersRelations = relations(chapters, ({ one, many }) => ({
     references: [users.id],
   }),
   users: many(users),
+  events: many(events),
 }));
 
 // Users relations moved to end of file to include role relationship
@@ -239,6 +240,10 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   creator: one(users, {
     fields: [events.createdBy],
     references: [users.id],
+  }),
+  chapter: one(chapters, {
+    fields: [events.chapterId],
+    references: [chapters.id],
   }),
   experienceEntries: many(experienceEntries),
   rsvps: many(eventRsvps),

@@ -20,12 +20,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar, Users, Plus, MapPin, Clock, Menu, Eye, Edit } from "lucide-react";
-import { insertEventSchema, insertEventRsvpSchema, type Event, type Character, type EventRsvp } from "@shared/schema";
+import { insertEventSchema, insertEventRsvpSchema, type Event, type Character, type EventRsvp, type Chapter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-const eventFormSchema = insertEventSchema.extend({
-  eventDate: z.string().transform(val => new Date(val))
+const eventFormSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  eventDate: z.string(),
+  chapterId: z.string().min(1),
+  createdBy: z.string().min(1),
 });
 const rsvpFormSchema = insertEventRsvpSchema.omit({ eventId: true, userId: true });
 
@@ -45,6 +49,7 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedRsvp, setSelectedRsvp] = useState<EventRsvp | null>(null);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("all");
   const { toast } = useToast();
 
   // Redirect to login if not authenticated
@@ -64,8 +69,14 @@ export default function EventsPage() {
   });
 
   // Load public character data for RSVP displays
-  const { data: publicCharacters = [] } = useQuery({
+  const { data: publicCharacters = [] } = useQuery<Character[]>({
     queryKey: ["/api/characters/public"],
+    enabled: !!user,
+  });
+
+  // Load chapters for the chapter filter dropdown
+  const { data: chapters = [] } = useQuery<Chapter[]>({
+    queryKey: ["/api/chapters"],
     enabled: !!user,
   });
 
@@ -259,7 +270,7 @@ export default function EventsPage() {
       name: "",
       description: "",
       eventDate: new Date().toISOString().slice(0, 16),
-      location: "",
+      chapterId: user?.chapterId || "",
       createdBy: user?.id || "",
     },
   });
@@ -287,15 +298,16 @@ export default function EventsPage() {
       name: "",
       description: "",
       eventDate: new Date().toISOString().slice(0, 16),
-      location: "",
+      chapterId: "",
       createdBy: user?.id || "",
     },
   });
 
   // Event handlers
-  const onCreateSubmit = (data: EventFormData) => {
+  const onCreateSubmit = (data: any) => {
     createEventMutation.mutate({
       ...data,
+      eventDate: new Date(data.eventDate),
       createdBy: user?.id || "",
     });
   };
@@ -354,7 +366,7 @@ export default function EventsPage() {
       name: event.name,
       description: event.description || "",
       eventDate: new Date(event.eventDate).toISOString().slice(0, 16),
-      location: event.location || "",
+      chapterId: event.chapterId || "",
       createdBy: event.createdBy,
     });
     setIsEditEventModalOpen(true);
@@ -483,6 +495,24 @@ export default function EventsPage() {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
+                  <Label htmlFor="chapter-filter" className="text-sm font-medium">
+                    Chapter:
+                  </Label>
+                  <Select value={selectedChapterId} onValueChange={setSelectedChapterId}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select chapter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Chapters</SelectItem>
+                      {chapters.map((chapter) => (
+                        <SelectItem key={chapter.id} value={chapter.id}>
+                          {chapter.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center space-x-2">
                   <Switch
                     id="show-all-events"
                     checked={showAllEvents}
@@ -550,13 +580,24 @@ export default function EventsPage() {
                           />
                           <FormField
                             control={createForm.control}
-                            name="location"
+                            name="chapterId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Location</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Event location..." {...field} />
-                                </FormControl>
+                                <FormLabel>Chapter</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a chapter" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {chapters.map((chapter) => (
+                                      <SelectItem key={chapter.id} value={chapter.id}>
+                                        {chapter.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -581,6 +622,7 @@ export default function EventsPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {events
                 .filter(event => showAllEvents || event.isActive)
+                .filter(event => selectedChapterId === "all" || event.chapterId === selectedChapterId)
                 .map((event) => (
                   <Card key={event.id}>
                     <CardHeader>
@@ -623,10 +665,10 @@ export default function EventsPage() {
                           {event.description}
                         </p>
                       )}
-                      {event.location && (
+                      {event.chapterId && (
                         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {event.location}
+                          {chapters.find(c => c.id === event.chapterId)?.name || 'Unknown Chapter'}
                         </div>
                       )}
                       <div className="flex justify-between items-center pt-4">
@@ -673,7 +715,7 @@ export default function EventsPage() {
                 ))}
             </div>
 
-            {events.filter(event => showAllEvents || event.isActive).length === 0 && (
+            {events.filter(event => showAllEvents || event.isActive).filter(event => selectedChapterId === "all" || event.chapterId === selectedChapterId).length === 0 && (
               <div className="text-center py-12">
                 <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -1016,13 +1058,24 @@ export default function EventsPage() {
                     />
                     <FormField
                       control={editForm.control}
-                      name="location"
+                      name="chapterId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Location</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Event location..." {...field} />
-                          </FormControl>
+                          <FormLabel>Chapter</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a chapter" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {chapters.map((chapter) => (
+                                <SelectItem key={chapter.id} value={chapter.id}>
+                                  {chapter.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
