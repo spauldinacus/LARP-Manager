@@ -386,56 +386,71 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserWithDetails(id: string): Promise<any | undefined> {
-    const [userData] = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        playerName: users.playerName,
-        email: users.email,
-        playerNumber: users.playerNumber,
-        title: users.title,
-        chapterId: users.chapterId,
-        roleId: users.roleId,
-        isAdmin: users.isAdmin,
-        candles: users.candles,
-        createdAt: users.createdAt,
-        roleName: roles.name,
-        roleColor: roles.color,
-        chapterName: chapters.name,
-      })
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .leftJoin(chapters, eq(users.chapterId, chapters.id))
-      .where(eq(users.id, id));
+    try {
+      // Get basic user data first without joins to avoid null object errors
+      const [basicUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id));
+        
+      if (!basicUser) return undefined;
+      
+      // Get role data separately if user has a role
+      let roleData = null;
+      if (basicUser.roleId) {
+        const [role] = await db
+          .select()
+          .from(roles)
+          .where(eq(roles.id, basicUser.roleId));
+        
+        if (role) {
+          roleData = {
+            id: role.id,
+            name: role.name,
+            color: role.color,
+          };
+        }
+      }
+      
+      // Get chapter data separately if user has a chapter
+      let chapterData = null;
+      if (basicUser.chapterId) {
+        const [chapter] = await db
+          .select()
+          .from(chapters)
+          .where(eq(chapters.id, basicUser.chapterId));
+        
+        if (chapter) {
+          chapterData = {
+            id: chapter.id,
+            name: chapter.name,
+          };
+        }
+      }
+      
+      // Get user's characters
+      const userCharacters = await db
+        .select({
+          id: characters.id,
+          name: characters.name,
+          heritage: characters.heritage,
+          level: characters.level,
+          isActive: characters.isActive,
+        })
+        .from(characters)
+        .where(eq(characters.userId, id))
+        .orderBy(characters.name);
 
-    if (!userData) return undefined;
-
-    // Get user's characters
-    const userCharacters = await db
-      .select({
-        id: characters.id,
-        name: characters.name,
-        heritage: characters.heritage,
-        level: characters.level,
-        isActive: characters.isActive,
-      })
-      .from(characters)
-      .where(eq(characters.userId, id))
-      .orderBy(characters.name);
-
-    return {
-      ...userData,
-      characters: userCharacters,
-      role: userData.roleName ? {
-        id: userData.roleId,
-        name: userData.roleName,
-        color: userData.roleColor,
-      } : null,
-      chapter: userData.chapterName ? {
-        id: userData.chapterId,
-        name: userData.chapterName,
-      } : null,
-    };
+      return {
+        ...basicUser,
+        characters: userCharacters,
+        role: roleData,
+        chapter: chapterData,
+      };
+    } catch (error) {
+      console.error("getUserWithDetails error for id", id, ":", error);
+      throw error;
+    }
   }
 
   async updateUserRole(id: string, roleId: string): Promise<User> {
