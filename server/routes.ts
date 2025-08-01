@@ -379,6 +379,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const entry = await storage.createExperienceEntry(entryData);
+      
+      // If this experience is associated with an event, automatically create/update RSVP
+      if (entryData.eventId && entryData.characterId) {
+        try {
+          const character = await storage.getCharacter(entryData.characterId);
+          if (character) {
+            // Check if RSVP already exists
+            const existingRsvp = await storage.getEventRsvp(entryData.eventId, entryData.characterId);
+            
+            if (existingRsvp) {
+              // Update existing RSVP to mark as attended
+              await storage.updateEventRsvp(existingRsvp.id, { attended: true });
+            } else {
+              // Create new RSVP marked as attended
+              await storage.createEventRsvp({
+                eventId: entryData.eventId,
+                characterId: entryData.characterId,
+                userId: character.userId,
+                attended: true,
+                xpPurchases: 0,
+                xpCandlePurchases: 0,
+                notes: "Auto-created by admin experience award"
+              });
+            }
+          }
+        } catch (rsvpError) {
+          console.error("Failed to create/update RSVP:", rsvpError);
+          // Don't fail the experience award if RSVP creation fails
+        }
+      }
+      
       res.status(201).json(entry);
     } catch (error) {
       console.error("Experience entry error:", error);
@@ -799,6 +830,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const entry = await storage.createExperienceEntry(entryData);
+      
+      // If this experience is associated with an event, automatically create/update RSVP
+      if (entryData.eventId) {
+        try {
+          // Check if RSVP already exists
+          const existingRsvp = await storage.getEventRsvp(entryData.eventId, req.params.id);
+          
+          if (existingRsvp) {
+            // Update existing RSVP to mark as attended
+            await storage.updateEventRsvp(existingRsvp.id, { attended: true });
+          } else {
+            // Create new RSVP marked as attended
+            await storage.createEventRsvp({
+              eventId: entryData.eventId,
+              characterId: req.params.id,
+              userId: character.userId,
+              attended: true,
+              xpPurchases: 0,
+              xpCandlePurchases: 0,
+              notes: "Auto-created by admin experience award"
+            });
+          }
+        } catch (rsvpError) {
+          console.error("Failed to create/update RSVP:", rsvpError);
+          // Don't fail the experience award if RSVP creation fails
+        }
+      }
       
       // Refresh character XP totals
       await storage.refreshCharacterXP(req.params.id);

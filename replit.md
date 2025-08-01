@@ -11,6 +11,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Character Creation Fix**: Resolved frontend errors and ensured proper attribute cost tracking during character creation
 - **Dual Archetype System**: Added complete second archetype purchase functionality for 50 XP with priority-based skill costs
 - **Experience History Fix**: Corrected skill purchase tracking in experience history - now properly records all skill purchases during character creation
+- **Chapters Access Enhancement**: Made chapters page viewable by all users with member counts and clickable member lists, while keeping editing admin-only
+- **Auto-RSVP Feature**: When admins award event-related experience to characters, the system automatically creates/updates RSVPs marking characters as attended
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
