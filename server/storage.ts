@@ -387,66 +387,87 @@ export class DatabaseStorage implements IStorage {
 
   async getUserWithDetails(id: string): Promise<any | undefined> {
     try {
-      // Get basic user data first without joins to avoid null object errors
-      const [basicUser] = await db
+      console.log("Getting user with details for id:", id);
+      
+      // Get basic user data first
+      const basicUsers = await db
         .select()
         .from(users)
-        .where(eq(users.id, id));
+        .where(eq(users.id, id))
+        .limit(1);
         
-      if (!basicUser) return undefined;
+      const basicUser = basicUsers[0];
+      if (!basicUser) {
+        console.log("No user found with id:", id);
+        return undefined;
+      }
+      
+      console.log("Found user:", basicUser.username);
       
       // Get role data separately if user has a role
       let roleData = null;
       if (basicUser.roleId) {
-        const [role] = await db
+        console.log("Getting role for roleId:", basicUser.roleId);
+        const roleResults = await db
           .select()
           .from(roles)
-          .where(eq(roles.id, basicUser.roleId));
+          .where(eq(roles.id, basicUser.roleId))
+          .limit(1);
         
+        const role = roleResults[0];
         if (role) {
           roleData = {
             id: role.id,
             name: role.name,
             color: role.color,
           };
+          console.log("Found role:", role.name);
         }
       }
       
       // Get chapter data separately if user has a chapter
       let chapterData = null;
       if (basicUser.chapterId) {
-        const [chapter] = await db
+        console.log("Getting chapter for chapterId:", basicUser.chapterId);
+        const chapterResults = await db
           .select()
           .from(chapters)
-          .where(eq(chapters.id, basicUser.chapterId));
+          .where(eq(chapters.id, basicUser.chapterId))
+          .limit(1);
         
+        const chapter = chapterResults[0];
         if (chapter) {
           chapterData = {
             id: chapter.id,
             name: chapter.name,
           };
+          console.log("Found chapter:", chapter.name);
         }
       }
       
-      // Get user's characters
+      // Get user's characters - use simplest possible query
+      console.log("Getting characters for userId:", id);
       const userCharacters = await db
-        .select({
-          id: characters.id,
-          name: characters.name,
-          heritage: characters.heritage,
-          level: characters.level,
-          isActive: characters.isActive,
-        })
+        .select()
         .from(characters)
-        .where(eq(characters.userId, id))
-        .orderBy(characters.name);
+        .where(eq(characters.userId, id));
 
-      return {
+      console.log("Found", userCharacters.length, "characters");
+
+      const result = {
         ...basicUser,
-        characters: userCharacters,
+        characters: userCharacters.map(char => ({
+          id: char.id,
+          name: char.name,
+          heritage: char.heritage,
+          isActive: char.isActive,
+        })),
         role: roleData,
         chapter: chapterData,
       };
+      
+      console.log("Returning user details successfully");
+      return result;
     } catch (error) {
       console.error("getUserWithDetails error for id", id, ":", error);
       throw error;
