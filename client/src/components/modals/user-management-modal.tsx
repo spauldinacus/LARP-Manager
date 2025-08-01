@@ -26,15 +26,10 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   // Fetch user details
   const { data: userDetails, isLoading, error } = useQuery({
     queryKey: ["/api/admin/users", userId],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/admin/users/${userId}`);
-      console.log("API response for user details:", response);
-      return response;
-    },
     enabled: !!userId,
     retry: 1,
     staleTime: 0, // Force fresh data
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache
   });
 
   console.log("UserManagementModal - userId:", userId, "userDetails:", userDetails, "error:", error);
@@ -54,11 +49,14 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
 
   useEffect(() => {
     console.log("useEffect triggered - userDetails:", userDetails);
-    if (userDetails) {
+    if (userDetails && Object.keys(userDetails).length > 0) {
       console.log("Setting editedUser with userDetails:", userDetails);
       setEditedUser({ ...userDetails });
+    } else if (userDetails && Object.keys(userDetails).length === 0) {
+      console.log("Received empty userDetails object, invalidating cache");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
     }
-  }, [userDetails]);
+  }, [userDetails, queryClient]);
 
   // Update user mutation
   const updateUserMutation = useMutation({
