@@ -9,6 +9,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Centralized Calculations**: All components now use unified `getAttributeCost()` and `HERITAGE_BASES` constants
 - **Database Consistency**: Rebuilt all character XP tracking to eliminate discrepancies between character lists and sheets
 - **Character Creation Fix**: Resolved frontend errors and ensured proper attribute cost tracking during character creation
+- **Dual Archetype System**: Added complete second archetype purchase functionality for 50 XP with priority-based skill costs
+- **Experience History Fix**: Corrected skill purchase tracking in experience history - now properly records all skill purchases during character creation
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
