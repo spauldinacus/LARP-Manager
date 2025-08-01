@@ -280,12 +280,14 @@ export default function DashboardPage() {
                             {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
                           </p>
                           {user?.isAdmin && character.playerName && (
-                            <p className="text-xs text-muted-foreground">
-                              Played by {character.playerName}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>Played by {character.playerName}</span>
                               {character.playerTitle && (
-                                <span className="text-primary ml-1">"{character.playerTitle}"</span>
+                                <Badge variant="secondary" className="text-xs h-4">
+                                  {character.playerTitle}
+                                </Badge>
                               )}
-                            </p>
+                            </div>
                           )}
                         </div>
                         <Badge variant={character.isRetired ? "destructive" : character.isActive ? "default" : "secondary"}>

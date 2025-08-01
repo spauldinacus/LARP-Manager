@@ -337,12 +337,14 @@ export default function UsersPage() {
                         <div className="flex items-center space-x-3">
                           <User className="h-5 w-5 text-muted-foreground" />
                           <div className="flex flex-col">
-                            <span className="font-semibold">
-                              {userData.playerName || userData.username}
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">{userData.playerName || userData.username}</span>
                               {userData.title && (
-                                <span className="text-primary ml-2 font-normal">"{userData.title}"</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {userData.title}
+                                </Badge>
                               )}
-                            </span>
+                            </div>
                             <span className="text-sm text-muted-foreground">@{userData.username}</span>
                           </div>
                           {userData.isAdmin && (

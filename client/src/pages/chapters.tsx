@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -525,10 +526,12 @@ export default function ChaptersPage() {
                 {chapterMembers.map((member: any) => (
                   <div key={member.id} className="flex items-center justify-between p-3 border rounded">
                     <div>
-                      <div className="font-medium">
-                        {member.playerName || member.username}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{member.playerName || member.username}</span>
                         {member.title && (
-                          <span className="text-primary ml-2 font-normal">"{member.title}"</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {member.title}
+                          </Badge>
                         )}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">

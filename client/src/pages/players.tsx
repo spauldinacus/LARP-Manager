@@ -215,12 +215,14 @@ export default function PlayersPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
                         <div>
-                          <span>
-                            {player.playerName}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span>{player.playerName}</span>
                             {player.title && (
-                              <span className="text-primary ml-2 font-normal">"{player.title}"</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {player.title}
+                              </Badge>
                             )}
-                          </span>
+                          </div>
                           <p className="text-sm text-muted-foreground font-normal">@{player.username}</p>
                         </div>
                         <Button
