@@ -85,6 +85,7 @@ export default function CharacterSheetModal({
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState("");
   const [xpAmount, setXpAmount] = useState(3);
+  const [selectedSecondArchetype, setSelectedSecondArchetype] = useState("");
 
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
@@ -127,17 +128,17 @@ export default function CharacterSheetModal({
     return totalCost;
   };
 
-  // Calculate skill cost based on character's heritage and archetype only
-  const getSkillCostForCharacter = (skill: string, heritage: string, archetype: string) => {
-    const cost = getSkillCost(skill, heritage, archetype);
+  // Calculate skill cost based on character's heritage and archetype(s)
+  const getSkillCostForCharacter = (skill: string, heritage: string, archetype: string, secondArchetype?: string) => {
+    const cost = getSkillCost(skill, heritage, archetype, secondArchetype);
     
     // Return with category for UI display
-    if (cost === 1) {
-      return { cost: 1, category: 'primary' as const };
-    } else if (cost === 2) {
-      return { cost: 2, category: 'secondary' as const };
+    if (cost === 5) {
+      return { cost: 5, category: 'primary' as const };
+    } else if (cost === 10) {
+      return { cost: 10, category: 'secondary' as const };
     } else {
-      return { cost: 3, category: 'other' as const };
+      return { cost: 20, category: 'other' as const };
     }
   };
 
@@ -320,6 +321,29 @@ export default function CharacterSheetModal({
     },
   });
 
+  const purchaseSecondArchetypeMutation = useMutation({
+    mutationFn: async (data: { archetype: string }) => {
+      const response = await apiRequest("POST", `/api/characters/${characterId}/second-archetype`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      setSelectedSecondArchetype("");
+      toast({
+        title: "Second archetype purchased!",
+        description: "Your character now has access to skills from both archetypes.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Purchase failed",
+        description: error.message || "Failed to purchase second archetype",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!characterId) return null;
 
   return (
@@ -363,10 +387,15 @@ export default function CharacterSheetModal({
                         <p className="text-sm font-medium text-muted-foreground">Player</p>
                         <p>{(character as any).playerName}</p>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2">
                         <Badge variant="outline">{((character as any).heritage.charAt(0).toUpperCase() + (character as any).heritage.slice(1).replace(/-/g, ' '))}</Badge>
                         <Badge variant="outline">{((character as any).culture.charAt(0).toUpperCase() + (character as any).culture.slice(1).replace(/-/g, ' '))}</Badge>
                         <Badge variant="outline">{((character as any).archetype.charAt(0).toUpperCase() + (character as any).archetype.slice(1).replace(/-/g, ' '))}</Badge>
+                        {(character as any).secondArchetype && (
+                          <Badge variant="default" className="bg-purple-600">
+                            {((character as any).secondArchetype.charAt(0).toUpperCase() + (character as any).secondArchetype.slice(1).replace(/-/g, ' '))} (2nd)
+                          </Badge>
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Status</p>
@@ -466,7 +495,7 @@ export default function CharacterSheetModal({
                     {(character as any)?.skills?.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {(character as any).skills.map((skill: string, index: number) => {
-                          const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
+                          const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                           return (
                             <Badge
                               key={index}
@@ -523,7 +552,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -543,7 +572,7 @@ export default function CharacterSheetModal({
                               {selectedSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     if (skillData.cost <= (character as any).experience) {
                                       purchaseSkillMutation.mutate({ skill: selectedSkill, cost: skillData.cost });
                                     } else {
@@ -672,6 +701,50 @@ export default function CharacterSheetModal({
                                 </Button>
                               )}
                             </div>
+
+                            {/* Second Archetype Purchase */}
+                            {!(character as any).secondArchetype && (
+                              <div className="space-y-3 border-t pt-4">
+                                <h4 className="font-medium">Purchase Second Archetype (50 XP)</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Gain access to skills from a second archetype with improved cost priority.
+                                </p>
+                                <div className="space-y-3">
+                                  <Label htmlFor="second-archetype-select">Select Second Archetype</Label>
+                                  <Select value={selectedSecondArchetype} onValueChange={setSelectedSecondArchetype}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Choose a second archetype" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {ARCHETYPES.filter(archetype => archetype.id !== (character as any).archetype).map((archetype) => (
+                                        <SelectItem key={archetype.id} value={archetype.id}>
+                                          {archetype.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedSecondArchetype && (
+                                    <Button
+                                      onClick={() => {
+                                        if (50 <= (character as any).experience) {
+                                          purchaseSecondArchetypeMutation.mutate({ archetype: selectedSecondArchetype });
+                                        } else {
+                                          toast({
+                                            title: "Insufficient Experience",
+                                            description: `A second archetype costs 50 XP, but you only have ${(character as any).experience} XP.`,
+                                            variant: "destructive",
+                                          });
+                                        }
+                                      }}
+                                      disabled={!selectedSecondArchetype || purchaseSecondArchetypeMutation.isPending || 50 > (character as any).experience}
+                                      className="w-full"
+                                    >
+                                      {purchaseSecondArchetypeMutation.isPending ? "Purchasing..." : `Purchase Second Archetype (50 XP)`}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -681,6 +754,7 @@ export default function CharacterSheetModal({
                           <p>• Secondary Skills: 10 XP (Culture/Archetype secondary)</p>
                           <p>• Other Skills: 20 XP (All other skills)</p>
                           <p>• Body/Stamina: Variable XP (1-10 XP per point based on current value)</p>
+                          <p>• Second Archetype: 50 XP (Unlocks skills from additional archetype)</p>
                         </div>
                       </CardContent>
                     )}
@@ -740,7 +814,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -760,7 +834,7 @@ export default function CharacterSheetModal({
                               {selectedAdminSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     adminAddSkillMutation.mutate({ skill: selectedAdminSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedAdminSkill || adminAddSkillMutation.isPending}
@@ -784,7 +858,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {((character as any)?.skills || []).map((skill: string) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -804,7 +878,7 @@ export default function CharacterSheetModal({
                               {selectedRemoveSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     adminRemoveSkillMutation.mutate({ skill: selectedRemoveSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedRemoveSkill || adminRemoveSkillMutation.isPending}

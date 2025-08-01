@@ -900,6 +900,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase second archetype for a character
+  app.post("/api/characters/:id/second-archetype", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { archetype } = req.body;
+
+      // Verify the character belongs to the user
+      const character = await storage.getCharacter(id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+
+      if (character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      // Check if character is retired
+      if (character.isRetired) {
+        return res.status(400).json({ message: "Cannot purchase second archetype for retired characters" });
+      }
+
+      // Check if character already has a second archetype
+      if (character.secondArchetype) {
+        return res.status(400).json({ message: "Character already has a second archetype" });
+      }
+
+      // Check if they have enough experience
+      if (character.experience < 50) {
+        return res.status(400).json({ message: "Insufficient experience points (need 50 XP)" });
+      }
+
+      // Check if archetype is different from primary
+      if (character.archetype === archetype) {
+        return res.status(400).json({ message: "Cannot select the same archetype as secondary" });
+      }
+
+      // Update character with second archetype and reduce experience
+      const updatedCharacter = await storage.updateCharacter(id, {
+        secondArchetype: archetype,
+        experience: character.experience - 50,
+        totalXpSpent: character.totalXpSpent + 50,
+      });
+
+      // Create experience entry
+      await storage.createExperienceEntry({
+        characterId: id,
+        amount: -50,
+        reason: `Second archetype purchased: ${archetype.charAt(0).toUpperCase() + archetype.slice(1).replace(/-/g, ' ')}`,
+        eventId: null,
+        rsvpId: null,
+        awardedBy: req.session.userId!,
+      });
+
+      res.json(updatedCharacter);
+    } catch (error) {
+      console.error('Error purchasing second archetype:', error);
+      res.status(500).json({ message: 'Failed to purchase second archetype' });
+    }
+  });
+
   // Increase character attribute (player or admin)
   app.post("/api/characters/:id/increase-attribute", requireAuth, async (req, res) => {
     try {

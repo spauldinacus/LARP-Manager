@@ -90,7 +90,8 @@ export default function CharacterCreationModal({
 
   // Use the corrected skill cost calculation from shared schema
   const getSkillCostForCharacter = (skill: Skill, heritage: string, archetype: string) => {
-    return getSkillCost(String(skill), heritage, archetype);
+    const cost = getSkillCost(String(skill), heritage, archetype);
+    return { cost, category: cost === 5 ? 'primary' : cost === 10 ? 'secondary' : 'other' };
   };
 
   const addSkill = (skill: Skill) => {

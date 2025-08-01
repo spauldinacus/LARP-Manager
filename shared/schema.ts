@@ -79,6 +79,7 @@ export const characters = pgTable("characters", {
   heritage: text("heritage").notNull(),
   culture: text("culture").notNull(),
   archetype: text("archetype").notNull(),
+  secondArchetype: text("second_archetype"), // Optional second archetype for 50 XP
   body: integer("body").notNull(),
   stamina: integer("stamina").notNull(),
   experience: integer("experience").default(0).notNull(),
@@ -950,28 +951,34 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // ADDITIONAL HELPER FUNCTIONS
 // ===========================
 
-// Function to calculate skill XP cost based only on heritage and archetype
-export function getSkillCost(skill: string, heritage: string, archetype: string): number {
+// Function to calculate skill XP cost based on heritage and archetype(s)
+export function getSkillCost(skill: string, heritage: string, archetype: string, secondArchetype?: string): number {
   const heritageData = HERITAGES.find(h => h.id === heritage);
   const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+  const secondArchetypeData = secondArchetype ? ARCHETYPES.find(a => a.id === secondArchetype) : null;
   
-  // Check if skill is PRIMARY (1 XP) - heritage secondary skills are treated as primary
+  // Get all skill lists
   const heritageSecondarySkills: string[] = heritageData?.secondarySkills || [];
   const archetypePrimarySkills: string[] = archetypeData?.primarySkills || [];
-  
-  if (heritageSecondarySkills.includes(skill) || archetypePrimarySkills.includes(skill)) {
-    return 1;
-  }
-
-  // Check if skill is SECONDARY (2 XP) - archetype secondary skills
   const archetypeSecondarySkills: string[] = archetypeData?.secondarySkills || [];
+  const secondArchetypePrimarySkills: string[] = secondArchetypeData?.primarySkills || [];
+  const secondArchetypeSecondarySkills: string[] = secondArchetypeData?.secondarySkills || [];
   
-  if (archetypeSecondarySkills.includes(skill)) {
-    return 2;
+  // Check if skill is PRIMARY (5 XP) - heritage secondary OR any archetype primary
+  if (heritageSecondarySkills.includes(skill) || 
+      archetypePrimarySkills.includes(skill) || 
+      secondArchetypePrimarySkills.includes(skill)) {
+    return 5;
   }
 
-  // Otherwise it's a general skill (3 XP)
-  return 3;
+  // Check if skill is SECONDARY (10 XP) - any archetype secondary
+  if (archetypeSecondarySkills.includes(skill) || 
+      secondArchetypeSecondarySkills.includes(skill)) {
+    return 10;
+  }
+
+  // Otherwise it's a general skill (20 XP)
+  return 20;
 }
 
 
