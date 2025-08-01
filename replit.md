@@ -11,6 +11,13 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### February 1, 2025
+- **COMPLETED: Fixed critical XP tracking system to accurately calculate skill and attribute costs**
+  - Corrected calculateTotalXpSpent function to properly calculate XP based on heritage/culture/archetype skill costs
+  - Fixed body and stamina XP cost calculation to match official Thrune rulebook (1 XP for <20, 2 XP for 21-40, etc.)
+  - Added new API endpoint POST /api/characters/:id/xp-spent for real-time XP recalculation
+  - Verified all 32 archetype skills match official Thrune Core Rulebook specifications
+  - XP tracking now properly calculates: 25 XP starting cost + skill costs (5/10/20 XP) + body/stamina upgrade costs
+  - Character sheets now show accurate "XP Spent" totals reflecting actual purchase costs from rulebook
 - **COMPLETED: Admin role assignment functionality for user management**
   - Added complete API endpoint (PATCH /api/users/:id/role) for updating user roles
   - Supports both simple admin/user roles and complex role system (moderator, super_admin)

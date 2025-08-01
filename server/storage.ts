@@ -618,8 +618,17 @@ export class DatabaseStorage implements IStorage {
       const baseBody = heritageBodyBases[character.heritage as keyof typeof heritageBodyBases] || 10;
       if (character.body > baseBody) {
         for (let i = baseBody; i < character.body; i++) {
-          // Body upgrade costs: 1 XP per point for all levels
-          totalSpent += 1;
+          // Body upgrade costs based on current value per Thrune rulebook
+          if (i < 20) totalSpent += 1;
+          else if (i < 40) totalSpent += 2;
+          else if (i < 60) totalSpent += 3;
+          else if (i < 80) totalSpent += 4;
+          else if (i < 100) totalSpent += 5;
+          else if (i < 120) totalSpent += 6;
+          else if (i < 140) totalSpent += 7;
+          else if (i < 160) totalSpent += 8;
+          else if (i < 180) totalSpent += 9;
+          else totalSpent += 10;
         }
       }
 
@@ -635,8 +644,17 @@ export class DatabaseStorage implements IStorage {
       const baseStamina = heritageStaminaBases[character.heritage as keyof typeof heritageStaminaBases] || 10;
       if (character.stamina > baseStamina) {
         for (let i = baseStamina; i < character.stamina; i++) {
-          // Stamina upgrade costs: 1 XP per point for all levels
-          totalSpent += 1;
+          // Stamina upgrade costs based on current value per Thrune rulebook
+          if (i < 20) totalSpent += 1;
+          else if (i < 40) totalSpent += 2;
+          else if (i < 60) totalSpent += 3;
+          else if (i < 80) totalSpent += 4;
+          else if (i < 100) totalSpent += 5;
+          else if (i < 120) totalSpent += 6;
+          else if (i < 140) totalSpent += 7;
+          else if (i < 160) totalSpent += 8;
+          else if (i < 180) totalSpent += 9;
+          else totalSpent += 10;
         }
       }
 
