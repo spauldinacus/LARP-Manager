@@ -56,9 +56,16 @@ export default function CandlesPage() {
     }
   }, [authLoading, user, setLocation]);
 
-  const { data: players = [], isLoading: playersLoading } = useQuery<User[]>({
+  const { data: rawPlayers = [], isLoading: playersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
     enabled: !!user?.isAdmin,
+  });
+
+  // Sort players alphabetically by player name
+  const players = rawPlayers.sort((a, b) => {
+    const nameA = (a.playerName || a.username || "").toLowerCase();
+    const nameB = (b.playerName || b.username || "").toLowerCase();
+    return nameA.localeCompare(nameB);
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<CandleTransaction[]>({
