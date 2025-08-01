@@ -11,7 +11,6 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   playerNumber: text("player_number").unique(),
-  title: text("title"), // Custom title for players
   chapterId: uuid("chapter_id"), // Will add references after chapters are defined
   isAdmin: boolean("is_admin").default(false).notNull(),
   roleId: uuid("role_id"), // Will add references after roles are defined
