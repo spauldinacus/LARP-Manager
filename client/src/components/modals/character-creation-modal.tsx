@@ -6,8 +6,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@/lib/constants";
-import { getSkillCost, getAttributeCost, HERITAGE_BASES } from "@shared/schema";
+import { getSkillCost, getAttributeCost, HERITAGE_BASES, HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@shared/schema";
 import {
   Dialog,
   DialogContent,

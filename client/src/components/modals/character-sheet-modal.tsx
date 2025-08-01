@@ -37,8 +37,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings, MapPin, Trash2 } from "lucide-react";
-import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Culture, type Archetype, type Skill } from "@/lib/constants";
-import { getSkillCost, getAttributeCost, HERITAGE_BASES } from "@shared/schema";
+import { getSkillCost, getAttributeCost, HERITAGE_BASES, SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Culture, type Archetype, type Skill } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Lightbulb, Target, TrendingUp, Calculator } from "lucide-react";
+import { getSkillCost, getAttributeCost, HERITAGES, CULTURES, ARCHETYPES } from "@shared/schema";
 
 interface XPEfficiencyTrackerProps {
   character: {
@@ -16,52 +17,11 @@ interface XPEfficiencyTrackerProps {
   };
 }
 
-// XP cost calculations based on Thrune rulebook
-const getSkillCost = (skill: string, heritage: string, culture: string, archetype: string) => {
-  // This would normally check against actual skill data
-  // For now, using simplified logic
-  const heritageSkills = getHeritageSkills(heritage);
-  const cultureSkills = getCultureSkills(culture);
-  const archetypeSkills = getArchetypeSkills(archetype);
-
-  if (heritageSkills.includes(skill)) return 5;
-  if (cultureSkills.includes(skill) || archetypeSkills.includes(skill)) return 10;
-  return 20;
-};
-
-const getHeritageSkills = (heritage: string): string[] => {
-  const heritageSkillMap: { [key: string]: string[] } = {
-    "ar-nura": ["Athletics", "Dodge", "Melee Weapons"],
-    "human": ["Athletics", "Academics", "Socialize"],
-    "stoneborn": ["Athletics", "Crafting", "Melee Weapons"],
-    "ughol": ["Athletics", "Survival", "Ranged Weapons"],
-    "rystarri": ["Academics", "Lore", "Socialize"]
-  };
-  return heritageSkillMap[heritage] || [];
-};
-
-const getCultureSkills = (culture: string): string[] => {
-  // Simplified - would need full culture skill mappings
-  return ["Academics", "Athletics", "Survival"];
-};
-
-const getArchetypeSkills = (archetype: string): string[] => {
-  const archetypeSkillMap: { [key: string]: string[] } = {
-    "fighter": ["Melee Weapons", "Athletics", "Dodge"],
-    "scholar": ["Academics", "Lore", "Research"],
-    "scout": ["Survival", "Ranged Weapons", "Stealth"],
-    "social": ["Socialize", "Empathy", "Leadership"]
-  };
-  return archetypeSkillMap[archetype] || [];
-};
-
+// Helper function to calculate body/stamina upgrade costs
 const getBodyStaminaCost = (currentValue: number, targetValue: number) => {
   let totalCost = 0;
   for (let i = currentValue; i < targetValue; i++) {
-    if (i < 10) totalCost += 1;
-    else if (i < 15) totalCost += 2;
-    else if (i < 20) totalCost += 3;
-    else totalCost += 5;
+    totalCost += getAttributeCost(i, 1);
   }
   return totalCost;
 };

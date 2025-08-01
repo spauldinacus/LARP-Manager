@@ -1,3 +1,7 @@
+// This file has been consolidated into shared/schema.ts
+// All game data (HERITAGES, CULTURES, ARCHETYPES, SKILLS) is now imported from @shared/schema
+
+// Legacy file - will be removed after final verification
 export const HERITAGES = [
   {
     id: "ar-nura",

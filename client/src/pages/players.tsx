@@ -29,7 +29,7 @@ import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import { Users, Menu, Edit, Plus, Trash2, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SKILLS } from "@/lib/constants";
+import { SKILLS } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 
