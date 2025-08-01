@@ -251,7 +251,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
                               <div>
                                 <p className="font-medium">{character.name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {character.heritage} • Level {character.level || 1}
+                                  {character.heritage} • {character.totalXpSpent || 0} XP Spent
                                 </p>
                               </div>
                               <div className="flex gap-1">
