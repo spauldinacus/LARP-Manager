@@ -398,28 +398,29 @@ export default function UsersPage() {
                           )}
                         </div>
                         
-                        <div className="flex items-center space-x-4 mt-2">
-                          <div className="text-sm">
-                            <span className="text-muted-foreground">Candles: </span>
-                            <Badge variant="outline" className="text-orange-600 border-orange-600">
-                              <Flame className="h-3 w-3 mr-1" />
-                              {userData.candles || 0}
-                            </Badge>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center space-x-4">
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">Candles: </span>
+                              <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                <Flame className="h-3 w-3 mr-1" />
+                                {userData.candles || 0}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {userData.characterCount || 0} characters
+                            </div>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
-                        <div className="text-right space-y-1 mr-4">
-                          <div className="text-sm font-medium">
-                            {userData.characterCount || 0} characters
-                          </div>
-                        </div>
+                      <div className="flex flex-col space-y-2">
                         <div className="flex space-x-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setSelectedUserId(userData.id)}
+                            className="flex-1"
                           >
                             <Eye className="h-3 w-3 mr-1" />
                             View Characters
@@ -429,8 +430,9 @@ export default function UsersPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setManageUserId(userData.id)}
+                            className="flex-1"
                           >
-                            <Settings className="h-4 w-4 mr-2" />
+                            <Settings className="h-4 w-4 mr-1" />
                             Manage User
                           </Button>
                           
@@ -438,17 +440,21 @@ export default function UsersPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setSelectedUserForCandles(userData)}
+                            className="flex-1"
                           >
-                            <Flame className="h-4 w-4 mr-2" />
+                            <Flame className="h-4 w-4 mr-1" />
                             Manage Candles
                           </Button>
+                        </div>
 
+                        <div className="flex space-x-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setRoleModalUser(userData)}
+                            className="flex-1"
                           >
-                            <Shield className="h-4 w-4 mr-2" />
+                            <Shield className="h-4 w-4 mr-1" />
                             Manage Role
                           </Button>
                           
@@ -463,8 +469,9 @@ export default function UsersPage() {
                                 }
                               }}
                               disabled={deleteUserMutation.isPending}
+                              className="flex-1"
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
+                              <Trash2 className="h-4 w-4 mr-1" />
                               Delete User
                             </Button>
                           )}
