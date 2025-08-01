@@ -606,6 +606,12 @@ export const ARCHETYPES = [
     primarySkills: ['Crafting', 'Engineering'],
     secondarySkills: ['Economics', 'Stone Masonry'],
   },
+  {
+    id: 'mystic',
+    name: 'Mystic',
+    primarySkills: ['Stored Spell', 'Meditation'],
+    secondarySkills: ['First Aid', 'Herbalism'],
+  },
 ];
 
 // Permission helper functions
@@ -631,30 +637,30 @@ export function getSkillCost(skill: string, heritage: string, culture: string, a
   const cultureData = culture ? CULTURES[heritage as keyof typeof CULTURES]?.find(c => c.id === culture) : null;
   const archetypeData = ARCHETYPES.find(a => a.id === archetype);
 
-  // Check if skill is primary for any of the selected options  
-  const heritageSecondarySkills = heritageData?.secondarySkills || [];
+  // Check if skill is PRIMARY (5 XP) for any of the selected options  
   const culturePrimarySkills = cultureData?.primarySkills || [];
   const archetypePrimarySkills = archetypeData?.primarySkills || [];
   
   if (
-    heritageSecondarySkills.some(s => s === skill) ||
     culturePrimarySkills.some(s => s === skill) ||
     archetypePrimarySkills.some(s => s === skill)
   ) {
     return { cost: 5, category: 'primary' };
   }
 
-  // Check if skill is secondary for any of the selected options
+  // Check if skill is SECONDARY (10 XP) for any of the selected options
+  const heritageSecondarySkills = heritageData?.secondarySkills || [];
   const cultureSecondarySkills = cultureData?.secondarySkills || [];
   const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
   
   if (
+    heritageSecondarySkills.some(s => s === skill) ||
     cultureSecondarySkills.some(s => s === skill) ||
     archetypeSecondarySkills.some(s => s === skill)
   ) {
     return { cost: 10, category: 'secondary' };
   }
 
-  // Otherwise it's a general skill
+  // Otherwise it's a general skill (20 XP)
   return { cost: 20, category: 'other' };
 }

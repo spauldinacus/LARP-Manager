@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@/lib/constants";
+import { getSkillCost } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -106,40 +107,9 @@ export default function CharacterCreationModal({
     return totalCost;
   };
 
-  // Helper functions for skill management
-  const getSkillCost = (skill: Skill, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
-    const heritageData = HERITAGES.find(h => h.id === heritage);
-    const cultureData = culture ? CULTURES[heritage as Heritage]?.find(c => c.id === culture) : null;
-    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
-
-    const skillString = String(skill);
-
-    // Check if skill is primary for any of the selected options  
-    const heritageSecondarySkills = heritageData?.secondarySkills || [];
-    const culturePrimarySkills = cultureData?.primarySkills || [];
-    const archetypePrimarySkills = archetypeData?.primarySkills || [];
-    
-    if (
-      heritageSecondarySkills.some(s => s === skillString) ||
-      culturePrimarySkills.some(s => s === skillString) ||
-      archetypePrimarySkills.some(s => s === skillString)
-    ) {
-      return { cost: 5, category: 'primary' };
-    }
-
-    // Check if skill is secondary for any of the selected options
-    const cultureSecondarySkills = cultureData?.secondarySkills || [];
-    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
-    
-    if (
-      cultureSecondarySkills.some(s => s === skillString) ||
-      archetypeSecondarySkills.some(s => s === skillString)
-    ) {
-      return { cost: 10, category: 'secondary' };
-    }
-
-    // Otherwise it's a general skill
-    return { cost: 20, category: 'other' };
+  // Use the corrected skill cost calculation from shared schema
+  const getSkillCostForCharacter = (skill: Skill, heritage: string, culture: string, archetype: string) => {
+    return getSkillCost(String(skill), heritage, culture, archetype);
   };
 
   const addSkill = (skill: Skill) => {
@@ -156,7 +126,7 @@ export default function CharacterCreationModal({
       return;
     }
 
-    const skillData = getSkillCost(skill, heritage, culture, archetype);
+    const skillData = getSkillCostForCharacter(skill, heritage, culture, archetype);
     
     if (skillData.cost > availableExperience) {
       toast({
@@ -598,7 +568,7 @@ export default function CharacterCreationModal({
                       const heritage = form.watch("heritage");
                       const culture = form.watch("culture");
                       const archetype = form.watch("archetype");
-                      const skillData = getSkillCost(skill, heritage, culture, archetype);
+                      const skillData = getSkillCostForCharacter(skill, heritage, culture, archetype);
                       
                       return (
                         <div

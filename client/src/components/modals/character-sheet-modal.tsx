@@ -38,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings, MapPin, Trash2 } from "lucide-react";
 import { SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Skill } from "@/lib/constants";
+import { getSkillCost } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -127,40 +128,9 @@ export default function CharacterSheetModal({
     return totalCost;
   };
 
-  // Helper function to get skill cost
-  const getSkillCost = (skill: Skill, heritage: string, culture: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
-    const heritageData = HERITAGES.find(h => h.id === heritage);
-    const cultureData = culture ? CULTURES[heritage as Heritage]?.find(c => c.id === culture) : null;
-    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
-
-    const skillString = String(skill);
-
-    // Check if skill is primary for any of the selected options  
-    const heritageSecondarySkills = heritageData?.secondarySkills || [];
-    const culturePrimarySkills = cultureData?.primarySkills || [];
-    const archetypePrimarySkills = archetypeData?.primarySkills || [];
-    
-    if (
-      heritageSecondarySkills.some(s => s === skillString) ||
-      culturePrimarySkills.some(s => s === skillString) ||
-      archetypePrimarySkills.some(s => s === skillString)
-    ) {
-      return { cost: 5, category: 'primary' };
-    }
-
-    // Check if skill is secondary for any of the selected options
-    const cultureSecondarySkills = cultureData?.secondarySkills || [];
-    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
-    
-    if (
-      cultureSecondarySkills.some(s => s === skillString) ||
-      archetypeSecondarySkills.some(s => s === skillString)
-    ) {
-      return { cost: 10, category: 'secondary' };
-    }
-
-    // Otherwise it's a general skill
-    return { cost: 20, category: 'other' };
+  // Use the corrected skill cost calculation from shared schema
+  const getSkillCostForCharacter = (skill: Skill, heritage: string, culture: string, archetype: string) => {
+    return getSkillCost(String(skill), heritage, culture, archetype);
   };
 
   // Mutations for spending experience
@@ -565,7 +535,7 @@ export default function CharacterSheetModal({
                               {selectedSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCost(selectedSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                                     if (skillData.cost <= (character as any).experience) {
                                       purchaseSkillMutation.mutate({ skill: selectedSkill, cost: skillData.cost });
                                     } else {
