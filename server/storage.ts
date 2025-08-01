@@ -442,6 +442,62 @@ export class DatabaseStorage implements IStorage {
       awardedBy: insertCharacter.userId, // Character creator awards themselves the initial XP
     });
     
+    // Create experience entries for body/stamina purchases during character creation
+    const heritageBodyBases = {
+      'ar-nura': 10,
+      'human': 10,
+      'stoneborn': 15,
+      'ughol': 12,
+      'rystarri': 8
+    };
+    
+    const heritageStaminaBases = {
+      'ar-nura': 12,
+      'human': 10,
+      'stoneborn': 5,
+      'ughol': 8,
+      'rystarri': 8
+    };
+    
+    const baseBody = heritageBodyBases[insertCharacter.heritage as keyof typeof heritageBodyBases] || 10;
+    const baseStamina = heritageStaminaBases[insertCharacter.heritage as keyof typeof heritageStaminaBases] || 10;
+    
+    // Track body purchases
+    if (insertCharacter.body > baseBody) {
+      for (let i = baseBody; i < insertCharacter.body; i++) {
+        let cost = 1; // Default cost
+        if (i >= 20) cost = 2;
+        else if (i >= 40) cost = 3;
+        else if (i >= 60) cost = 4;
+        else if (i >= 80) cost = 5;
+        
+        await this.createExperienceEntry({
+          characterId: character.id,
+          amount: -cost,
+          reason: `Body increase: ${i}→${i + 1}`,
+          awardedBy: insertCharacter.userId,
+        });
+      }
+    }
+    
+    // Track stamina purchases
+    if (insertCharacter.stamina > baseStamina) {
+      for (let i = baseStamina; i < insertCharacter.stamina; i++) {
+        let cost = 1; // Default cost
+        if (i >= 20) cost = 2;
+        else if (i >= 40) cost = 3;
+        else if (i >= 60) cost = 4;
+        else if (i >= 80) cost = 5;
+        
+        await this.createExperienceEntry({
+          characterId: character.id,
+          amount: -cost,
+          reason: `Stamina increase: ${i}→${i + 1}`,
+          awardedBy: insertCharacter.userId,
+        });
+      }
+    }
+    
     // Create experience entries for each starting skill purchased at character creation
     if (insertCharacter.skills && insertCharacter.skills.length > 0) {
       // Import skill costs from shared schema
