@@ -36,13 +36,13 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   console.log("UserManagementModal - editedUser:", editedUser);
 
   // Fetch available roles
-  const { data: roles } = useQuery({
+  const { data: roles = [] } = useQuery({
     queryKey: ["/api/roles"],
     enabled: !!userId,
   });
 
   // Fetch available chapters
-  const { data: chapters } = useQuery({
+  const { data: chapters = [] } = useQuery({
     queryKey: ["/api/chapters"],
     enabled: !!userId,
   });
@@ -196,7 +196,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">No Role</SelectItem>
-                            {roles?.map((role: any) => (
+                            {Array.isArray(roles) && roles.map((role: any) => (
                               <SelectItem key={role.id} value={role.id}>
                                 <div className="flex items-center gap-2">
                                   <div
@@ -223,7 +223,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">No Chapter</SelectItem>
-                          {chapters?.map((chapter: any) => (
+                          {Array.isArray(chapters) && chapters.map((chapter: any) => (
                             <SelectItem key={chapter.id} value={chapter.id}>
                               {chapter.name}
                             </SelectItem>
@@ -300,6 +300,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
       {/* Character Sheet Modal */}
       {selectedCharacterId && (
         <CharacterSheetModal
+          isOpen={true}
           characterId={selectedCharacterId}
           onClose={() => setSelectedCharacterId(null)}
         />
