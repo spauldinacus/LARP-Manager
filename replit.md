@@ -17,6 +17,7 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Sidebar Navigation Update**: Added chapters page to left sidebar menu for all authenticated users
 - **Deployment Health Check Fix**: Added comprehensive health check endpoints and proper server configuration for reliable deployment verification
 - **Database Schema Fix**: Restored missing user title field and resolved database query errors affecting characters and players pages
+- **Chapter Members Title Fix**: Added missing title field to chapter members API query, restoring title badges in member lists
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
