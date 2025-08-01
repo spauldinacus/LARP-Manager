@@ -15,6 +15,7 @@ import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
 import UserManagementModal from "@/components/modals/user-management-modal";
+import CandleManagementModal from "@/components/modals/candle-management-modal";
 // Removed RoleManagementModal import - using inline modal
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -30,10 +31,7 @@ export default function UsersPage() {
   const [selectedRole, setSelectedRole] = useState("");
   const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
-  const [showCandleModal, setShowCandleModal] = useState(false);
-  const [selectedUserForCandles, setSelectedUserForCandles] = useState<string | null>(null);
-  const [candleAmount, setCandleAmount] = useState("");
-  const [candleReason, setCandleReason] = useState("");
+  const [selectedUserForCandles, setSelectedUserForCandles] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"playerName" | "username" | "playerNumber" | "characterCount">("playerName");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -122,33 +120,7 @@ export default function UsersPage() {
     },
   });
 
-  // Candle transaction mutation
-  const candleTransactionMutation = useMutation({
-    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
-      const response = await apiRequest("POST", `/api/users/${userId}/candles`, { amount, reason });
-      return response.json();
-    },
-    onSuccess: () => {
-      // Force refetch immediately
-      queryClient.refetchQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
-      setShowCandleModal(false);
-      setSelectedUserForCandles(null);
-      setCandleAmount("");
-      setCandleReason("");
-      toast({
-        title: "Candle transaction completed",
-        description: "The candle balance has been updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update player number",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Role update mutation
   const updateUserRoleMutation = useMutation({
@@ -463,10 +435,7 @@ export default function UsersPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setSelectedUserForCandles(userData.id);
-                              setShowCandleModal(true);
-                            }}
+                            onClick={() => setSelectedUserForCandles(userData)}
                           >
                             <Flame className="h-4 w-4 mr-2" />
                             Manage Candles
@@ -535,73 +504,10 @@ export default function UsersPage() {
       />
 
       {/* Candle Management Modal */}
-      <Dialog open={showCandleModal} onOpenChange={setShowCandleModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Flame className="h-5 w-5 text-orange-600" />
-              <span>Manage Candles</span>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="candle-amount">Amount</Label>
-              <Input
-                id="candle-amount"
-                type="number"
-                placeholder="Enter positive or negative amount..."
-                value={candleAmount}
-                onChange={(e) => setCandleAmount(e.target.value)}
-              />
-              <div className="text-xs text-muted-foreground mt-1">
-                Use positive numbers to award candles, negative to spend them.
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="candle-reason">Reason</Label>
-              <Textarea
-                id="candle-reason"
-                placeholder="Explain why candles are being awarded or spent..."
-                value={candleReason}
-                onChange={(e) => setCandleReason(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <Button
-                onClick={() => {
-                  if (candleAmount && candleReason && selectedUserForCandles) {
-                    candleTransactionMutation.mutate({
-                      userId: selectedUserForCandles,
-                      amount: parseInt(candleAmount),
-                      reason: candleReason,
-                    });
-                  }
-                }}
-                disabled={!candleAmount || !candleReason || candleTransactionMutation.isPending}
-                className="flex-1"
-              >
-                {candleTransactionMutation.isPending ? "Processing..." : "Update Candles"}
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowCandleModal(false);
-                  setSelectedUserForCandles(null);
-                  setCandleAmount("");
-                  setCandleReason("");
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CandleManagementModal 
+        user={selectedUserForCandles}
+        onClose={() => setSelectedUserForCandles(null)}
+      />
 
       {/* Role Management Modal */}
       <Dialog open={!!roleModalUser} onOpenChange={(open) => !open && setRoleModalUser(null)}>
