@@ -450,6 +450,10 @@ export class DatabaseStorage implements IStorage {
     if (insertCharacter.body > bases.body) {
       for (let i = bases.body; i < insertCharacter.body; i++) {
         const cost = getAttributeCost(i, 1);
+        if (isNaN(cost)) {
+          console.error(`Invalid body cost for ${i}→${i + 1}: ${cost}`);
+          continue;
+        }
         
         await this.createExperienceEntry({
           characterId: character.id,
@@ -464,6 +468,10 @@ export class DatabaseStorage implements IStorage {
     if (insertCharacter.stamina > bases.stamina) {
       for (let i = bases.stamina; i < insertCharacter.stamina; i++) {
         const cost = getAttributeCost(i, 1);
+        if (isNaN(cost)) {
+          console.error(`Invalid stamina cost for ${i}→${i + 1}: ${cost}`);
+          continue;
+        }
         
         await this.createExperienceEntry({
           characterId: character.id,
@@ -480,7 +488,11 @@ export class DatabaseStorage implements IStorage {
       const { getSkillCost } = await import("../shared/schema");
       
       for (const skill of insertCharacter.skills) {
-        const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.culture as any, insertCharacter.archetype as any);
+        const skillData = getSkillCost(skill as any, insertCharacter.heritage as any, insertCharacter.archetype as any);
+        if (isNaN(skillData.cost)) {
+          console.error(`Invalid skill cost for ${skill}: ${skillData.cost}`);
+          continue;
+        }
         await this.createExperienceEntry({
           characterId: character.id,
           amount: -skillData.cost, // Negative because it's spending XP
