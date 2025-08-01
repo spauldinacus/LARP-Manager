@@ -674,6 +674,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user role (admin only)
+  app.patch("/api/users/:id/role", requireAdmin, async (req, res) => {
+    try {
+      const { roleId, role } = req.body;
+      
+      // Support both roleId and role parameters for compatibility
+      const targetRole = roleId || role;
+      
+      if (!targetRole) {
+        return res.status(400).json({ message: "Role ID or role is required" });
+      }
+
+      // For simple admin flag setting, handle basic roles
+      if (targetRole === 'admin' || targetRole === 'user') {
+        const isAdmin = targetRole === 'admin';
+        const updatedUser = await storage.updateUser(req.params.id, { isAdmin });
+        const { password: _, ...userWithoutPassword } = updatedUser;
+        return res.json({ user: userWithoutPassword });
+      }
+
+      // For more complex role system, use the role management
+      const updatedUser = await storage.updateUserRole(req.params.id, targetRole);
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Update user role error:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete("/api/users/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteUser(req.params.id);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Get user's characters for admin
   app.get("/api/admin/users/:id/characters", requireAdmin, async (req, res) => {
     try {

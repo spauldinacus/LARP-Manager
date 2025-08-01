@@ -148,32 +148,10 @@ export default function UsersPage() {
     },
   });
 
-  // Delete user mutation
-  const deleteUserMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      toast({
-        title: "User deleted",
-        description: "User and all their characters have been successfully deleted.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Delete failed",
-        description: error.message || "Failed to delete user",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Role update mutation
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const response = await apiRequest("PATCH", `/api/users/${userId}/role`, { roleId: role });
+      const response = await apiRequest("PATCH", `/api/users/${userId}/role`, { role: role });
       return response.json();
     },
     onSuccess: () => {
@@ -189,6 +167,28 @@ export default function UsersPage() {
       toast({
         title: "Update failed",
         description: error.message || "Failed to update user role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest("DELETE", `/api/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "User deleted",
+        description: "The user and all their characters have been deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     },
