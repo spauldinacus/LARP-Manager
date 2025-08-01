@@ -32,6 +32,28 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoints for deployment verification
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      timestamp: new Date().toISOString(),
+      message: "Thrune LARP Character Management System is running",
+      version: "1.0.0"
+    });
+  });
+
+  app.get("/health", (req, res) => {
+    res.status(200).json({ 
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      service: "thrune-larp-cms"
+    });
+  });
+
+  app.get("/api/ping", (req, res) => {
+    res.status(200).send("pong");
+  });
+
   // Session middleware
   app.use(
     session({
