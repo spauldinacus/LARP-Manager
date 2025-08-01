@@ -13,6 +13,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Experience History Fix**: Corrected skill purchase tracking in experience history - now properly records all skill purchases during character creation
 - **Chapters Access Enhancement**: Made chapters page viewable by all users with member counts and clickable member lists, while keeping editing admin-only
 - **Auto-RSVP Feature**: When admins award event-related experience to characters, the system automatically creates/updates RSVPs marking characters as attended
+- **RSVP Migration Fix**: Fixed historical data where characters previously marked as attended by admin were missing RSVP records
+- **Sidebar Navigation Update**: Added chapters page to left sidebar menu for all authenticated users
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
