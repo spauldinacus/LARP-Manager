@@ -93,6 +93,7 @@ export default function CandlesPage() {
 
   const handlePlayerClick = (player: User) => {
     setSelectedUser(player);
+    setShowTransactionModal(false); // Ensure we show transaction history first
   };
 
   const handleAddCandles = () => {
@@ -276,8 +277,7 @@ export default function CandlesPage() {
                           variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedUser(player);
-                            handleAddCandles();
+                            handlePlayerClick(player);
                           }}
                         >
                           <Award className="h-4 w-4 mr-1" />
