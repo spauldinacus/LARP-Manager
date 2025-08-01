@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         playerName,
         email,
         password: hashedPassword,
-        chapterId,
+        chapterId: chapterId || null,
         isAdmin: false,
       });
 
@@ -381,6 +381,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Experience entry deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete experience entry" });
+    }
+  });
+
+  // Calculate character XP spent endpoint
+  app.post("/api/characters/:id/xp-spent", requireAuth, async (req, res) => {
+    try {
+      const character = await storage.getCharacter(req.params.id);
+      if (!character) {
+        return res.status(404).json({ message: "Character not found" });
+      }
+      
+      // Check ownership unless admin
+      if (!req.session.isAdmin && character.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const totalXpSpent = await storage.calculateTotalXpSpent(req.params.id);
+      
+      // Update character with calculated XP
+      await storage.updateCharacter(req.params.id, { totalXpSpent });
+      
+      res.json({ totalXpSpent });
+    } catch (error) {
+      console.error("XP calculation error:", error);
+      res.status(500).json({ message: "Failed to calculate character XP spent" });
     }
   });
 
@@ -1062,7 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rsvpData = insertEventRsvpSchema.omit({ eventId: true, userId: true }).parse(req.body);
       
       // Validate XP purchases limits
-      if (rsvpData.xpPurchases > 2 || rsvpData.xpCandlePurchases > 2) {
+      if ((rsvpData.xpPurchases || 0) > 2 || (rsvpData.xpCandlePurchases || 0) > 2) {
         return res.status(400).json({ message: "Maximum 2 XP purchases and 2 XP candle purchases allowed" });
       }
 
@@ -1083,9 +1108,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user has enough candles for XP candle purchases
-      if (rsvpData.xpCandlePurchases > 0) {
+      if ((rsvpData.xpCandlePurchases || 0) > 0) {
         const user = await storage.getUser(req.session.userId!);
-        const candlesNeeded = rsvpData.xpCandlePurchases * 10; // 10 candles per XP candle purchase
+        const candlesNeeded = (rsvpData.xpCandlePurchases || 0) * 10; // 10 candles per XP candle purchase
         
         if (!user || user.candles < candlesNeeded) {
           return res.status(400).json({ 
@@ -1102,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createCandleTransaction({
           userId: req.session.userId!,
           amount: -candlesNeeded,
-          reason: `XP candle purchases for event RSVP (${rsvpData.xpCandlePurchases} purchases)`,
+          reason: `XP candle purchases for event RSVP (${rsvpData.xpCandlePurchases || 0} purchases)`,
           createdBy: req.session.userId!,
         });
       }

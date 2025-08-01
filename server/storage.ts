@@ -595,8 +595,52 @@ export class DatabaseStorage implements IStorage {
       const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
       if (!character) return 25; // Default starting XP
 
-      // Return the stored totalXpSpent value
-      return character.totalXpSpent || 25;
+      let totalSpent = 25; // Starting XP
+
+      // Calculate skill costs
+      if (character.skills && character.skills.length > 0) {
+        for (const skill of character.skills) {
+          const { getSkillCost } = await import("@shared/schema");
+          const skillCostInfo = getSkillCost(skill, character.heritage, character.culture, character.archetype);
+          totalSpent += skillCostInfo.cost;
+        }
+      }
+
+      // Calculate body upgrade costs (based on heritage base values)
+      const heritageBodyBases = {
+        'ar-nura': 8,
+        'human': 10,
+        'stoneborn': 15,
+        'ughol': 12,
+        'rystarri': 12
+      };
+      
+      const baseBody = heritageBodyBases[character.heritage as keyof typeof heritageBodyBases] || 10;
+      if (character.body > baseBody) {
+        for (let i = baseBody; i < character.body; i++) {
+          // Body upgrade costs: 1 XP per point for all levels
+          totalSpent += 1;
+        }
+      }
+
+      // Calculate stamina upgrade costs (based on heritage base values)  
+      const heritageStaminaBases = {
+        'ar-nura': 12,
+        'human': 10,
+        'stoneborn': 5,
+        'ughol': 8,
+        'rystarri': 8
+      };
+      
+      const baseStamina = heritageStaminaBases[character.heritage as keyof typeof heritageStaminaBases] || 10;
+      if (character.stamina > baseStamina) {
+        for (let i = baseStamina; i < character.stamina; i++) {
+          // Stamina upgrade costs: 1 XP per point for all levels
+          totalSpent += 1;
+        }
+      }
+
+      return totalSpent;
     } catch (error) {
       console.error(`Error calculating XP for character ${characterId}:`, error);
       return 25; // Return default if calculation fails
