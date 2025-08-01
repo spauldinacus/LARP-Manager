@@ -46,6 +46,8 @@ import {
   staticAchievementOverrides,
   type StaticMilestoneOverride,
   type InsertStaticMilestoneOverride,
+  type StaticAchievementOverride,
+  type InsertStaticAchievementOverride,
 
 } from "@shared/schema";
 import { db } from "./db";

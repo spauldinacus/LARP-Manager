@@ -3,6 +3,22 @@ import { pgTable, text, varchar, integer, timestamp, boolean, uuid } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Define users table first to avoid circular references
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  playerName: text("player_name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  playerNumber: text("player_number").unique(),
+  chapterId: uuid("chapter_id"), // Will add references after chapters are defined
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  roleId: uuid("role_id"), // Will add references after roles are defined
+  candles: integer("candles").default(0).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 export const chapters = pgTable("chapters", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -57,20 +73,6 @@ export const defaultPermissions = [
   { name: "manage_candles", description: "Award and spend player candles", category: "system" },
   { name: "view_admin_stats", description: "View administrative statistics", category: "system" },
 ] as const;
-
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  playerName: text("player_name").notNull(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  playerNumber: text("player_number").unique(),
-  chapterId: uuid("chapter_id").references(() => chapters.id),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  roleId: uuid("role_id").references(() => roles.id),
-  candles: integer("candles").default(0).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-});
 
 export const characters = pgTable("characters", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -836,6 +838,8 @@ export type CandleTransaction = typeof candleTransactions.$inferSelect;
 export type InsertCandleTransaction = z.infer<typeof insertCandleTransactionSchema>;
 export type StaticMilestoneOverride = typeof staticMilestoneOverrides.$inferSelect;
 export type InsertStaticMilestoneOverride = z.infer<typeof insertStaticMilestoneOverrideSchema>;
+export type StaticAchievementOverride = typeof staticAchievementOverrides.$inferSelect;
+export type InsertStaticAchievementOverride = z.infer<typeof insertStaticAchievementOverrideSchema>;
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Permission = typeof permissions.$inferSelect;
@@ -855,6 +859,11 @@ export const insertCandleTransactionSchema = createInsertSchema(candleTransactio
 });
 
 export const insertStaticMilestoneOverrideSchema = createInsertSchema(staticMilestoneOverrides).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertStaticAchievementOverrideSchema = createInsertSchema(staticAchievementOverrides).omit({
   id: true,
   updatedAt: true,
 });
@@ -957,12 +966,12 @@ export function getSkillCost(skill: string, heritage: string, archetype: string,
   const archetypeData = ARCHETYPES.find(a => a.id === archetype);
   const secondArchetypeData = secondArchetype ? ARCHETYPES.find(a => a.id === secondArchetype) : null;
   
-  // Get all skill lists
-  const heritageSecondarySkills: string[] = heritageData?.secondarySkills || [];
-  const archetypePrimarySkills: string[] = archetypeData?.primarySkills || [];
-  const archetypeSecondarySkills: string[] = archetypeData?.secondarySkills || [];
-  const secondArchetypePrimarySkills: string[] = secondArchetypeData?.primarySkills || [];
-  const secondArchetypeSecondarySkills: string[] = secondArchetypeData?.secondarySkills || [];
+  // Get all skill lists - cast readonly arrays to mutable arrays
+  const heritageSecondarySkills = [...(heritageData?.secondarySkills || [])];
+  const archetypePrimarySkills = [...(archetypeData?.primarySkills || [])];
+  const archetypeSecondarySkills = [...(archetypeData?.secondarySkills || [])];
+  const secondArchetypePrimarySkills = [...(secondArchetypeData?.primarySkills || [])];
+  const secondArchetypeSecondarySkills = [...(secondArchetypeData?.secondarySkills || [])];
   
   // Check if skill is PRIMARY (5 XP) - heritage secondary OR any archetype primary
   if (heritageSecondarySkills.includes(skill) || 
