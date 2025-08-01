@@ -127,42 +127,18 @@ export default function CharacterSheetModal({
     return totalCost;
   };
 
-  // Calculate skill cost based on character's heritage/culture/archetype
-  const getSkillCostForCharacter = (skill: string, heritage: string, culture: string, archetype: string) => {
-    // Get heritage and archetype data
-    const heritageData = HERITAGES.find(h => h.id === heritage);
-    const archetypeData = ARCHETYPES.find(a => a.id === archetype);
+  // Calculate skill cost based on character's heritage and archetype only
+  const getSkillCostForCharacter = (skill: string, heritage: string, archetype: string) => {
+    const cost = getSkillCost(skill, heritage, archetype);
     
-    // Get culture data from the nested structure
-    const culturesForHeritage = CULTURES[heritage as keyof typeof CULTURES] || [];
-    const cultureData = culturesForHeritage.find(c => c.id === culture);
-    
-    // Check if skill is PRIMARY (5 XP) for any of the selected options  
-    const culturePrimarySkills = cultureData?.primarySkills || [];
-    const archetypePrimarySkills = archetypeData?.primarySkills || [];
-    
-    if (
-      culturePrimarySkills.some(s => s === skill) ||
-      archetypePrimarySkills.some(s => s === skill)
-    ) {
-      return { cost: 5, category: 'primary' as const };
+    // Return with category for UI display
+    if (cost === 1) {
+      return { cost: 1, category: 'primary' as const };
+    } else if (cost === 2) {
+      return { cost: 2, category: 'secondary' as const };
+    } else {
+      return { cost: 3, category: 'other' as const };
     }
-
-    // Check if skill is SECONDARY (10 XP) for any of the selected options
-    const heritageSecondarySkills = heritageData?.secondarySkills || [];
-    const cultureSecondarySkills = cultureData?.secondarySkills || [];
-    const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
-    
-    if (
-      heritageSecondarySkills.some(s => s === skill) ||
-      cultureSecondarySkills.some(s => s === skill) ||
-      archetypeSecondarySkills.some(s => s === skill)
-    ) {
-      return { cost: 10, category: 'secondary' as const };
-    }
-
-    // Otherwise it's a general skill (20 XP)
-    return { cost: 20, category: 'other' as const };
   };
 
   // Mutations for spending experience
@@ -490,7 +466,7 @@ export default function CharacterSheetModal({
                     {(character as any)?.skills?.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {(character as any).skills.map((skill: string, index: number) => {
-                          const skillData = getSkillCostForCharacter(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                          const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
                           return (
                             <Badge
                               key={index}
@@ -547,7 +523,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -567,7 +543,7 @@ export default function CharacterSheetModal({
                               {selectedSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).archetype);
                                     if (skillData.cost <= (character as any).experience) {
                                       purchaseSkillMutation.mutate({ skill: selectedSkill, cost: skillData.cost });
                                     } else {
@@ -764,7 +740,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -784,7 +760,7 @@ export default function CharacterSheetModal({
                               {selectedAdminSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).archetype);
                                     adminAddSkillMutation.mutate({ skill: selectedAdminSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedAdminSkill || adminAddSkillMutation.isPending}
@@ -808,7 +784,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {((character as any)?.skills || []).map((skill: string) => {
-                                    const skillData = getSkillCostForCharacter(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -828,7 +804,7 @@ export default function CharacterSheetModal({
                               {selectedRemoveSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).archetype);
                                     adminRemoveSkillMutation.mutate({ skill: selectedRemoveSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedRemoveSkill || adminRemoveSkillMutation.isPending}

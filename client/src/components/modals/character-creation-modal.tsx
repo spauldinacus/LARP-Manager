@@ -89,8 +89,8 @@ export default function CharacterCreationModal({
   };
 
   // Use the corrected skill cost calculation from shared schema
-  const getSkillCostForCharacter = (skill: Skill, heritage: string, culture: string, archetype: string) => {
-    return getSkillCost(String(skill), heritage, culture, archetype);
+  const getSkillCostForCharacter = (skill: Skill, heritage: string, archetype: string) => {
+    return getSkillCost(String(skill), heritage, archetype);
   };
 
   const addSkill = (skill: Skill) => {
@@ -98,16 +98,16 @@ export default function CharacterCreationModal({
     const culture = form.watch("culture");
     const archetype = form.watch("archetype");
     
-    if (!heritage || !culture || !archetype) {
+    if (!heritage || !archetype) {
       toast({
         title: "Selection Required",
-        description: "Please select heritage, culture, and archetype before adding skills.",
+        description: "Please select heritage and archetype before adding skills.",
         variant: "destructive",
       });
       return;
     }
 
-    const skillData = getSkillCostForCharacter(skill, heritage, culture, archetype);
+    const skillData = getSkillCostForCharacter(skill, heritage, archetype);
     
     if (skillData.cost > availableExperience) {
       toast({
@@ -551,9 +551,8 @@ export default function CharacterCreationModal({
                   <div className="grid gap-1">
                     {SKILLS.filter(skill => !selectedSkills.some(s => s.name === skill)).map((skill) => {
                       const heritage = form.watch("heritage");
-                      const culture = form.watch("culture");
                       const archetype = form.watch("archetype");
-                      const skillData = getSkillCostForCharacter(skill, heritage, culture, archetype);
+                      const skillData = getSkillCostForCharacter(skill, heritage, archetype);
                       
                       return (
                         <div

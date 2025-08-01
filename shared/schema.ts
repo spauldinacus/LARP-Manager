@@ -950,41 +950,28 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // ADDITIONAL HELPER FUNCTIONS
 // ===========================
 
-// Function to calculate skill XP cost
-export function getSkillCost(skill: string, heritage: string, culture: string, archetype: string): number {
+// Function to calculate skill XP cost based only on heritage and archetype
+export function getSkillCost(skill: string, heritage: string, archetype: string): number {
   const heritageData = HERITAGES.find(h => h.id === heritage);
   const archetypeData = ARCHETYPES.find(a => a.id === archetype);
   
-  // Get culture data from the nested structure
-  const culturesForHeritage = CULTURES[heritage as keyof typeof CULTURES] || [];
-  const cultureData = culturesForHeritage.find(c => c.id === culture);
+  // Check if skill is PRIMARY (1 XP) - heritage secondary skills are treated as primary
+  const heritageSecondarySkills: string[] = heritageData?.secondarySkills || [];
+  const archetypePrimarySkills: string[] = archetypeData?.primarySkills || [];
   
-  // Check if skill is PRIMARY (5 XP) for any of the selected options  
-  const culturePrimarySkills = cultureData?.primarySkills || [];
-  const archetypePrimarySkills = archetypeData?.primarySkills || [];
-  const heritageSecondarySkills = heritageData?.secondarySkills || [];
-  
-  if (
-    heritageSecondarySkills.includes(skill) ||
-    culturePrimarySkills.includes(skill) ||
-    archetypePrimarySkills.includes(skill)
-  ) {
-    return 5;
+  if (heritageSecondarySkills.includes(skill) || archetypePrimarySkills.includes(skill)) {
+    return 1;
   }
 
-  // Check if skill is SECONDARY (10 XP) for any of the selected options
-  const cultureSecondarySkills = cultureData?.secondarySkills || [];
-  const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+  // Check if skill is SECONDARY (2 XP) - archetype secondary skills
+  const archetypeSecondarySkills: string[] = archetypeData?.secondarySkills || [];
   
-  if (
-    cultureSecondarySkills.includes(skill) ||
-    archetypeSecondarySkills.includes(skill)
-  ) {
-    return 10;
+  if (archetypeSecondarySkills.includes(skill)) {
+    return 2;
   }
 
-  // Otherwise it's a general skill (20 XP)
-  return 20;
+  // Otherwise it's a general skill (3 XP)
+  return 3;
 }
 
 

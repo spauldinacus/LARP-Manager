@@ -33,12 +33,15 @@ export default function XPEfficiencyTracker({ character }: XPEfficiencyTrackerPr
   const totalXpEarned = availableXP + (character.totalXpSpent || 0);
   const spendingEfficiency = totalXpEarned > 0 ? ((character.totalXpSpent || 0) / totalXpEarned) * 100 : 0;
   
-  // Skill recommendations based on heritage/culture/archetype
-  const heritageSkills = getHeritageSkills(character.heritage);
-  const cultureSkills = getCultureSkills(character.culture);
-  const archetypeSkills = getArchetypeSkills(character.archetype);
+  // Skill recommendations based on heritage and archetype only
+  const heritageData = HERITAGES.find(h => h.id === character.heritage);
+  const archetypeData = ARCHETYPES.find(a => a.id === character.archetype);
   
-  const allOptimalSkills = Array.from(new Set([...heritageSkills, ...cultureSkills, ...archetypeSkills]));
+  const heritageSkills = heritageData?.secondarySkills || [];
+  const archetypePrimarySkills = archetypeData?.primarySkills || [];
+  const archetypeSecondarySkills = archetypeData?.secondarySkills || [];
+  
+  const allOptimalSkills = Array.from(new Set([...heritageSkills, ...archetypePrimarySkills, ...archetypeSecondarySkills]));
   const missingOptimalSkills = allOptimalSkills.filter(skill => !character.skills?.includes(skill));
   
   // Calculate next upgrade costs
@@ -49,13 +52,13 @@ export default function XPEfficiencyTracker({ character }: XPEfficiencyTrackerPr
   
   // Check affordable skills
   missingOptimalSkills.forEach(skill => {
-    const cost = getSkillCost(skill, character.heritage, character.culture, character.archetype);
+    const cost = getSkillCost(skill, character.heritage, character.archetype);
     if (cost <= availableXP) {
       affordableUpgrades.push({
         type: 'skill',
         name: skill,
         cost,
-        reason: cost === 5 ? 'Primary skill (heritage)' : cost === 10 ? 'Secondary skill' : 'Tertiary skill'
+        reason: cost === 1 ? 'Primary skill' : cost === 2 ? 'Secondary skill' : 'General skill'
       });
     }
   });
@@ -207,7 +210,7 @@ export default function XPEfficiencyTracker({ character }: XPEfficiencyTrackerPr
                 <p className="text-sm font-medium mb-2">Missing Optimal Skills:</p>
                 <div className="flex flex-wrap gap-1">
                   {missingOptimalSkills.map(skill => {
-                    const cost = getSkillCost(skill, character.heritage, character.culture, character.archetype);
+                    const cost = getSkillCost(skill, character.heritage, character.archetype);
                     return (
                       <Badge 
                         key={skill} 
