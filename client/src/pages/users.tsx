@@ -26,9 +26,7 @@ export default function UsersPage() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [roleModalUser, setRoleModalUser] = useState<any | null>(null);
   const [manageUserId, setManageUserId] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState("");
   const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
   const [selectedUserForCandles, setSelectedUserForCandles] = useState<any | null>(null);
@@ -122,29 +120,7 @@ export default function UsersPage() {
 
 
 
-  // Role update mutation
-  const updateUserRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const response = await apiRequest("PATCH", `/api/users/${userId}/role`, { role: role });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setRoleModalUser(null);
-      setSelectedRole("");
-      toast({
-        title: "Role updated",
-        description: "The user's role has been successfully updated.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update user role",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
@@ -448,16 +424,6 @@ export default function UsersPage() {
                         </div>
 
                         <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setRoleModalUser(userData)}
-                            className="flex-1"
-                          >
-                            <Shield className="h-4 w-4 mr-1" />
-                            Manage Role
-                          </Button>
-                          
                           {userData.id !== user.id && (
                             <Button
                               size="sm"
@@ -518,68 +484,7 @@ export default function UsersPage() {
         onClose={() => setSelectedUserForCandles(null)}
       />
 
-      {/* Role Management Modal */}
-      <Dialog open={!!roleModalUser} onOpenChange={(open) => !open && setRoleModalUser(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              <span>Manage User Role</span>
-            </DialogTitle>
-          </DialogHeader>
-          
-          {roleModalUser && (
-            <div className="space-y-4">
-              <div>
-                <Label>User</Label>
-                <div className="p-2 bg-muted rounded text-sm">
-                  {roleModalUser.playerName || roleModalUser.username}
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="user-role">Role</Label>
-                <select
-                  id="user-role"
-                  className="w-full p-2 border rounded"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                >
-                  <option value="">Select a role...</option>
-                  <option value="user">User</option>
-                  <option value="moderator">Moderator</option>
-                  <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                </select>
-              </div>
 
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => {
-                    if (selectedRole && roleModalUser) {
-                      updateUserRoleMutation.mutate({
-                        userId: roleModalUser.id,
-                        role: selectedRole,
-                      });
-                    }
-                  }}
-                  disabled={!selectedRole || updateUserRoleMutation.isPending}
-                  className="flex-1"
-                >
-                  {updateUserRoleMutation.isPending ? "Updating..." : "Update Role"}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setRoleModalUser(null)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* User Management Modal */}
       <UserManagementModal 
