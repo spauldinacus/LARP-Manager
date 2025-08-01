@@ -420,6 +420,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rebuild XP tracking for all characters (admin only)
+  app.post("/api/admin/rebuild-all-character-xp", requireAdmin, async (req, res) => {
+    try {
+      const characters = await storage.getAllCharacters();
+      let processedCount = 0;
+      
+      for (const character of characters) {
+        await storage.refreshCharacterXP(character.id);
+        processedCount++;
+      }
+      
+      res.json({ 
+        message: `Successfully rebuilt XP tracking for ${processedCount} characters`,
+        processedCount 
+      });
+    } catch (error) {
+      console.error("Rebuild all character XP error:", error);
+      res.status(500).json({ message: "Failed to rebuild character XP tracking" });
+    }
+  });
+
   // Candle management routes
   app.get("/api/users/:id/candles", requireAdmin, async (req, res) => {
     try {

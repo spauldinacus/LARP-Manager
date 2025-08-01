@@ -646,77 +646,19 @@ export class DatabaseStorage implements IStorage {
 
   async calculateTotalXpSpent(characterId: string): Promise<number> {
     try {
-      // Get character data directly from database to avoid circular dependency
-      const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
-      if (!character) return 25; // Default starting XP
-
-      let totalSpent = 25; // Starting XP
-
-      // Calculate skill costs
-      if (character.skills && character.skills.length > 0) {
-        for (const skill of character.skills) {
-          const { getSkillCost } = await import("@shared/schema");
-          const skillCostInfo = getSkillCost(skill, character.heritage, character.culture, character.archetype);
-          totalSpent += skillCostInfo.cost;
-        }
-      }
-
-      // Calculate body upgrade costs (based on heritage base values)
-      const heritageBodyBases = {
-        'ar-nura': 8,
-        'human': 10,
-        'stoneborn': 15,
-        'ughol': 12,
-        'rystarri': 12
-      };
+      // Calculate XP spent based purely on experience entries (negative amounts)
+      const result = await db
+        .select({ total: sum(experienceEntries.amount) })
+        .from(experienceEntries)
+        .where(and(
+          eq(experienceEntries.characterId, characterId),
+          sql`amount < 0`
+        ));
       
-      const baseBody = heritageBodyBases[character.heritage as keyof typeof heritageBodyBases] || 10;
-      if (character.body > baseBody) {
-        for (let i = baseBody; i < character.body; i++) {
-          // Body upgrade costs based on current value per Thrune rulebook
-          if (i < 20) totalSpent += 1;
-          else if (i < 40) totalSpent += 2;
-          else if (i < 60) totalSpent += 3;
-          else if (i < 80) totalSpent += 4;
-          else if (i < 100) totalSpent += 5;
-          else if (i < 120) totalSpent += 6;
-          else if (i < 140) totalSpent += 7;
-          else if (i < 160) totalSpent += 8;
-          else if (i < 180) totalSpent += 9;
-          else totalSpent += 10;
-        }
-      }
-
-      // Calculate stamina upgrade costs (based on heritage base values)  
-      const heritageStaminaBases = {
-        'ar-nura': 12,
-        'human': 10,
-        'stoneborn': 5,
-        'ughol': 8,
-        'rystarri': 8
-      };
-      
-      const baseStamina = heritageStaminaBases[character.heritage as keyof typeof heritageStaminaBases] || 10;
-      if (character.stamina > baseStamina) {
-        for (let i = baseStamina; i < character.stamina; i++) {
-          // Stamina upgrade costs based on current value per Thrune rulebook
-          if (i < 20) totalSpent += 1;
-          else if (i < 40) totalSpent += 2;
-          else if (i < 60) totalSpent += 3;
-          else if (i < 80) totalSpent += 4;
-          else if (i < 100) totalSpent += 5;
-          else if (i < 120) totalSpent += 6;
-          else if (i < 140) totalSpent += 7;
-          else if (i < 160) totalSpent += 8;
-          else if (i < 180) totalSpent += 9;
-          else totalSpent += 10;
-        }
-      }
-
-      return totalSpent;
+      return Math.abs(Number(result[0]?.total)) || 0;
     } catch (error) {
       console.error(`Error calculating XP for character ${characterId}:`, error);
-      return 25; // Return default if calculation fails
+      return 0;
     }
   }
 
@@ -1172,6 +1114,10 @@ export class DatabaseStorage implements IStorage {
 
   // Refresh character XP values (utility function)
   async refreshCharacterXP(characterId: string): Promise<void> {
+    // First ensure all attribute purchases are tracked
+    await this.ensureAttributeEntriesExist(characterId);
+    
+    // Then recalculate totals
     const totalExp = await this.getTotalExperienceByCharacter(characterId);
     const totalXpSpent = await this.calculateTotalXpSpent(characterId);
     
@@ -1179,6 +1125,78 @@ export class DatabaseStorage implements IStorage {
       experience: totalExp,
       totalXpSpent: totalXpSpent
     });
+  }
+
+  async ensureAttributeEntriesExist(characterId: string): Promise<void> {
+    const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
+    if (!character) return;
+
+    // Get existing experience entries
+    const existingEntries = await db
+      .select()
+      .from(experienceEntries)
+      .where(eq(experienceEntries.characterId, characterId));
+
+    // Check if body/stamina entries already exist
+    const hasBodyEntries = existingEntries.some(e => e.reason.includes('Body increase'));
+    const hasStaminaEntries = existingEntries.some(e => e.reason.includes('Stamina increase'));
+
+    const heritageBodyBases = {
+      'ar-nura': 10,
+      'human': 10,
+      'stoneborn': 15,
+      'ughol': 12,
+      'rystarri': 8
+    };
+    
+    const heritageStaminaBases = {
+      'ar-nura': 12,
+      'human': 10,
+      'stoneborn': 5,
+      'ughol': 8,
+      'rystarri': 8
+    };
+    
+    const baseBody = heritageBodyBases[character.heritage as keyof typeof heritageBodyBases] || 10;
+    const baseStamina = heritageStaminaBases[character.heritage as keyof typeof heritageStaminaBases] || 10;
+
+    // Add missing body entries
+    if (!hasBodyEntries && character.body > baseBody) {
+      for (let i = baseBody; i < character.body; i++) {
+        let cost = 1;
+        if (i >= 20) cost = 2;
+        else if (i >= 40) cost = 3;
+        else if (i >= 60) cost = 4;
+        else if (i >= 80) cost = 5;
+        
+        await db.insert(experienceEntries).values({
+          characterId: character.id,
+          amount: -cost,
+          reason: `Body increase: ${i}→${i + 1}`,
+          awardedBy: character.userId,
+          createdAt: character.createdAt // Use character creation time
+        });
+      }
+    }
+
+    // Add missing stamina entries
+    if (!hasStaminaEntries && character.stamina > baseStamina) {
+      for (let i = baseStamina; i < character.stamina; i++) {
+        let cost = 1;
+        if (i >= 20) cost = 2;
+        else if (i >= 40) cost = 3;
+        else if (i >= 60) cost = 4;
+        else if (i >= 80) cost = 5;
+        
+        await db.insert(experienceEntries).values({
+          characterId: character.id,
+          amount: -cost,
+          reason: `Stamina increase: ${i}→${i + 1}`,
+          awardedBy: character.userId,
+          createdAt: character.createdAt // Use character creation time
+        });
+      }
+    }
   }
 
 
