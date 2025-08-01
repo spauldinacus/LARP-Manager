@@ -301,10 +301,14 @@ export default function UsersPage() {
                                   Admin
                                 </Badge>
                               )}
-                              {userData.role && userData.role !== 'user' && (
-                                <Badge variant="outline" className="text-xs text-center justify-center">
+                              {userData.role && userData.role.name && userData.role.name !== 'User' && (
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs text-center justify-center"
+                                  style={{ borderColor: userData.role.color, color: userData.role.color }}
+                                >
                                   <Shield className="h-3 w-3 mr-1" />
-                                  {userData.role.replace('_', ' ').toUpperCase()}
+                                  {userData.role.name}
                                 </Badge>
                               )}
                             </div>
