@@ -18,6 +18,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Deployment Health Check Fix**: Added comprehensive health check endpoints and proper server configuration for reliable deployment verification
 - **Database Schema Fix**: Restored missing user title field and resolved database query errors affecting characters and players pages
 - **Chapter Members Title Fix**: Added missing title field to chapter members API query, restoring title badges in member lists
+- **Comprehensive Candle Management System**: Created admin-only candle management functionality with player listing, transaction history, add/remove capabilities, and alphabetical sorting by player name
+- **Unified Candle Management UX**: Improved user experience to show transaction history first, then add/remove buttons; created reusable modal component used across both Users and Candles pages
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
