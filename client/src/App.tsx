@@ -16,6 +16,7 @@ import ProgressionPage from "@/pages/progression";
 import UsersPage from "@/pages/users";
 import RolesPage from "@/pages/roles";
 import SettingsPage from "@/pages/settings";
+import CandlesPage from "@/pages/candles";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/players" component={PlayersPage} />
       <Route path="/users" component={UsersPage} />
       <Route path="/roles" component={RolesPage} />
+      <Route path="/candles" component={CandlesPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>

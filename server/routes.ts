@@ -550,6 +550,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get candle transactions for a user with admin details
+  app.get("/api/candles/transactions/:userId", requireAdmin, async (req, res) => {
+    try {
+      const transactions = await storage.getCandleTransactionsWithAdminInfo(req.params.userId);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get candle transactions" });
+    }
+  });
+
   // Get attendance-based XP for character
   app.get("/api/characters/:id/attendance-xp", requireAuth, async (req, res) => {
     try {

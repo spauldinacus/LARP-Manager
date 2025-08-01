@@ -123,6 +123,7 @@ export interface IStorage {
 
   // Candle transaction methods
   createCandleTransaction(transaction: InsertCandleTransaction): Promise<CandleTransaction>;
+  getCandleTransactionsWithAdminInfo(userId: string): Promise<any[]>;
 
   // Achievement management methods
   getAllAchievements(): Promise<CustomAchievement[]>;
@@ -946,6 +947,25 @@ export class DatabaseStorage implements IStorage {
       .from(candleTransactions)
       .where(eq(candleTransactions.userId, userId))
       .orderBy(desc(candleTransactions.createdAt));
+  }
+
+  async getCandleTransactionsWithAdminInfo(userId: string): Promise<any[]> {
+    const transactions = await db
+      .select({
+        id: candleTransactions.id,
+        userId: candleTransactions.userId,
+        amount: candleTransactions.amount,
+        reason: candleTransactions.reason,
+        createdBy: candleTransactions.createdBy,
+        createdAt: candleTransactions.createdAt,
+        adminName: users.playerName,
+      })
+      .from(candleTransactions)
+      .leftJoin(users, eq(candleTransactions.createdBy, users.id))
+      .where(eq(candleTransactions.userId, userId))
+      .orderBy(desc(candleTransactions.createdAt));
+
+    return transactions;
   }
 
   // Event RSVP methods

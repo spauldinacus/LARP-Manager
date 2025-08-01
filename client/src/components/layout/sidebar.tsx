@@ -13,6 +13,7 @@ import {
   Building2,
   Shield,
   TrendingUp,
+  Flame,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -67,6 +68,12 @@ const navigationItems = [
     href: "/roles",
     icon: Shield,
     label: "Role Management",
+    adminOnly: true,
+  },
+  {
+    href: "/candles",
+    icon: Flame,
+    label: "Candle Management",
     adminOnly: true,
   },
   {
