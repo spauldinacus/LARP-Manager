@@ -923,12 +923,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateCharacter(req.params.id, updates);
 
       // Create experience entry for the spending (this will update experience automatically)
-      await storage.createExperienceEntry({
+      console.log(`Creating experience entry for ${attribute} increase: -${cost} XP`);
+      const experienceEntry = await storage.createExperienceEntry({
         characterId: req.params.id,
         amount: -cost,
         reason: `Increased ${attribute} by ${amount} point${amount !== 1 ? 's' : ''}`,
         awardedBy: req.session.userId!,
       });
+      console.log('Experience entry created:', experienceEntry);
 
       res.json({ message: "Attribute increased successfully" });
     } catch (error) {
