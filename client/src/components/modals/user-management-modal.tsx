@@ -32,6 +32,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   });
 
   console.log("UserManagementModal - userId:", userId, "userDetails:", userDetails, "error:", error);
+  console.log("UserManagementModal - editedUser:", editedUser);
 
   // Fetch available roles
   const { data: roles } = useQuery({
@@ -46,7 +47,9 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   });
 
   useEffect(() => {
+    console.log("useEffect triggered - userDetails:", userDetails);
     if (userDetails) {
+      console.log("Setting editedUser with userDetails:", userDetails);
       setEditedUser({ ...userDetails });
     }
   }, [userDetails]);
