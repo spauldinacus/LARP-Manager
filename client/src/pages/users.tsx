@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame, Search, ArrowUpDown, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Users, Shield, User, Menu, Eye, Edit, Save, X, Flame, Search, ArrowUpDown, ChevronUp, ChevronDown, Trash2, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
 import UserCharactersModal from "@/components/modals/user-characters-modal";
+import UserManagementModal from "@/components/modals/user-management-modal";
 // Removed RoleManagementModal import - using inline modal
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,6 +26,7 @@ export default function UsersPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [roleModalUser, setRoleModalUser] = useState<any | null>(null);
+  const [manageUserId, setManageUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [editingPlayerNumber, setEditingPlayerNumber] = useState<string | null>(null);
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
@@ -37,7 +39,7 @@ export default function UsersPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ["/api/admin/users"],
     enabled: user?.isAdmin,
   });
@@ -441,6 +443,15 @@ export default function UsersPage() {
                             <Eye className="h-3 w-3 mr-1" />
                             View Characters
                           </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setManageUserId(userData.id)}
+                          >
+                            <Settings className="h-4 w-4 mr-2" />
+                            Manage User
+                          </Button>
                           
                           <Button
                             size="sm"
@@ -647,6 +658,12 @@ export default function UsersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* User Management Modal */}
+      <UserManagementModal 
+        userId={manageUserId}
+        onClose={() => setManageUserId(null)}
+      />
     </div>
   );
 }

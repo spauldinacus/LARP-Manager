@@ -334,6 +334,110 @@ export class DatabaseStorage implements IStorage {
     return usersWithCharacterCounts;
   }
 
+  async getAllUsersWithDetails(): Promise<any[]> {
+    const usersData = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        playerName: users.playerName,
+        email: users.email,
+        playerNumber: users.playerNumber,
+        title: users.title,
+        chapterId: users.chapterId,
+        roleId: users.roleId,
+        isAdmin: users.isAdmin,
+        candles: users.candles,
+        createdAt: users.createdAt,
+        roleName: roles.name,
+        roleColor: roles.color,
+        chapterName: chapters.name,
+      })
+      .from(users)
+      .leftJoin(roles, eq(users.roleId, roles.id))
+      .leftJoin(chapters, eq(users.chapterId, chapters.id))
+      .orderBy(users.createdAt);
+
+    // Get character counts for each user
+    const userCharacterCounts = await db
+      .select({
+        userId: characters.userId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(characters)
+      .groupBy(characters.userId);
+
+    const characterCountMap = new Map(
+      userCharacterCounts.map(item => [item.userId, item.count])
+    );
+
+    return usersData.map(user => ({
+      ...user,
+      characterCount: characterCountMap.get(user.id) || 0,
+      role: user.roleName ? {
+        id: user.roleId,
+        name: user.roleName,
+        color: user.roleColor,
+      } : null,
+      chapter: user.chapterName ? {
+        id: user.chapterId,
+        name: user.chapterName,
+      } : null,
+    }));
+  }
+
+  async getUserWithDetails(id: string): Promise<any | undefined> {
+    const [userData] = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        playerName: users.playerName,
+        email: users.email,
+        playerNumber: users.playerNumber,
+        title: users.title,
+        chapterId: users.chapterId,
+        roleId: users.roleId,
+        isAdmin: users.isAdmin,
+        candles: users.candles,
+        createdAt: users.createdAt,
+        roleName: roles.name,
+        roleColor: roles.color,
+        chapterName: chapters.name,
+      })
+      .from(users)
+      .leftJoin(roles, eq(users.roleId, roles.id))
+      .leftJoin(chapters, eq(users.chapterId, chapters.id))
+      .where(eq(users.id, id));
+
+    if (!userData) return undefined;
+
+    // Get user's characters
+    const userCharacters = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        heritage: characters.heritage,
+        level: characters.level,
+        isActive: characters.isActive,
+      })
+      .from(characters)
+      .where(eq(characters.userId, id))
+      .orderBy(characters.name);
+
+    return {
+      ...userData,
+      characters: userCharacters,
+      role: userData.roleName ? {
+        id: userData.roleId,
+        name: userData.roleName,
+        color: userData.roleColor,
+      } : null,
+      chapter: userData.chapterName ? {
+        id: userData.chapterId,
+        name: userData.chapterName,
+      } : null,
+    };
+  }
+
   async updateUserRole(id: string, roleId: string): Promise<User> {
     const [user] = await db
       .update(users)

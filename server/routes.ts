@@ -618,10 +618,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {
-      const users = await storage.getAllUsers();
+      const users = await storage.getAllUsersWithDetails();
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  app.get("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUserWithDetails(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user details" });
+    }
+  });
+
+  app.put("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateData = {
+        playerName: req.body.playerName,
+        username: req.body.username,
+        email: req.body.email,
+        title: req.body.title || null,
+        roleId: req.body.roleId || null,
+        chapterId: req.body.chapterId || null,
+      };
+      
+      const updatedUser = await storage.updateUser(req.params.id, updateData);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("User update error:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update user" });
     }
   });
 
