@@ -201,6 +201,7 @@ export class DatabaseStorage implements IStorage {
         id: users.id,
         username: users.username,
         playerName: users.playerName,
+        title: users.title,
         playerNumber: users.playerNumber,
         createdAt: users.createdAt
       })

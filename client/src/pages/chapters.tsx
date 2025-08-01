@@ -525,7 +525,12 @@ export default function ChaptersPage() {
                 {chapterMembers.map((member: any) => (
                   <div key={member.id} className="flex items-center justify-between p-3 border rounded">
                     <div>
-                      <div className="font-medium">{member.playerName || member.username}</div>
+                      <div className="font-medium">
+                        {member.playerName || member.username}
+                        {member.title && (
+                          <span className="text-primary ml-2 font-normal">"{member.title}"</span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         @{member.username}
                       </div>
