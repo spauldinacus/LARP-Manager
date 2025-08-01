@@ -26,9 +26,15 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   // Fetch user details
   const { data: userDetails, isLoading, error } = useQuery({
     queryKey: ["/api/admin/users", userId],
-    queryFn: () => apiRequest("GET", `/api/admin/users/${userId}`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/admin/users/${userId}`);
+      console.log("API response for user details:", response);
+      return response;
+    },
     enabled: !!userId,
     retry: 1,
+    staleTime: 0, // Force fresh data
+    cacheTime: 0, // Don't cache
   });
 
   console.log("UserManagementModal - userId:", userId, "userDetails:", userDetails, "error:", error);

@@ -796,18 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get specific user details for admin
-  app.get("/api/admin/users/:id", requireAdmin, async (req, res) => {
-    try {
-      const user = await storage.getUser(req.params.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get user" });
-    }
-  });
+  // Duplicate route removed - using getUserWithDetails from line 629 instead
 
   // Update user role (admin only)
   app.patch("/api/users/:id/role", requireAdmin, async (req, res) => {
