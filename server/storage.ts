@@ -202,6 +202,7 @@ export class DatabaseStorage implements IStorage {
         username: users.username,
         playerName: users.playerName,
         playerNumber: users.playerNumber,
+        title: users.title,
         createdAt: users.createdAt
       })
       .from(users)
