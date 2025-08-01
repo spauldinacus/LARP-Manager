@@ -548,7 +548,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCost(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -765,7 +765,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCost(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
@@ -785,7 +785,7 @@ export default function CharacterSheetModal({
                               {selectedAdminSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCost(selectedAdminSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                                     adminAddSkillMutation.mutate({ skill: selectedAdminSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedAdminSkill || adminAddSkillMutation.isPending}
@@ -809,7 +809,7 @@ export default function CharacterSheetModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                   {((character as any)?.skills || []).map((skill: string) => {
-                                    const skillData = getSkillCost(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                                    const skillData = getSkillCostForCharacter(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                                     return (
                                       <SelectItem key={skill} value={skill}>
                                         <div className="flex items-center justify-between w-full">
