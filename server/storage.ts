@@ -463,6 +463,7 @@ export class DatabaseStorage implements IStorage {
           name: char.name,
           heritage: char.heritage,
           isActive: char.isActive,
+          totalXpSpent: char.totalXpSpent,
         })),
         role: roleData,
         chapter: chapterData,
