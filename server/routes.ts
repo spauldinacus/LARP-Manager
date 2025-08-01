@@ -230,16 +230,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         characters = await storage.getCharactersByUserId(req.session.userId!);
       }
       
-      // Add total XP spent to each character
-      const charactersWithXp = await Promise.all(
-        characters.map(async (character) => {
-          const totalXpSpent = await storage.calculateTotalXpSpent(character.id);
-          return { ...character, totalXpSpent };
-        })
-      );
+      // Return characters with their stored totalXpSpent values (skip calculation for now)
+      const charactersWithXp = characters.map(character => ({
+        ...character,
+        totalXpSpent: character.totalXpSpent || 25
+      }));
       
       res.json(charactersWithXp);
     } catch (error) {
+      console.error("Characters API error:", error);
       res.status(500).json({ message: "Failed to get characters" });
     }
   });

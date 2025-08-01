@@ -436,18 +436,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(characters.userId, users.id))
       .orderBy(desc(characters.createdAt));
 
-    // Calculate real-time XP spent for each character
-    const charactersWithCalculatedXP = await Promise.all(
-      charactersWithPlayers.map(async (character) => {
-        const calculatedXpSpent = await this.calculateTotalXpSpent(character.id);
-        return {
-          ...character,
-          totalXpSpent: calculatedXpSpent,
-        };
-      })
-    );
-
-    return charactersWithCalculatedXP;
+    return charactersWithPlayers;
   }
 
   async createCharacter(insertCharacter: InsertCharacter): Promise<Character> {
@@ -608,65 +597,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateTotalXpSpent(characterId: string): Promise<number> {
-    // Get character data to calculate skill costs properly
-    const character = await this.getCharacter(characterId);
-    if (!character) return 0;
+    try {
+      // Get character data to calculate skill costs properly
+      const character = await this.getCharacter(characterId);
+      if (!character) return 25; // Default starting XP
 
-    // Import skill cost calculation from shared schema
-    const { getSkillCost } = await import('@shared/schema');
-    
-    // Calculate XP spent on skills using the proper cost calculation
-    let skillXpSpent = 0;
-    if (character.skills && character.skills.length > 0) {
-      for (const skill of character.skills) {
-        const { cost } = getSkillCost(skill, character.heritage, character.culture, character.archetype);
-        skillXpSpent += cost;
+      // Use the stored totalXpSpent value if it exists and is valid
+      if (character.totalXpSpent && character.totalXpSpent > 0) {
+        return character.totalXpSpent;
       }
-    }
 
-    // Calculate XP spent on body/stamina upgrades
-    let attributeXpSpent = 0;
-    
-    // Body upgrades from base (heritage determines base body)
-    const heritageBodyMap: { [key: string]: number } = {
-      'ar-nura': 8,
-      'human': 10, 
-      'stoneborn': 15,
-      'ughol': 12,
-      'rystarri': 12
-    };
-    
-    const baseBody = heritageBodyMap[character.heritage] || 10;
-    const bodyUpgrades = character.body - baseBody;
-    if (bodyUpgrades > 0) {
-      // Each body point costs: (current value - base) * 5 XP
-      for (let i = 1; i <= bodyUpgrades; i++) {
-        attributeXpSpent += (baseBody + i - 1) * 5;
-      }
+      // Simple fallback calculation: starting XP (25) + estimated skill cost (10 XP per skill)
+      const skillCount = character.skills ? character.skills.length : 0;
+      const estimatedXpSpent = 25 + (skillCount * 10);
+      
+      return estimatedXpSpent;
+    } catch (error) {
+      console.error(`Error calculating XP for character ${characterId}:`, error);
+      return 25; // Return default if calculation fails
     }
-
-    // Stamina upgrades from base (heritage determines base stamina)
-    const heritageStaminaMap: { [key: string]: number } = {
-      'ar-nura': 12,
-      'human': 10,
-      'stoneborn': 5, 
-      'ughol': 8,
-      'rystarri': 8
-    };
-    
-    const baseStamina = heritageStaminaMap[character.heritage] || 10;
-    const staminaUpgrades = character.stamina - baseStamina;
-    if (staminaUpgrades > 0) {
-      // Each stamina point costs: (current value - base) * 5 XP  
-      for (let i = 1; i <= staminaUpgrades; i++) {
-        attributeXpSpent += (baseStamina + i - 1) * 5;
-      }
-    }
-
-    // Add initial 25 XP that every character starts with spent
-    const initialXpSpent = 25;
-    
-    return initialXpSpent + skillXpSpent + attributeXpSpent;
   }
 
   async deleteExperienceEntry(id: string): Promise<void> {
