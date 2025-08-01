@@ -40,6 +40,11 @@ interface Player {
   email: string;
   playerNumber: string;
   chapterId: string;
+  title?: string;
+  role?: {
+    id: string;
+    name: string;
+  };
   characters: Array<{
     id: string;
     name: string;
@@ -213,17 +218,24 @@ export default function PlayersPage() {
                 {(players as Player[]).map((player) => (
                   <Card key={player.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span>{player.playerName}</span>
+                      <CardTitle className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="mb-2">
+                            <span className="text-lg font-semibold">{player.playerName}</span>
+                            <p className="text-sm text-muted-foreground font-normal">@{player.username}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
                             {player.title && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-xs text-center justify-center">
                                 {player.title}
                               </Badge>
                             )}
+                            {player.role?.name && (
+                              <Badge variant="outline" className="text-xs text-center justify-center">
+                                {player.role.name}
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground font-normal">@{player.username}</p>
                         </div>
                         <Button
                           size="sm"

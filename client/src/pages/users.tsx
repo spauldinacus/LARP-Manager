@@ -306,31 +306,33 @@ export default function UsersPage() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-3">
-                          <User className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex items-start space-x-3">
+                          <User className="h-5 w-5 text-muted-foreground mt-1" />
                           <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{userData.playerName || userData.username}</span>
+                            <div className="mb-1">
+                              <span className="font-semibold text-lg">{userData.playerName || userData.username}</span>
+                              <div className="text-sm text-muted-foreground">@{userData.username}</div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
                               {userData.title && (
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-xs text-center justify-center">
                                   {userData.title}
                                 </Badge>
                               )}
+                              {userData.isAdmin && (
+                                <Badge variant="destructive" className="text-xs text-center justify-center">
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  Admin
+                                </Badge>
+                              )}
+                              {userData.role && userData.role !== 'user' && (
+                                <Badge variant="outline" className="text-xs text-center justify-center">
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  {userData.role.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                              )}
                             </div>
-                            <span className="text-sm text-muted-foreground">@{userData.username}</span>
                           </div>
-                          {userData.isAdmin && (
-                            <Badge variant="destructive">
-                              <Shield className="h-3 w-3 mr-1" />
-                              Admin
-                            </Badge>
-                          )}
-                          {userData.role && userData.role !== 'user' && (
-                            <Badge variant="secondary">
-                              <Shield className="h-3 w-3 mr-1" />
-                              {userData.role.replace('_', ' ').toUpperCase()}
-                            </Badge>
-                          )}
                         </div>
                         
                         <div className="text-sm text-muted-foreground">
