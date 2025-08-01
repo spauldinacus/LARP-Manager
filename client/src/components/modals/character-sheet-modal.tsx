@@ -459,7 +459,7 @@ export default function CharacterSheetModal({
                     {(character as any)?.skills?.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {(character as any).skills.map((skill: string, index: number) => {
-                          const skillData = getSkillCost(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
+                          const skillData = getSkillCostForCharacter(skill as Skill, (character as any).heritage, (character as any).culture, (character as any).archetype);
                           return (
                             <Badge
                               key={index}

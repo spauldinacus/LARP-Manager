@@ -391,14 +391,7 @@ export class DatabaseStorage implements IStorage {
   // Character methods
   async getCharacter(id: string): Promise<Character | undefined> {
     const [character] = await db.select().from(characters).where(eq(characters.id, id));
-    if (!character) return undefined;
-    
-    // Calculate real-time XP spent
-    const calculatedXpSpent = await this.calculateTotalXpSpent(character.id);
-    return {
-      ...character,
-      totalXpSpent: calculatedXpSpent,
-    };
+    return character || undefined;
   }
 
   async getCharactersByUserId(userId: string): Promise<Character[]> {
@@ -598,20 +591,12 @@ export class DatabaseStorage implements IStorage {
 
   async calculateTotalXpSpent(characterId: string): Promise<number> {
     try {
-      // Get character data to calculate skill costs properly
-      const character = await this.getCharacter(characterId);
+      // Get character data directly from database to avoid circular dependency
+      const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
       if (!character) return 25; // Default starting XP
 
-      // Use the stored totalXpSpent value if it exists and is valid
-      if (character.totalXpSpent && character.totalXpSpent > 0) {
-        return character.totalXpSpent;
-      }
-
-      // Simple fallback calculation: starting XP (25) + estimated skill cost (10 XP per skill)
-      const skillCount = character.skills ? character.skills.length : 0;
-      const estimatedXpSpent = 25 + (skillCount * 10);
-      
-      return estimatedXpSpent;
+      // Return the stored totalXpSpent value
+      return character.totalXpSpent || 25;
     } catch (error) {
       console.error(`Error calculating XP for character ${characterId}:`, error);
       return 25; // Return default if calculation fails
