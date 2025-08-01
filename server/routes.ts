@@ -1074,10 +1074,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chapter routes
   app.get("/api/chapters", async (req, res) => {
     try {
-      const chapters = await storage.getAllChapters();
+      const chapters = await storage.getAllChaptersWithMemberCount();
       res.json(chapters);
     } catch (error) {
       res.status(500).json({ message: "Failed to get chapters" });
+    }
+  });
+
+  app.get("/api/chapters/:id/members", requireAuth, async (req, res) => {
+    try {
+      const members = await storage.getChapterMembers(req.params.id);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get chapter members" });
     }
   });
 

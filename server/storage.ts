@@ -175,6 +175,42 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(chapters).where(eq(chapters.isActive, true));
   }
 
+  async getAllChaptersWithMemberCount(): Promise<any[]> {
+    const chaptersWithCounts = await db
+      .select({
+        id: chapters.id,
+        name: chapters.name,
+        code: chapters.code,
+        description: chapters.description,
+        isActive: chapters.isActive,
+        createdBy: chapters.createdBy,
+        createdAt: chapters.createdAt,
+        memberCount: sql<number>`count(${users.id})`
+      })
+      .from(chapters)
+      .leftJoin(users, eq(chapters.id, users.chapterId))
+      .where(eq(chapters.isActive, true))
+      .groupBy(chapters.id, chapters.name, chapters.code, chapters.description, chapters.isActive, chapters.createdBy, chapters.createdAt);
+
+    return chaptersWithCounts;
+  }
+
+  async getChapterMembers(chapterId: string): Promise<any[]> {
+    const members = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        playerName: users.playerName,
+        playerNumber: users.playerNumber,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.chapterId, chapterId))
+      .orderBy(users.playerName);
+
+    return members;
+  }
+
   async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
     const [chapter] = await db.insert(chapters).values(insertChapter).returning();
     return chapter;

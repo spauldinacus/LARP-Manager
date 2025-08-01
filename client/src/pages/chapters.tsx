@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChapterSchema, type Chapter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Users, Hash, Menu } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Hash, Menu, Eye } from "lucide-react";
 import { z } from "zod";
 
 const chapterFormSchema = insertChapterSchema.extend({
@@ -34,6 +34,8 @@ export default function ChaptersPage() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [selectedChapterForMembers, setSelectedChapterForMembers] = useState<any>(null);
   const { toast } = useToast();
 
   // Redirect to login if not authenticated
@@ -43,15 +45,15 @@ export default function ChaptersPage() {
     }
   }, [authLoading, user, setLocation]);
 
-  // Redirect non-admin users
-  useEffect(() => {
-    if (!authLoading && user && !user.isAdmin) {
-      setLocation("/dashboard");
-    }
-  }, [authLoading, user, setLocation]);
+  // No need to redirect non-admin users - chapters are viewable by all
 
-  const { data: chapters = [], isLoading } = useQuery<Chapter[]>({
+  const { data: chapters = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/chapters"],
+  });
+
+  const { data: chapterMembers = [], isLoading: membersLoading } = useQuery({
+    queryKey: ["/api/chapters", selectedChapterForMembers?.id, "members"],
+    enabled: !!selectedChapterForMembers?.id && showMembersModal,
   });
 
   const createChapterMutation = useMutation({
@@ -180,6 +182,11 @@ export default function ChaptersPage() {
     }
   };
 
+  const handleViewMembers = (chapter: any) => {
+    setSelectedChapterForMembers(chapter);
+    setShowMembersModal(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen bg-background">
@@ -282,11 +289,12 @@ export default function ChaptersPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold">Chapter Management</h1>
+                <h1 className="text-3xl font-bold">{user?.isAdmin ? "Chapter Management" : "Chapters"}</h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Manage LARP chapters and player registration codes
+                  {user?.isAdmin ? "Manage LARP chapters and player registration codes" : "View LARP chapters and member information"}
                 </p>
               </div>
+              {user?.isAdmin && (
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -389,80 +397,153 @@ export default function ChaptersPage() {
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
+              )}
+            </div>
 
-      {chapters.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No chapters found</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Create your first chapter to start managing player registrations.
-            </p>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create First Chapter
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {chapters.map((chapter: Chapter) => (
-            <Card key={chapter.id} className={!chapter.isActive ? "opacity-50" : ""}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">{chapter.name}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                      {chapter.code}
-                    </span>
-                    {!chapter.isActive && (
-                      <span className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-1 rounded">
-                        Inactive
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <CardDescription>
-                  {chapter.description || "No description provided"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(chapter)}
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleGeneratePlayerNumber(chapter.id)}
-                    disabled={generatePlayerNumberMutation.isPending}
-                  >
-                    <Hash className="w-4 h-4 mr-1" />
-                    Generate #
-                  </Button>
-                  {chapter.isActive && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(chapter.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Deactivate
+            {chapters.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No chapters found</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {user?.isAdmin ? "Create your first chapter to start managing player registrations." : "No chapters are currently available."}
+                  </p>
+                  {user?.isAdmin && (
+                    <Button onClick={() => setIsCreateModalOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create First Chapter
                     </Button>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {chapters.map((chapter: any) => (
+                  <Card key={chapter.id} className={!chapter.isActive ? "opacity-50" : ""}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl">{chapter.name}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                            {chapter.code}
+                          </span>
+                          {!chapter.isActive && (
+                            <span className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-1 rounded">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <CardDescription>
+                        {chapter.description || "No description provided"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Members:</span>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                          onClick={() => handleViewMembers(chapter)}
+                        >
+                          {chapter.memberCount || 0} players
+                        </Button>
+                      </div>
+                      {user?.isAdmin && (
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(chapter)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleGeneratePlayerNumber(chapter.id)}
+                            disabled={generatePlayerNumberMutation.isPending}
+                          >
+                            <Hash className="w-4 h-4 mr-1" />
+                            Generate #
+                          </Button>
+                          {chapter.isActive && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(chapter.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Deactivate
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Members Modal */}
+      <Dialog open={showMembersModal} onOpenChange={setShowMembersModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedChapterForMembers?.name} Members
+            </DialogTitle>
+            <DialogDescription>
+              Players registered to the {selectedChapterForMembers?.name} chapter
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-96 overflow-y-auto">
+            {membersLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center space-x-4 p-3 border rounded">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
+                  </div>
+                ))}
+              </div>
+            ) : chapterMembers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">
+                  No members found in this chapter
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {chapterMembers.map((member: any) => (
+                  <div key={member.id} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <div className="font-medium">{member.playerName || member.username}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        @{member.username}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {member.playerNumber && (
+                        <div className="text-sm font-mono text-gray-600 dark:text-gray-400">
+                          #{member.playerNumber}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingChapter} onOpenChange={() => setEditingChapter(null)}>
@@ -561,9 +642,6 @@ export default function ChaptersPage() {
           </Form>
         </DialogContent>
       </Dialog>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
