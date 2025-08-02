@@ -31,7 +31,7 @@ export default function UsersPage() {
   const [newPlayerNumber, setNewPlayerNumber] = useState("");
   const [selectedUserForCandles, setSelectedUserForCandles] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"playerName" | "username" | "playerNumber" | "characterCount">("playerName");
+  const [sortBy, setSortBy] = useState<"playerName" | "playerNumber" | "characterCount">("playerName");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const queryClient = useQueryClient();
 
@@ -47,14 +47,13 @@ export default function UsersPage() {
     let filtered = users.filter((userData: any) => {
       const searchLower = searchTerm.toLowerCase();
       const playerName = (userData.playerName || "").toLowerCase();
-      const username = userData.username.toLowerCase();
+
       const playerNumber = (userData.playerNumber || "").toLowerCase();
       
       // Search in character names too
       const characterNames = userData.characters?.map((char: any) => char.name.toLowerCase()).join(" ") || "";
       
       return playerName.includes(searchLower) ||
-             username.includes(searchLower) ||
              playerNumber.includes(searchLower) ||
              characterNames.includes(searchLower);
     });
@@ -64,13 +63,10 @@ export default function UsersPage() {
       
       switch (sortBy) {
         case "playerName":
-          aValue = (a.playerName || a.username || "").toLowerCase();
-          bValue = (b.playerName || b.username || "").toLowerCase();
+          aValue = (a.playerName || "").toLowerCase();
+          bValue = (b.playerName || "").toLowerCase();
           break;
-        case "username":
-          aValue = a.username.toLowerCase();
-          bValue = b.username.toLowerCase();
-          break;
+
         case "playerNumber":
           aValue = a.playerNumber || "";
           bValue = b.playerNumber || "";
@@ -80,8 +76,8 @@ export default function UsersPage() {
           bValue = b.characterCount || 0;
           break;
         default:
-          aValue = (a.playerName || a.username || "").toLowerCase();
-          bValue = (b.playerName || b.username || "").toLowerCase();
+          aValue = (a.playerName || "").toLowerCase();
+          bValue = (b.playerName || "").toLowerCase();
       }
 
       if (sortBy === "characterCount") {
@@ -225,7 +221,7 @@ export default function UsersPage() {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Search by player name, username, player number, or character name..."
+                    placeholder="Search by player name, player number, or character name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -238,7 +234,7 @@ export default function UsersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="playerName">Player Name</SelectItem>
-                      <SelectItem value="username">Username</SelectItem>
+
                       <SelectItem value="playerNumber">Player Number</SelectItem>
                       <SelectItem value="characterCount">Character Count</SelectItem>
                     </SelectContent>
@@ -286,8 +282,8 @@ export default function UsersPage() {
                           <User className="h-5 w-5 text-muted-foreground mt-1" />
                           <div className="flex flex-col">
                             <div className="mb-1">
-                              <span className="font-semibold text-lg">{userData.playerName || userData.username}</span>
-                              <div className="text-sm text-muted-foreground">@{userData.username}</div>
+                              <span className="font-semibold text-lg">{userData.playerName || "Player"}</span>
+                              <div className="text-sm text-muted-foreground">{userData.email}</div>
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {userData.title && (
@@ -440,8 +436,8 @@ export default function UsersPage() {
                               size="sm"
                               variant="destructive"
                               onClick={() => {
-                                const username = userData.playerName || userData.username;
-                                if (confirm(`Are you sure you want to delete user "${username}" and all their characters? This action cannot be undone.`)) {
+                                const playerName = userData.playerName || "Player";
+                                if (confirm(`Are you sure you want to delete user "${playerName}" and all their characters? This action cannot be undone.`)) {
                                   deleteUserMutation.mutate(userData.id);
                                 }
                               }}
