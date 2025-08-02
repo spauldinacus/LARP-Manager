@@ -34,9 +34,10 @@ type CandleTransaction = {
 interface CandleManagementModalProps {
   user: User | null;
   onClose: () => void;
+  showAdminControls?: boolean;
 }
 
-export default function CandleManagementModal({ user, onClose }: CandleManagementModalProps) {
+export default function CandleManagementModal({ user, onClose, showAdminControls = true }: CandleManagementModalProps) {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionAmount, setTransactionAmount] = useState("");
   const [transactionReason, setTransactionReason] = useState("");
@@ -108,10 +109,12 @@ export default function CandleManagementModal({ user, onClose }: CandleManagemen
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Transaction History</h3>
-              <Button onClick={handleAddCandles}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add/Remove Candles
-              </Button>
+              {showAdminControls && (
+                <Button onClick={handleAddCandles}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add/Remove Candles
+                </Button>
+              )}
             </div>
 
             {transactionsLoading ? (
@@ -160,8 +163,9 @@ export default function CandleManagementModal({ user, onClose }: CandleManagemen
         </DialogContent>
       </Dialog>
 
-      {/* Add/Remove Candles Modal */}
-      <Dialog open={showTransactionModal} onOpenChange={setShowTransactionModal}>
+      {/* Add/Remove Candles Modal - Only show if admin controls are enabled */}
+      {showAdminControls && (
+        <Dialog open={showTransactionModal} onOpenChange={setShowTransactionModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -219,7 +223,8 @@ export default function CandleManagementModal({ user, onClose }: CandleManagemen
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        </Dialog>
+      )}
     </>
   );
 }

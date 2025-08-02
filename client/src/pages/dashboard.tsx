@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
-import { Users, UserCheck, Star, Calendar, Menu, UserPlus, Plus, Flame } from "lucide-react";
+import CandleManagementModal from "@/components/modals/candle-management-modal";
+import { Users, UserCheck, Star, Calendar, Menu, UserPlus, Plus, Flame, History } from "lucide-react";
 import { useState } from "react";
 
 export default function DashboardPage() {
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCharacterModalOpen, setIsCharacterModalOpen] = useState(false);
+  const [isCandleHistoryOpen, setIsCandleHistoryOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -136,12 +138,23 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   <h2 className="text-lg font-semibold">Welcome back, {user.playerName || "Player"}!</h2>
                   <div className="flex items-center space-x-4">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Candles: </span>
-                      <Badge variant="outline" className="text-orange-600 border-orange-600">
-                        <Flame className="h-3 w-3 mr-1" />
-                        {user.candles || 0}
-                      </Badge>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Candles: </span>
+                        <Badge variant="outline" className="text-orange-600 border-orange-600">
+                          <Flame className="h-3 w-3 mr-1" />
+                          {user.candles || 0}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCandleHistoryOpen(true)}
+                        className="text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                      >
+                        <History className="h-3 w-3 mr-1" />
+                        History
+                      </Button>
                     </div>
                     <div className="text-xs text-muted-foreground">
                       Use candles to purchase additional XP during event RSVPs
@@ -362,6 +375,15 @@ export default function DashboardPage() {
         isOpen={isCharacterModalOpen}
         onClose={() => setIsCharacterModalOpen(false)}
       />
+
+      {/* Candle History Modal */}
+      {isCandleHistoryOpen && (
+        <CandleManagementModal
+          user={user}
+          onClose={() => setIsCandleHistoryOpen(false)}
+          showAdminControls={false}
+        />
+      )}
     </div>
   );
 }
