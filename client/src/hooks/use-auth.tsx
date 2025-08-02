@@ -82,6 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Logged out",
         description: "See you next time!",
       });
+      // Redirect to login page after logout
+      window.location.href = "/login";
     },
   });
 

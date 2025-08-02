@@ -131,18 +131,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      value={user?.username || ""}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Username cannot be changed
-                    </p>
-                  </div>
+
 
                   <div>
                     <Label htmlFor="email">Email Address</Label>
@@ -197,8 +186,8 @@ export default function SettingsPage() {
                       <Label htmlFor="chapter">Select Chapter</Label>
                       <Select 
                         value={selectedChapterId} 
-                        onValueChange={setSelectedChapterId}
-                        disabled={chaptersLoading}
+                        onValueChange={user?.isAdmin ? setSelectedChapterId : undefined}
+                        disabled={chaptersLoading || !user?.isAdmin}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select your chapter" />
