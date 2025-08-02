@@ -277,7 +277,7 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{character.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
+                            {character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')} {character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')} {character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}
                           </p>
                           {user?.isAdmin && character.playerName && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">

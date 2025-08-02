@@ -22,6 +22,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Unified Candle Management UX**: Improved user experience to show transaction history first, then add/remove buttons; created reusable modal component used across both Users and Candles pages
 - **Integrated Role-Based Admin System**: Unified the role system with admin permissions - when users are assigned "Admin" or "Super Admin" roles, their `is_admin` field is automatically set to true, granting full admin access throughout the application
 - **Chapter Visibility Control**: Inactive chapters are now hidden from regular users but remain visible to admins for management purposes
+- **Complete Character Display Format**: Fixed character displays to show full "Heritage Culture Archetype" format instead of abbreviated "Heritage Archetype" (e.g., "Stoneborn Akhunrasi Tinker" instead of "Stoneborn Tinker")
+- **Username Field Removal**: Completely removed username field from all frontend components, replacing with playerName in dashboard, sidebar, and mobile navigation to prevent charAt errors
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
