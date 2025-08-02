@@ -412,7 +412,7 @@ export default function ChaptersPage() {
               )}
             </div>
 
-            {chapters.length === 0 ? (
+            {chapters.filter((chapter: any) => user?.isAdmin || chapter.isActive).length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
@@ -430,7 +430,9 @@ export default function ChaptersPage() {
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {chapters.map((chapter: any) => (
+                {chapters
+                  .filter((chapter: any) => user?.isAdmin || chapter.isActive)
+                  .map((chapter: any) => (
                   <Card key={chapter.id} className={!chapter.isActive ? "opacity-50" : ""}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
