@@ -182,6 +182,12 @@ export default function ChaptersPage() {
     }
   };
 
+  const handleReactivate = (chapterId: string) => {
+    if (confirm("Are you sure you want to reactivate this chapter? This will make it available for new registrations again.")) {
+      updateChapterMutation.mutate({ id: chapterId, data: { isActive: true } });
+    }
+  };
+
   const handleGeneratePlayerNumber = (chapterId: string) => {
     if (confirm("Generate a new player number for this chapter?")) {
       generatePlayerNumberMutation.mutate(chapterId);
@@ -475,15 +481,27 @@ export default function ChaptersPage() {
                             <Hash className="w-4 h-4 mr-1" />
                             Generate #
                           </Button>
-                          {chapter.isActive && (
+                          {chapter.isActive ? (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(chapter.id)}
+                              disabled={deleteChapterMutation.isPending}
                               className="text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="w-4 h-4 mr-1" />
                               Deactivate
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleReactivate(chapter.id)}
+                              disabled={updateChapterMutation.isPending}
+                              className="text-green-600 hover:text-green-700 border-green-600 hover:border-green-700"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Reactivate
                             </Button>
                           )}
                         </div>
