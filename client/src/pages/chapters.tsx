@@ -495,10 +495,9 @@ export default function ChaptersPage() {
                           ) : (
                             <Button
                               size="sm"
-                              variant="default"
+                              variant="outline"
                               onClick={() => handleReactivate(chapter.id)}
                               disabled={updateChapterMutation.isPending}
-                              className="text-green-600 hover:text-green-700 border-green-600 hover:border-green-700"
                             >
                               <Plus className="w-4 h-4 mr-1" />
                               Reactivate
