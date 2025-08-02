@@ -22,8 +22,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Users, Hash, Menu, Eye } from "lucide-react";
 import { z } from "zod";
 
-const chapterFormSchema = insertChapterSchema.extend({
+const chapterFormSchema = z.object({
+  name: z.string().min(1),
   code: z.string().min(2).max(2).transform(val => val.toUpperCase()),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
 });
 
 type ChapterFormData = z.infer<typeof chapterFormSchema>;
@@ -52,13 +55,13 @@ export default function ChaptersPage() {
     queryKey: ["/api/chapters"],
   });
 
-  const { data: chapterMembers = [], isLoading: membersLoading } = useQuery({
+  const { data: chapterMembers = [], isLoading: membersLoading } = useQuery<any[]>({
     queryKey: ["/api/chapters", selectedChapterForMembers?.id, "members"],
     enabled: !!selectedChapterForMembers?.id && showMembersModal,
   });
 
   const createChapterMutation = useMutation({
-    mutationFn: (data: ChapterFormData) => apiRequest("/api/chapters", "POST", data),
+    mutationFn: (data: ChapterFormData) => apiRequest("POST", "/api/chapters", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
       setIsCreateModalOpen(false);
@@ -78,7 +81,7 @@ export default function ChaptersPage() {
 
   const updateChapterMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ChapterFormData> }) =>
-      apiRequest(`/api/chapters/${id}`, "PATCH", data),
+      apiRequest("PATCH", `/api/chapters/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
       setEditingChapter(null);
@@ -97,7 +100,7 @@ export default function ChaptersPage() {
   });
 
   const deleteChapterMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/chapters/${id}`, "DELETE"),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/chapters/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
       toast({
@@ -115,7 +118,7 @@ export default function ChaptersPage() {
   });
 
   const generatePlayerNumberMutation = useMutation({
-    mutationFn: (chapterId: string) => apiRequest(`/api/chapters/${chapterId}/generate-player-number`, "POST"),
+    mutationFn: (chapterId: string) => apiRequest("POST", `/api/chapters/${chapterId}/generate-player-number`),
     onSuccess: (data: any) => {
       toast({
         title: "Player number generated",
@@ -153,11 +156,13 @@ export default function ChaptersPage() {
 
   const onCreateSubmit = (data: ChapterFormData) => {
     createChapterMutation.mutate(data);
+    createForm.reset();
   };
 
   const onEditSubmit = (data: ChapterFormData) => {
     if (editingChapter) {
       updateChapterMutation.mutate({ id: editingChapter.id, data });
+      editForm.reset();
     }
   };
 
@@ -192,7 +197,7 @@ export default function ChaptersPage() {
     return (
       <div className="flex h-screen bg-background">
         {/* Desktop Sidebar */}
-        {!isMobile && (
+        {!isMobile && user && (
           <Sidebar 
             user={user} 
             currentPath="/chapters"
@@ -200,7 +205,7 @@ export default function ChaptersPage() {
         )}
 
         {/* Mobile Navigation */}
-        {isMobile && (
+        {isMobile && user && (
           <MobileNav
             isOpen={isMobileNavOpen}
             onClose={() => setIsMobileNavOpen(false)}
@@ -252,7 +257,7 @@ export default function ChaptersPage() {
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      {!isMobile && (
+      {!isMobile && user && (
         <Sidebar 
           user={user} 
           currentPath="/chapters"
@@ -260,7 +265,7 @@ export default function ChaptersPage() {
       )}
 
       {/* Mobile Navigation */}
-      {isMobile && (
+      {isMobile && user && (
         <MobileNav
           isOpen={isMobileNavOpen}
           onClose={() => setIsMobileNavOpen(false)}
