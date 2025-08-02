@@ -478,9 +478,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserRole(id: string, roleId: string): Promise<User> {
+    // Get the role to determine if it grants admin privileges
+    const role = await this.getRole(roleId);
+    const isAdmin = role && (role.name === 'Admin' || role.name === 'Super Admin');
+    
     const [user] = await db
       .update(users)
-      .set({ roleId })
+      .set({ roleId, isAdmin })
       .where(eq(users.id, id))
       .returning();
     return user;

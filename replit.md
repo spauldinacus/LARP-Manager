@@ -20,6 +20,8 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Chapter Members Title Fix**: Added missing title field to chapter members API query, restoring title badges in member lists
 - **Comprehensive Candle Management System**: Created admin-only candle management functionality with player listing, transaction history, add/remove capabilities, and alphabetical sorting by player name
 - **Unified Candle Management UX**: Improved user experience to show transaction history first, then add/remove buttons; created reusable modal component used across both Users and Candles pages
+- **Integrated Role-Based Admin System**: Unified the role system with admin permissions - when users are assigned "Admin" or "Super Admin" roles, their `is_admin` field is automatically set to true, granting full admin access throughout the application
+- **Chapter Visibility Control**: Inactive chapters are now hidden from regular users but remain visible to admins for management purposes
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
