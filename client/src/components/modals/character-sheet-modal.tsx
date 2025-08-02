@@ -527,8 +527,8 @@ export default function CharacterSheetModal({
                   </CardContent>
                 </Card>
 
-                {/* Experience Spending Section */}
-                {user && ((character as any)?.userId === user.id || user.isAdmin) && (character as any)?.experience > 0 && !(character as any)?.isRetired && (
+                {/* Experience Spending Section - Admin Only */}
+                {user?.isAdmin && (character as any)?.experience > 0 && !(character as any)?.isRetired && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">

@@ -273,7 +273,7 @@ export default function CharactersPage() {
                         <Eye className="h-4 w-4 mr-2" />
                         View Sheet
                       </Button>
-                      {(user?.isAdmin || character.userId === user?.id) && (
+                      {user?.isAdmin && (
                         <Button
                           variant="destructive"
                           size="sm"

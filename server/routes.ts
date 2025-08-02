@@ -349,16 +349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/characters/:id", requireAuth, async (req, res) => {
+  app.delete("/api/characters/:id", requireAdmin, async (req, res) => {
     try {
       const character = await storage.getCharacter(req.params.id);
       if (!character) {
         return res.status(404).json({ message: "Character not found" });
-      }
-      
-      // Check ownership unless admin
-      if (!req.session.isAdmin && character.userId !== req.session.userId) {
-        return res.status(403).json({ message: "Access denied" });
       }
       
       await storage.deleteCharacter(req.params.id);
@@ -547,8 +542,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get candle transactions for a user with admin details
-  app.get("/api/candles/transactions/:userId", requireAdmin, async (req, res) => {
+  app.get("/api/candles/transactions/:userId", requireAuth, async (req, res) => {
     try {
+      // Users can only view their own transactions unless they're admin
+      if (!req.session.isAdmin && req.params.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       const transactions = await storage.getCandleTransactionsWithAdminInfo(req.params.userId);
       res.json(transactions);
     } catch (error) {

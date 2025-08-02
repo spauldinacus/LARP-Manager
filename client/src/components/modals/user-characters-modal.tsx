@@ -91,7 +91,7 @@ export default function UserCharactersModal({
           <DialogTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
             <span>
-              {userLoading ? "Loading..." : `${(user as any)?.username || "User"}'s Characters`}
+              {userLoading ? "Loading..." : `${(user as any)?.playerName || "User"}'s Characters`}
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -111,11 +111,11 @@ export default function UserCharactersModal({
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-lg font-medium text-primary-foreground">
-                          {(user as any).username.charAt(0).toUpperCase()}
+                          {((user as any).playerName || "U").charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold">{(user as any).username}</h3>
+                        <h3 className="text-lg font-semibold">{(user as any).playerName || "Player"}</h3>
                         <p className="text-muted-foreground">{(user as any).email}</p>
                       </div>
                     </div>
@@ -209,19 +209,7 @@ export default function UserCharactersModal({
                             onClick={() => setEditingCharacter(character.id)}
                           >
                             <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${character.name}?`)) {
-                                deleteCharacterMutation.mutate(character.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Delete
+                            View Details
                           </Button>
                         </div>
                       </CardContent>
