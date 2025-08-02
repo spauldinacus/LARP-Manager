@@ -64,7 +64,7 @@ export interface IStorage {
 
   // User methods
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
@@ -200,7 +200,6 @@ export class DatabaseStorage implements IStorage {
     const members = await db
       .select({
         id: users.id,
-        username: users.username,
         playerName: users.playerName,
         playerNumber: users.playerNumber,
         title: users.title,
@@ -268,10 +267,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
+
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
@@ -340,7 +336,6 @@ export class DatabaseStorage implements IStorage {
     const usersData = await db
       .select({
         id: users.id,
-        username: users.username,
         playerName: users.playerName,
         email: users.email,
         playerNumber: users.playerNumber,
@@ -404,7 +399,7 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
-      console.log("Found user:", basicUser.username);
+      console.log("Found user:", basicUser.playerName);
       
       // Get role data separately if user has a role
       let roleData = null;
@@ -494,7 +489,6 @@ export class DatabaseStorage implements IStorage {
     const usersWithCharacters = await db
       .select({
         id: users.id,
-        username: users.username,
         email: users.email,
         playerName: users.playerName,
         title: users.title,

@@ -9,7 +9,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, playerName: string, email: string, password: string, chapterId?: string) => Promise<void>;
+  register: (playerName: string, email: string, password: string, chapterId?: string) => Promise<void>;
   logout: () => Promise<void>;
   refetch: () => Promise<any>;
 }
@@ -54,8 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: ({ username, playerName, email, password, chapterId }: { username: string; playerName: string; email: string; password: string; chapterId?: string }) =>
-      authApi.register({ username, playerName, email, password, chapterId }),
+    mutationFn: ({ playerName, email, password, chapterId }: { playerName: string; email: string; password: string; chapterId?: string }) =>
+      authApi.register({ playerName, email, password, chapterId }),
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.setQueryData(["/api/auth/me"], data);
@@ -89,8 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loginMutation.mutateAsync({ email, password });
   };
 
-  const register = async (username: string, playerName: string, email: string, password: string, chapterId?: string) => {
-    await registerMutation.mutateAsync({ username, playerName, email, password, chapterId });
+  const register = async (playerName: string, email: string, password: string, chapterId?: string) => {
+    await registerMutation.mutateAsync({ playerName, email, password, chapterId });
   };
 
   const logout = async () => {

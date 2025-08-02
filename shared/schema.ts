@@ -6,7 +6,6 @@ import { z } from "zod";
 // Define users table first to avoid circular references
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
   playerName: text("player_name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),

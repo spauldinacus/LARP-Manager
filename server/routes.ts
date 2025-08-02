@@ -17,7 +17,7 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  username: z.string().min(3),
+  playerName: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
   chapterId: z.string().optional(),
@@ -120,9 +120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, playerName, email, password, chapterId } = req.body;
+      const { playerName, email, password, chapterId } = req.body;
       
-      if (!username || !playerName || !email || !password) {
+      if (!playerName || !email || !password) {
         return res.status(400).json({ message: "All fields are required" });
       }
       
@@ -132,17 +132,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User already exists" });
       }
 
-      const existingUsername = await storage.getUserByUsername(username);
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username already taken" });
-      }
+
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
       
       // Create user
       const user = await storage.createUser({
-        username,
         playerName,
         email,
         password: hashedPassword,
@@ -154,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.isAdmin = user.isAdmin;
       req.session.userRole = user.roleId || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
@@ -183,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.isAdmin = user.isAdmin;
       req.session.userRole = user.roleId || 'user';
 
-      res.json({ user: { id: user.id, username: user.username, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
+      res.json({ user: { id: user.id, playerName: user.playerName, email: user.email, isAdmin: user.isAdmin, roleId: user.roleId, candles: user.candles || 0, playerNumber: user.playerNumber, chapterId: user.chapterId } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
@@ -675,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const updateData = {
         playerName: req.body.playerName,
-        username: req.body.username,
+
         email: req.body.email,
         title: req.body.title || null,
         roleId: req.body.roleId || null,
@@ -1460,7 +1456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         user: { 
           id: updatedUser.id, 
-          username: updatedUser.username, 
+ 
           playerName: updatedUser.playerName,
           email: updatedUser.email, 
           isAdmin: updatedUser.isAdmin 

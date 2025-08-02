@@ -2,7 +2,6 @@ import { apiRequest } from "./queryClient";
 
 export interface AuthUser {
   id: string;
-  username: string;
   playerName?: string;
   email: string;
   playerNumber?: string;
@@ -18,7 +17,6 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-  username: string;
   playerName: string;
   email: string;
   password: string;

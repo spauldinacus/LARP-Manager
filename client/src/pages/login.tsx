@@ -19,7 +19,6 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
   playerName: z.string().min(2, "Player name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -52,7 +51,6 @@ export default function LoginPage() {
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
       playerName: "",
       email: "",
       password: "",
@@ -81,7 +79,7 @@ export default function LoginPage() {
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      await register(data.username, data.playerName, data.email, data.password, data.chapterId);
+      await register(data.playerName, data.email, data.password, data.chapterId);
       setLocation("/dashboard");
     } catch (error) {
       // Error handling is done in the auth hook
@@ -158,21 +156,7 @@ export default function LoginPage() {
 
             <TabsContent value="register" className="space-y-4 mt-6">
               <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-                <div>
-                  <Label htmlFor="register-username">Username</Label>
-                  <Input
-                    id="register-username"
-                    type="text"
-                    placeholder="Choose a username"
-                    {...registerForm.register("username")}
-                    className={registerForm.formState.errors.username ? "border-destructive" : ""}
-                  />
-                  {registerForm.formState.errors.username && (
-                    <p className="text-sm text-destructive mt-1">
-                      {registerForm.formState.errors.username.message}
-                    </p>
-                  )}
-                </div>
+
 
                 <div>
                   <Label htmlFor="register-player-name">Player Name</Label>
