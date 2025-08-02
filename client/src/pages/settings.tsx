@@ -76,15 +76,21 @@ export default function SettingsPage() {
       return;
     }
 
-    updateUserMutation.mutate({
+    const updateData: any = {
       playerName: playerName.trim(),
-      chapterId: selectedChapterId,
-    });
+    };
+
+    // Only include chapter assignment if user is admin
+    if (user?.isAdmin) {
+      updateData.chapterId = selectedChapterId;
+    }
+
+    updateUserMutation.mutate(updateData);
   };
 
   const hasChanges = 
     playerName !== (user?.playerName || "") || 
-    selectedChapterId !== (user?.chapterId || "");
+    (user?.isAdmin && selectedChapterId !== (user?.chapterId || ""));
 
   return (
     <div className="flex h-screen bg-background">
@@ -201,7 +207,9 @@ export default function SettingsPage() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Choose the LARP chapter you primarily play with
+                        {user?.isAdmin 
+                          ? "Choose the LARP chapter you primarily play with" 
+                          : "Chapter assignment can only be changed by administrators"}
                       </p>
                     </div>
 

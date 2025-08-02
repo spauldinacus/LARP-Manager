@@ -119,7 +119,7 @@ export default function DashboardPage() {
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-primary-foreground">
-                    {user.username.charAt(0).toUpperCase()}
+                    {user.playerName?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <h2 className="text-lg font-semibold">Welcome back, {user.playerName || user.username}!</h2>
+                  <h2 className="text-lg font-semibold">Welcome back, {user.playerName || "Player"}!</h2>
                   <div className="flex items-center space-x-4">
                     <div className="text-sm">
                       <span className="text-muted-foreground">Candles: </span>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <span className="text-lg font-semibold text-primary">
-                    {user.username.charAt(0).toUpperCase()}
+                    {user.playerName?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
               </div>
