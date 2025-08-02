@@ -1229,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/chapters", requireAdmin, async (req, res) => {
     try {
-      const chapterData = insertChapterSchema.parse(req.body);
+      const chapterData = insertChapterSchema.omit({ createdBy: true }).parse(req.body);
       const chapter = await storage.createChapter({
         ...chapterData,
         createdBy: req.session.userId!,
