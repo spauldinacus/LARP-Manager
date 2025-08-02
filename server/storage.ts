@@ -190,8 +190,8 @@ export class DatabaseStorage implements IStorage {
       })
       .from(chapters)
       .leftJoin(users, eq(chapters.id, users.chapterId))
-      .where(eq(chapters.isActive, true))
-      .groupBy(chapters.id, chapters.name, chapters.code, chapters.description, chapters.isActive, chapters.createdBy, chapters.createdAt);
+      .groupBy(chapters.id, chapters.name, chapters.code, chapters.description, chapters.isActive, chapters.createdBy, chapters.createdAt)
+      .orderBy(desc(chapters.createdAt));
 
     return chaptersWithCounts;
   }
