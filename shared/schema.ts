@@ -78,10 +78,10 @@ export const characters = pgTable("characters", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   playerName: text("player_name").notNull(),
-  heritage: text("heritage").notNull(),
-  culture: text("culture").notNull(),
-  archetype: text("archetype").notNull(),
-  secondArchetype: text("second_archetype"), // Optional second archetype for 50 XP
+  heritage: uuid("heritage").references(() => heritagesTable.id).notNull(),
+  culture: uuid("culture").references(() => culturesTable.id).notNull(),
+  archetype: uuid("archetype").references(() => archetypesTable.id).notNull(),
+  secondArchetype: uuid("second_archetype").references(() => archetypesTable.id), // Optional second archetype for 50 XP
   body: integer("body").notNull(),
   stamina: integer("stamina").notNull(),
   experience: integer("experience").default(0).notNull(),
