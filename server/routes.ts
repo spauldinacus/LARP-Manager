@@ -1903,6 +1903,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { skillId } = req.body;
       await storage.addHeritageSecondarySkill(req.params.id, skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Secondary skill added to heritage successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add secondary skill to heritage" });
@@ -1912,6 +1916,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/heritages/:id/secondary-skills/:skillId", requireAdmin, async (req, res) => {
     try {
       await storage.removeHeritageSecondarySkill(req.params.id, req.params.skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Secondary skill removed from heritage successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to remove secondary skill from heritage" });
@@ -1943,6 +1951,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { skillId } = req.body;
       await storage.addArchetypePrimarySkill(req.params.id, skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Primary skill added to archetype successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add primary skill to archetype" });
@@ -1952,6 +1964,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/archetypes/:id/primary-skills/:skillId", requireAdmin, async (req, res) => {
     try {
       await storage.removeArchetypePrimarySkill(req.params.id, req.params.skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Primary skill removed from archetype successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to remove primary skill from archetype" });
@@ -1963,6 +1979,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { skillId } = req.body;
       await storage.addArchetypeSecondarySkill(req.params.id, skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Secondary skill added to archetype successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add secondary skill to archetype" });
@@ -1972,9 +1992,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/archetypes/:id/secondary-skills/:skillId", requireAdmin, async (req, res) => {
     try {
       await storage.removeArchetypeSecondarySkill(req.params.id, req.params.skillId);
+      
+      // Recalculate XP for all characters since skill costs may have changed
+      await storage.refreshAllCharactersXP();
+      
       res.json({ message: "Secondary skill removed from archetype successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to remove secondary skill from archetype" });
+    }
+  });
+
+  // Admin endpoint to recalculate XP for all characters
+  app.post("/api/admin/recalculate-xp", requireAdmin, async (req, res) => {
+    try {
+      await storage.refreshAllCharactersXP();
+      res.json({ message: "XP recalculated for all characters successfully" });
+    } catch (error) {
+      console.error("Error recalculating XP:", error);
+      res.status(500).json({ message: "Failed to recalculate XP" });
     }
   });
 

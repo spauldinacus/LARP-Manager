@@ -888,6 +888,122 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Dynamic XP recalculation based on current game data
+  async recalculateCharacterXpWithDynamicCosts(characterId: string): Promise<void> {
+    try {
+      const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
+      if (!character) return;
+
+      // Get current dynamic game data
+      const [heritage] = await db
+        .select({
+          heritage: heritagesTable,
+          secondarySkills: sql<any>`array_agg(json_build_object('id', ${skillsTable.id}, 'name', ${skillsTable.name}))`
+        })
+        .from(heritagesTable)
+        .leftJoin(heritageSecondarySkills, eq(heritagesTable.id, heritageSecondarySkills.heritageId))
+        .leftJoin(skillsTable, eq(heritageSecondarySkills.skillId, skillsTable.id))
+        .where(eq(heritagesTable.id, character.heritage))
+        .groupBy(heritagesTable.id);
+
+      const [archetype] = await db
+        .select({
+          archetype: archetypesTable,
+          primarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', p_skills.id, 'name', p_skills.name))`,
+          secondarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', s_skills.id, 'name', s_skills.name))`
+        })
+        .from(archetypesTable)
+        .leftJoin(archetypePrimarySkills, eq(archetypesTable.id, archetypePrimarySkills.archetypeId))
+        .leftJoin(skillsTable.as('p_skills'), eq(archetypePrimarySkills.skillId, sql`p_skills.id`))
+        .leftJoin(archetypeSecondarySkills, eq(archetypesTable.id, archetypeSecondarySkills.archetypeId))
+        .leftJoin(skillsTable.as('s_skills'), eq(archetypeSecondarySkills.skillId, sql`s_skills.id`))
+        .where(eq(archetypesTable.id, character.archetype))
+        .groupBy(archetypesTable.id);
+
+      let secondArchetype = null;
+      if (character.secondArchetype) {
+        [secondArchetype] = await db
+          .select({
+            archetype: archetypesTable,
+            primarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', p_skills.id, 'name', p_skills.name))`,
+            secondarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', s_skills.id, 'name', s_skills.name))`
+          })
+          .from(archetypesTable)
+          .leftJoin(archetypePrimarySkills, eq(archetypesTable.id, archetypePrimarySkills.archetypeId))
+          .leftJoin(skillsTable.as('p_skills'), eq(archetypePrimarySkills.skillId, sql`p_skills.id`))
+          .leftJoin(archetypeSecondarySkills, eq(archetypesTable.id, archetypeSecondarySkills.archetypeId))
+          .leftJoin(skillsTable.as('s_skills'), eq(archetypeSecondarySkills.skillId, sql`s_skills.id`))
+          .where(eq(archetypesTable.id, character.secondArchetype))
+          .groupBy(archetypesTable.id);
+      }
+
+      // Calculate dynamic skill costs
+      let totalSkillXpSpent = 0;
+      if (character.skills && character.skills.length > 0) {
+        for (const skillName of character.skills) {
+          const skillCost = this.calculateDynamicSkillCost(skillName, heritage, archetype, secondArchetype);
+          totalSkillXpSpent += skillCost;
+        }
+      }
+
+      // Calculate attribute costs (body/stamina above heritage base)
+      const { getAttributeCost } = await import("@shared/schema");
+      const heritageBase = heritage?.heritage || { body: 10, stamina: 10 };
+      
+      let totalAttributeXpSpent = 0;
+      if (character.body > heritageBase.body) {
+        for (let i = heritageBase.body; i < character.body; i++) {
+          totalAttributeXpSpent += getAttributeCost(i, 1);
+        }
+      }
+      if (character.stamina > heritageBase.stamina) {
+        for (let i = heritageBase.stamina; i < character.stamina; i++) {
+          totalAttributeXpSpent += getAttributeCost(i, 1);
+        }
+      }
+
+      // Add second archetype cost if applicable
+      const secondArchetypeXpSpent = character.secondArchetype ? 50 : 0;
+
+      const newTotalXpSpent = totalSkillXpSpent + totalAttributeXpSpent + secondArchetypeXpSpent;
+
+      // Update character with new calculated values
+      await this.updateCharacter(characterId, { 
+        totalXpSpent: newTotalXpSpent
+      });
+
+    } catch (error) {
+      console.error(`Error recalculating dynamic XP for character ${characterId}:`, error);
+    }
+  }
+
+  private calculateDynamicSkillCost(skillName: string, heritage: any, archetype: any, secondArchetype: any): number {
+    // Get all skills to find the skill ID
+    const allSkills = [...(heritage?.secondarySkills || []), ...(archetype?.primarySkills || []), ...(archetype?.secondarySkills || [])];
+    if (secondArchetype) {
+      allSkills.push(...(secondArchetype.primarySkills || []), ...(secondArchetype.secondarySkills || []));
+    }
+    
+    const skill = allSkills.find(s => s?.name === skillName);
+    if (!skill) return 20; // Default cost if skill not found
+
+    // Check if skill is a primary skill from any archetype (5 XP)
+    if (archetype?.primarySkills?.some((s: any) => s?.name === skillName) ||
+        secondArchetype?.primarySkills?.some((s: any) => s?.name === skillName)) {
+      return 5;
+    }
+    
+    // Check if skill is a secondary skill from heritage or any archetype (10 XP)
+    if (heritage?.secondarySkills?.some((s: any) => s?.name === skillName) || 
+        archetype?.secondarySkills?.some((s: any) => s?.name === skillName) ||
+        secondArchetype?.secondarySkills?.some((s: any) => s?.name === skillName)) {
+      return 10;
+    }
+    
+    // Default cost for all other skills (20 XP)
+    return 20;
+  }
+
   async deleteExperienceEntry(id: string): Promise<void> {
     // Get the entry before deleting to update character's total experience
     const [entry] = await db.select().from(experienceEntries).where(eq(experienceEntries.id, id));
@@ -1362,14 +1478,26 @@ export class DatabaseStorage implements IStorage {
     // First ensure all attribute purchases are tracked
     await this.ensureAttributeEntriesExist(characterId);
     
-    // Then recalculate totals
-    const totalExp = await this.getTotalExperienceByCharacter(characterId);
-    const totalXpSpent = await this.calculateTotalXpSpent(characterId);
+    // Then recalculate totals using dynamic costs
+    await this.recalculateCharacterXpWithDynamicCosts(characterId);
     
-    await this.updateCharacter(characterId, { 
-      experience: totalExp,
-      totalXpSpent: totalXpSpent
-    });
+    // Update available XP
+    const totalExp = await this.getTotalExperienceByCharacter(characterId);
+    const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
+    if (character) {
+      await this.updateCharacter(characterId, { 
+        experience: totalExp - (character.totalXpSpent || 0)
+      });
+    }
+  }
+
+  // Recalculate XP for all characters (useful when game data changes)
+  async refreshAllCharactersXP(): Promise<void> {
+    const allCharacters = await db.select({ id: characters.id }).from(characters);
+    
+    for (const character of allCharacters) {
+      await this.refreshCharacterXP(character.id);
+    }
   }
 
   async ensureAttributeEntriesExist(characterId: string): Promise<void> {

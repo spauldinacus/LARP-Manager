@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit2, Trash2, Link, Unlink, Settings } from "lucide-react";
+import { Plus, Edit2, Trash2, Link, Unlink, Settings, Calculator } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import Sidebar from "@/components/layout/sidebar";
@@ -65,6 +66,26 @@ export default function GameDataPage() {
   const { user } = useAuth();
   const [location] = useLocation();
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+
+  // XP Recalculation mutation
+  const recalculateXpMutation = useMutation({
+    mutationFn: () => apiRequest("/api/admin/recalculate-xp", { method: "POST" }),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "XP recalculated for all characters successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to recalculate XP",
+        variant: "destructive",
+      });
+    },
+  });
 
   if (!user) {
     return <div>Loading...</div>;
@@ -415,6 +436,15 @@ export default function GameDataPage() {
               <h1 className="text-3xl font-bold">Game Data Management</h1>
               <p className="text-muted-foreground">Manage dynamic game data including skills, heritages, cultures, and archetypes</p>
             </div>
+            <Button
+              onClick={() => recalculateXpMutation.mutate()}
+              disabled={recalculateXpMutation.isPending}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Calculator className="h-4 w-4" />
+              {recalculateXpMutation.isPending ? "Recalculating..." : "Recalculate All XP"}
+            </Button>
           </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
