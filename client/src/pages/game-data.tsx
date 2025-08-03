@@ -14,6 +14,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit2, Trash2, Link, Unlink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import Sidebar from "@/components/layout/sidebar";
+import MobileNav from "@/components/layout/mobile-nav";
+import { useLocation } from "wouter";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu } from "lucide-react";
 
 // Form schemas
 const skillSchema = z.object({
@@ -48,7 +54,15 @@ export default function GameDataPage() {
   const [activeTab, setActiveTab] = useState("skills");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [location] = useLocation();
+  const isMobile = useIsMobile();
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   // Queries
   const { data: skills = [], isLoading: skillsLoading } = useQuery({
@@ -301,13 +315,38 @@ export default function GameDataPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Game Data Management</h1>
-          <p className="text-muted-foreground">Manage dynamic game data including skills, heritages, cultures, and archetypes</p>
-        </div>
-      </div>
+    <div className="flex h-screen bg-background">
+      {!isMobile && <Sidebar user={user} currentPath={location} />}
+      <MobileNav
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        user={user}
+        currentPath={location}
+      />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header */}
+        {isMobile && (
+          <div className="lg:hidden bg-background border-b border-border p-4 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+            <h1 className="text-lg font-semibold">Game Data</h1>
+            <div className="w-10" />
+          </div>
+        )}
+
+        <div className="flex-1 overflow-auto p-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Game Data Management</h1>
+              <p className="text-muted-foreground">Manage dynamic game data including skills, heritages, cultures, and archetypes</p>
+            </div>
+          </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
@@ -848,6 +887,8 @@ export default function GameDataPage() {
           </div>
         </TabsContent>
       </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
