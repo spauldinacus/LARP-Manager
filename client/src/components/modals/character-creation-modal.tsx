@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { getSkillCost, getAttributeCost, HERITAGE_BASES, HERITAGES, CULTURES, ARCHETYPES, SKILLS, type Heritage, type Skill } from "@shared/schema";
+import { getSkillCost, getAttributeCost, HERITAGE_BASES, type Heritage, type Skill } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -41,9 +41,47 @@ const characterSchema = z.object({
 type CharacterForm = z.infer<typeof characterSchema>;
 
 interface SelectedSkill {
-  name: Skill;
+  id: string;
+  name: string;
   cost: number;
   category: 'primary' | 'secondary' | 'other';
+}
+
+interface DynamicSkill {
+  id: string;
+  name: string;
+  description?: string;
+  prerequisiteSkillId?: string | null;
+}
+
+interface DynamicHeritage {
+  id: string;
+  name: string;
+  body: number;
+  stamina: number;
+  icon: string;
+  description: string;
+  costumeRequirements: string;
+  benefit: string;
+  weakness: string;
+  secondarySkills?: DynamicSkill[];
+}
+
+interface DynamicCulture {
+  id: string;
+  name: string;
+  heritageId: string;
+  heritageName: string;
+  description?: string;
+  secondarySkills?: DynamicSkill[];
+}
+
+interface DynamicArchetype {
+  id: string;
+  name: string;
+  description?: string;
+  primarySkills?: DynamicSkill[];
+  secondarySkills?: DynamicSkill[];
 }
 
 interface CharacterCreationModalProps {
@@ -65,11 +103,32 @@ export default function CharacterCreationModal({
 }: CharacterCreationModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedHeritage, setSelectedHeritage] = useState<Heritage | null>(null);
+  const [selectedHeritage, setSelectedHeritage] = useState<DynamicHeritage | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<SelectedSkill[]>([]);
   const [availableExperience, setAvailableExperience] = useState(25);
   const [additionalBody, setAdditionalBody] = useState(0);
   const [additionalStamina, setAdditionalStamina] = useState(0);
+
+  // Fetch dynamic game data
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+    queryKey: ["/api/admin/skills"],
+    enabled: isOpen,
+  });
+
+  const { data: heritages = [], isLoading: heritagesLoading } = useQuery({
+    queryKey: ["/api/admin/heritages"], 
+    enabled: isOpen,
+  });
+
+  const { data: cultures = [], isLoading: culturesLoading } = useQuery({
+    queryKey: ["/api/admin/cultures"],
+    enabled: isOpen,
+  });
+
+  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
+    queryKey: ["/api/admin/archetypes"],
+    enabled: isOpen,
+  });
 
   const form = useForm<CharacterForm>({
     resolver: zodResolver(characterSchema),
@@ -88,16 +147,37 @@ export default function CharacterCreationModal({
     return HERITAGE_BASES[heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
   };
 
-  // Use the corrected skill cost calculation from shared schema
-  const getSkillCostForCharacter = (skill: Skill, heritage: string, archetype: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
-    const cost = getSkillCost(String(skill), heritage, archetype);
-    return { 
-      cost, 
-      category: cost === 5 ? 'primary' as const : cost === 10 ? 'secondary' as const : 'other' as const 
-    };
+  // Calculate skill cost dynamically based on selected heritage and archetype
+  const getSkillCostForCharacter = (skill: DynamicSkill, heritageId: string, archetypeId: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
+    const selectedHeritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
+    const selectedArchetype = archetypes.find((a: DynamicArchetype) => a.id === archetypeId);
+    
+    // Check if skill is a heritage secondary skill
+    if (selectedHeritage?.secondarySkills?.some(s => s.id === skill.id)) {
+      return { cost: 10, category: 'secondary' };
+    }
+    
+    // Check if skill is an archetype primary skill
+    if (selectedArchetype?.primarySkills?.some(s => s.id === skill.id)) {
+      return { cost: 5, category: 'primary' };
+    }
+    
+    // Check if skill is an archetype secondary skill
+    if (selectedArchetype?.secondarySkills?.some(s => s.id === skill.id)) {
+      return { cost: 10, category: 'secondary' };
+    }
+    
+    // Default cost for other skills
+    return { cost: 15, category: 'other' };
   };
 
-  const addSkill = (skill: Skill) => {
+  // Check if skill prerequisites are met
+  const hasPrerequisites = (skill: DynamicSkill): boolean => {
+    if (!skill.prerequisiteSkillId) return true;
+    return selectedSkills.some(s => s.id === skill.prerequisiteSkillId);
+  };
+
+  const addSkill = (skill: DynamicSkill) => {
     const heritage = form.watch("heritage");
     const culture = form.watch("culture");
     const archetype = form.watch("archetype");
@@ -106,6 +186,17 @@ export default function CharacterCreationModal({
       toast({
         title: "Selection Required",
         description: "Please select heritage and archetype before adding skills.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check prerequisites
+    if (!hasPrerequisites(skill)) {
+      const prerequisiteSkill = skills.find((s: DynamicSkill) => s.id === skill.prerequisiteSkillId);
+      toast({
+        title: "Prerequisite Required",
+        description: `This skill requires "${prerequisiteSkill?.name}" to be learned first.`,
         variant: "destructive",
       });
       return;
@@ -122,7 +213,7 @@ export default function CharacterCreationModal({
       return;
     }
 
-    if (selectedSkills.some(s => s.name === skill)) {
+    if (selectedSkills.some(s => s.id === skill.id)) {
       toast({
         title: "Skill Already Selected",
         description: "This skill has already been added to your character.",
@@ -132,22 +223,23 @@ export default function CharacterCreationModal({
     }
 
     const newSkill: SelectedSkill = {
-      name: skill,
+      id: skill.id,
+      name: skill.name,
       cost: skillData.cost,
       category: skillData.category,
     };
 
     setSelectedSkills([...selectedSkills, newSkill]);
-    form.setValue("selectedSkills", [...selectedSkills, newSkill].map(s => s.name));
+    form.setValue("selectedSkills", [...selectedSkills, newSkill].map(s => s.id));
   };
 
-  const removeSkill = (skill: Skill) => {
-    const skillToRemove = selectedSkills.find(s => s.name === skill);
+  const removeSkill = (skillId: string) => {
+    const skillToRemove = selectedSkills.find(s => s.id === skillId);
     if (!skillToRemove) return;
 
-    const updatedSkills = selectedSkills.filter(s => s.name !== skill);
+    const updatedSkills = selectedSkills.filter(s => s.id !== skillId);
     setSelectedSkills(updatedSkills);
-    form.setValue("selectedSkills", updatedSkills.map(s => s.name));
+    form.setValue("selectedSkills", updatedSkills.map(s => s.id));
   };
 
   // Calculate used experience from selected skills only
@@ -216,9 +308,11 @@ export default function CharacterCreationModal({
 
   const watchedCulture = form.watch("culture");
   const watchedArchetype = form.watch("archetype");
-  const availableCultures = watchedHeritage ? CULTURES[watchedHeritage as Heritage] || [] : [];
-  const selectedCultureData = availableCultures.find(c => c.id === watchedCulture);
-  const selectedArchetypeData = ARCHETYPES.find(a => a.id === watchedArchetype);
+  const availableCultures = watchedHeritage 
+    ? cultures.filter((c: DynamicCulture) => c.heritageId === watchedHeritage) 
+    : [];
+  const selectedCultureData = availableCultures.find((c: DynamicCulture) => c.id === watchedCulture);
+  const selectedArchetypeData = archetypes.find((a: DynamicArchetype) => a.id === watchedArchetype);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -265,8 +359,8 @@ export default function CharacterCreationModal({
           <div>
             <Label className="text-base font-medium mb-3 block">Heritage</Label>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              {HERITAGES.map((heritage) => {
-                const Icon = heritageIcons[heritage.id];
+              {heritages.map((heritage: DynamicHeritage) => {
+                const Icon = heritageIcons[heritage.icon as keyof typeof heritageIcons] || User;
                 const isSelected = form.watch("heritage") === heritage.id;
 
                 return (
@@ -279,6 +373,7 @@ export default function CharacterCreationModal({
                     onClick={() => {
                       form.setValue("heritage", heritage.id);
                       form.setValue("culture", ""); // Reset culture when heritage changes
+                      setSelectedHeritage(heritage);
                     }}
                   >
                     <div className="text-center">
@@ -338,7 +433,7 @@ export default function CharacterCreationModal({
                   <SelectValue placeholder="Select Archetype" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ARCHETYPES.map((archetype) => (
+                  {archetypes.map((archetype: DynamicArchetype) => (
                     <SelectItem key={archetype.id} value={archetype.id}>
                       {archetype.name}
                     </SelectItem>
@@ -387,7 +482,7 @@ export default function CharacterCreationModal({
 
               {/* Heritage Details */}
               {(() => {
-                const selectedHeritageData = HERITAGES.find(h => h.id === watchedHeritage);
+                const selectedHeritageData = heritages.find((h: DynamicHeritage) => h.id === watchedHeritage);
                 return selectedHeritageData ? (
                   <div className="bg-muted/50 rounded-lg p-4">
                     <h4 className="font-medium mb-3">Heritage Details: {selectedHeritageData.name}</h4>
@@ -536,7 +631,7 @@ export default function CharacterCreationModal({
                         <span className="text-xs opacity-70">({skill.cost} XP)</span>
                         <button
                           type="button"
-                          onClick={() => removeSkill(skill.name)}
+                          onClick={() => removeSkill(skill.id)}
                           className="ml-1 text-xs hover:text-destructive"
                         >
                           <Minus className="h-3 w-3" />
@@ -552,38 +647,63 @@ export default function CharacterCreationModal({
                 <h4 className="font-medium mb-3">Add Skills</h4>
                 <div className="max-h-64 overflow-y-auto">
                   <div className="grid gap-1">
-                    {SKILLS.filter(skill => !selectedSkills.some(s => s.name === skill)).map((skill) => {
-                      const heritage = form.watch("heritage");
-                      const archetype = form.watch("archetype");
-                      const skillData = getSkillCostForCharacter(skill, heritage, archetype);
-                      
-                      return (
-                        <div
-                          key={skill}
-                          className="flex items-center justify-between p-2 rounded hover:bg-muted/70 transition-colors"
-                        >
-                          <div className="flex-1">
-                            <span className="text-sm">{skill}</span>
-                            <Badge
-                              variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
-                              className="ml-2 text-xs"
-                            >
-                              {skillData.cost} XP
-                            </Badge>
-                          </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => addSkill(skill)}
-                            disabled={skillData.cost > availableExperience}
-                            className="h-8 w-8 p-0"
+                    {skillsLoading ? (
+                      <div className="text-center py-4">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                        Loading skills...
+                      </div>
+                    ) : (
+                      skills.filter((skill: DynamicSkill) => !selectedSkills.some(s => s.id === skill.id)).map((skill: DynamicSkill) => {
+                        const heritage = form.watch("heritage");
+                        const archetype = form.watch("archetype");
+                        const skillData = getSkillCostForCharacter(skill, heritage, archetype);
+                        const prerequisitesMet = hasPrerequisites(skill);
+                        
+                        return (
+                          <div
+                            key={skill.id}
+                            className={`flex items-center justify-between p-2 rounded transition-colors ${
+                              prerequisitesMet ? 'hover:bg-muted/70' : 'opacity-50'
+                            }`}
                           >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      );
-                    })}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">{skill.name}</span>
+                                <Badge
+                                  variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
+                                  className="text-xs"
+                                >
+                                  {skillData.cost} XP
+                                </Badge>
+                                {!prerequisitesMet && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Prerequisites Required
+                                  </Badge>
+                                )}
+                              </div>
+                              {skill.description && (
+                                <p className="text-xs text-muted-foreground mt-1">{skill.description}</p>
+                              )}
+                              {skill.prerequisiteSkillId && (
+                                <p className="text-xs text-yellow-600 mt-1">
+                                  Requires: {skills.find((s: DynamicSkill) => s.id === skill.prerequisiteSkillId)?.name}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => addSkill(skill)}
+                              disabled={skillData.cost > availableExperience || !prerequisitesMet}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
