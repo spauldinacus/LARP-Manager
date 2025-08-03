@@ -27,6 +27,9 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Dynamic Game Data Management System**: Created comprehensive admin-only system for managing heritages, cultures, archetypes, and skills with proper database tables, API endpoints, and tabbed UI interface
 - **Game Data Population**: Migrated all existing character creation data (5 heritages, 15 cultures, 28 archetypes, 30+ skills) from constants to dynamic database tables with full CRUD operations
 - **Game Data Page Layout Fix**: Resolved sidebar disappearing issue by implementing proper layout structure with mobile navigation support and SelectItem value validation
+- **Dynamic XP Recalculation System**: Implemented comprehensive XP cost updates when game data changes - when admins modify heritage secondary skills, archetype primary/secondary skills, the system automatically recalculates all character XP costs and updates experience history entries to reflect new costs (5 XP primary archetype, 10 XP secondary archetype/heritage, 20 XP default)
+- **Experience History Cost Updates**: Fixed XP recalculation to properly update individual experience entries in character history when skill costs change, ensuring accurate tracking and display of XP expenditures based on current game data relationships
+- **Character Data Migration**: Updated all characters to use proper UUID references to dynamic heritage/archetype tables instead of legacy string values, enabling full integration with the dynamic game data system
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

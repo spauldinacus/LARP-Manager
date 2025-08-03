@@ -894,11 +894,11 @@ export class DatabaseStorage implements IStorage {
       const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
       if (!character) return;
 
-      // Get current dynamic game data
-      const [heritage] = await db
+      // Get current dynamic game data using correct table references
+      const heritageData = await db
         .select({
           heritage: heritagesTable,
-          secondarySkills: sql<any>`array_agg(json_build_object('id', ${skillsTable.id}, 'name', ${skillsTable.name}))`
+          secondarySkills: sql<any>`COALESCE(array_agg(json_build_object('id', ${skillsTable.id}, 'name', ${skillsTable.name})) FILTER (WHERE ${skillsTable.id} IS NOT NULL), '{}')` 
         })
         .from(heritagesTable)
         .leftJoin(heritageSecondarySkills, eq(heritagesTable.id, heritageSecondarySkills.heritageId))
@@ -906,36 +906,96 @@ export class DatabaseStorage implements IStorage {
         .where(eq(heritagesTable.id, character.heritage))
         .groupBy(heritagesTable.id);
 
-      const [archetype] = await db
+      // Get archetype with primary skills
+      const archetypeData = await db
         .select({
           archetype: archetypesTable,
-          primarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', p_skills.id, 'name', p_skills.name))`,
-          secondarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', s_skills.id, 'name', s_skills.name))`
         })
         .from(archetypesTable)
-        .leftJoin(archetypePrimarySkills, eq(archetypesTable.id, archetypePrimarySkills.archetypeId))
-        .leftJoin(skillsTable.as('p_skills'), eq(archetypePrimarySkills.skillId, sql`p_skills.id`))
-        .leftJoin(archetypeSecondarySkills, eq(archetypesTable.id, archetypeSecondarySkills.archetypeId))
-        .leftJoin(skillsTable.as('s_skills'), eq(archetypeSecondarySkills.skillId, sql`s_skills.id`))
-        .where(eq(archetypesTable.id, character.archetype))
-        .groupBy(archetypesTable.id);
+        .where(eq(archetypesTable.id, character.archetype));
 
-      let secondArchetype = null;
+      let archePrimarySkills = [];
+      let archeSecondarySkills = [];
+      
+      if (archetypeData.length > 0) {
+        // Get primary skills for this archetype
+        const primarySkillsQuery = await db
+          .select({ skill: skillsTable })
+          .from(archetypePrimarySkills)
+          .leftJoin(skillsTable, eq(archetypePrimarySkills.skillId, skillsTable.id))
+          .where(eq(archetypePrimarySkills.archetypeId, character.archetype));
+        
+        archePrimarySkills = primarySkillsQuery.map(row => ({ 
+          id: row.skill?.id, 
+          name: row.skill?.name 
+        })).filter(skill => skill.id);
+
+        // Get secondary skills for this archetype
+        const secondarySkillsQuery = await db
+          .select({ skill: skillsTable })
+          .from(archetypeSecondarySkills)
+          .leftJoin(skillsTable, eq(archetypeSecondarySkills.skillId, skillsTable.id))
+          .where(eq(archetypeSecondarySkills.archetypeId, character.archetype));
+        
+        archeSecondarySkills = secondarySkillsQuery.map(row => ({ 
+          id: row.skill?.id, 
+          name: row.skill?.name 
+        })).filter(skill => skill.id);
+      }
+
+      let secondArchetypeData = null;
+      let secondArchePrimarySkills = [];
+      let secondArcheSecondarySkills = [];
+      
       if (character.secondArchetype) {
-        [secondArchetype] = await db
+        secondArchetypeData = await db
           .select({
             archetype: archetypesTable,
-            primarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', p_skills.id, 'name', p_skills.name))`,
-            secondarySkills: sql<any>`array_agg(DISTINCT json_build_object('id', s_skills.id, 'name', s_skills.name))`
           })
           .from(archetypesTable)
-          .leftJoin(archetypePrimarySkills, eq(archetypesTable.id, archetypePrimarySkills.archetypeId))
-          .leftJoin(skillsTable.as('p_skills'), eq(archetypePrimarySkills.skillId, sql`p_skills.id`))
-          .leftJoin(archetypeSecondarySkills, eq(archetypesTable.id, archetypeSecondarySkills.archetypeId))
-          .leftJoin(skillsTable.as('s_skills'), eq(archetypeSecondarySkills.skillId, sql`s_skills.id`))
-          .where(eq(archetypesTable.id, character.secondArchetype))
-          .groupBy(archetypesTable.id);
+          .where(eq(archetypesTable.id, character.secondArchetype));
+
+        if (secondArchetypeData.length > 0) {
+          // Get primary skills for second archetype
+          const primarySkillsQuery = await db
+            .select({ skill: skillsTable })
+            .from(archetypePrimarySkills)
+            .leftJoin(skillsTable, eq(archetypePrimarySkills.skillId, skillsTable.id))
+            .where(eq(archetypePrimarySkills.archetypeId, character.secondArchetype));
+          
+          secondArchePrimarySkills = primarySkillsQuery.map(row => ({ 
+            id: row.skill?.id, 
+            name: row.skill?.name 
+          })).filter(skill => skill.id);
+
+          // Get secondary skills for second archetype
+          const secondarySkillsQuery = await db
+            .select({ skill: skillsTable })
+            .from(archetypeSecondarySkills)
+            .leftJoin(skillsTable, eq(archetypeSecondarySkills.skillId, skillsTable.id))
+            .where(eq(archetypeSecondarySkills.archetypeId, character.secondArchetype));
+          
+          secondArcheSecondarySkills = secondarySkillsQuery.map(row => ({ 
+            id: row.skill?.id, 
+            name: row.skill?.name 
+          })).filter(skill => skill.id);
+        }
       }
+
+      const heritage = heritageData[0] || null;
+      const archetype = archetypeData.length > 0 ? {
+        archetype: archetypeData[0].archetype,
+        primarySkills: archePrimarySkills,
+        secondarySkills: archeSecondarySkills
+      } : null;
+      const secondArchetype = secondArchetypeData && secondArchetypeData.length > 0 ? {
+        archetype: secondArchetypeData[0].archetype,
+        primarySkills: secondArchePrimarySkills,
+        secondarySkills: secondArcheSecondarySkills
+      } : null;
+
+      // Update experience history entries for skills with new costs
+      await this.updateSkillExperienceEntries(characterId, heritage, archetype, secondArchetype);
 
       // Calculate dynamic skill costs
       let totalSkillXpSpent = 0;
@@ -974,6 +1034,44 @@ export class DatabaseStorage implements IStorage {
 
     } catch (error) {
       console.error(`Error recalculating dynamic XP for character ${characterId}:`, error);
+    }
+  }
+
+  // Update experience entries for skills with new dynamic costs
+  async updateSkillExperienceEntries(characterId: string, heritage: any, archetype: any, secondArchetype: any): Promise<void> {
+    try {
+      // Get all skill purchase experience entries for this character
+      const skillEntries = await db
+        .select()
+        .from(experienceEntries)
+        .where(and(
+          eq(experienceEntries.characterId, characterId),
+          sql`amount < 0`,
+          sql`reason LIKE 'Skill purchase:%'`
+        ));
+
+      // Update each skill entry with current dynamic cost
+      for (const entry of skillEntries) {
+        const skillMatch = entry.reason.match(/Skill purchase: (.+)/);
+        if (skillMatch) {
+          const skillName = skillMatch[1];
+          const newCost = this.calculateDynamicSkillCost(skillName, heritage, archetype, secondArchetype);
+          const newAmount = -newCost; // Negative because it's spending XP
+          
+          // Only update if the cost has changed
+          if (Math.abs(entry.amount) !== newCost) {
+            await db
+              .update(experienceEntries)
+              .set({ 
+                amount: newAmount,
+                updatedAt: new Date()
+              })
+              .where(eq(experienceEntries.id, entry.id));
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error updating skill experience entries for character ${characterId}:`, error);
     }
   }
 
@@ -1478,17 +1576,17 @@ export class DatabaseStorage implements IStorage {
     // First ensure all attribute purchases are tracked
     await this.ensureAttributeEntriesExist(characterId);
     
-    // Then recalculate totals using dynamic costs
+    // Then recalculate totals using dynamic costs (this also updates experience history)
     await this.recalculateCharacterXpWithDynamicCosts(characterId);
     
-    // Update available XP
+    // Finally, update total experience and available XP based on updated entries
     const totalExp = await this.getTotalExperienceByCharacter(characterId);
-    const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
-    if (character) {
-      await this.updateCharacter(characterId, { 
-        experience: totalExp - (character.totalXpSpent || 0)
-      });
-    }
+    const totalXpSpent = await this.calculateTotalXpSpent(characterId);
+    
+    await this.updateCharacter(characterId, { 
+      experience: totalExp,
+      totalXpSpent: totalXpSpent
+    });
   }
 
   // Recalculate XP for all characters (useful when game data changes)
