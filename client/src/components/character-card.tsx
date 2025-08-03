@@ -45,9 +45,9 @@ export default function CharacterCard({ character }: CharacterCardProps) {
 
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')}</Badge>
-              <Badge variant="outline">{character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')}</Badge>
-              <Badge variant="outline">{character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}</Badge>
+              {character.heritage && <Badge variant="outline">{character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace(/-/g, ' ')}</Badge>}
+              {character.culture && <Badge variant="outline">{character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')}</Badge>}
+              {character.archetype && <Badge variant="outline">{character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}</Badge>}
             </div>
 
             <div className="grid grid-cols-4 gap-2 text-center">
