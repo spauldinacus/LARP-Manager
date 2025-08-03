@@ -24,6 +24,9 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Chapter Visibility Control**: Inactive chapters are now hidden from regular users but remain visible to admins for management purposes
 - **Complete Character Display Format**: Fixed character displays to show full "Heritage Culture Archetype" format instead of abbreviated "Heritage Archetype" (e.g., "Stoneborn Akhunrasi Tinker" instead of "Stoneborn Tinker")
 - **Username Field Removal**: Completely removed username field from all frontend components, replacing with playerName in dashboard, sidebar, and mobile navigation to prevent charAt errors
+- **Dynamic Game Data Management System**: Created comprehensive admin-only system for managing heritages, cultures, archetypes, and skills with proper database tables, API endpoints, and tabbed UI interface
+- **Game Data Population**: Migrated all existing character creation data (5 heritages, 15 cultures, 28 archetypes, 30+ skills) from constants to dynamic database tables with full CRUD operations
+- **Game Data Page Layout Fix**: Resolved sidebar disappearing issue by implementing proper layout structure with mobile navigation support and SelectItem value validation
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

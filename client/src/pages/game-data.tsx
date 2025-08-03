@@ -246,7 +246,7 @@ export default function GameDataPage() {
       skillForm.reset({
         name: item.name,
         description: item.description || "",
-        prerequisiteSkillId: item.prerequisiteSkillId || null,
+        prerequisiteSkillId: item.prerequisiteSkillId || "none",
       });
     } else if (activeTab === "heritages") {
       heritageForm.reset({
@@ -283,10 +283,16 @@ export default function GameDataPage() {
   };
 
   const onSkillSubmit = (data: z.infer<typeof skillSchema>) => {
+    // Convert "none" back to null for the API
+    const processedData = {
+      ...data,
+      prerequisiteSkillId: data.prerequisiteSkillId === "none" ? null : data.prerequisiteSkillId
+    };
+    
     if (isCreateMode) {
-      createSkillMutation.mutate(data);
+      createSkillMutation.mutate(processedData);
     } else if (selectedItem) {
-      updateSkillMutation.mutate({ id: selectedItem.id, data });
+      updateSkillMutation.mutate({ id: selectedItem.id, data: processedData });
     }
   };
 
@@ -413,14 +419,14 @@ export default function GameDataPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Prerequisite Skill</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || "none"}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select prerequisite skill (optional)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No prerequisite</SelectItem>
+                              <SelectItem value="none">No prerequisite</SelectItem>
                               {skills.map((skill: any) => (
                                 <SelectItem key={skill.id} value={skill.id}>
                                   {skill.name}
