@@ -157,23 +157,19 @@ export default function CharacterCreationModal({
     const selectedHeritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
     const selectedArchetype = archetypes.find((a: DynamicArchetype) => a.id === archetypeId);
     
-    // Check if skill is a heritage secondary skill
-    if (selectedHeritage?.secondarySkills?.some(s => s.id === skill.id)) {
-      return { cost: 10, category: 'secondary' };
-    }
-    
-    // Check if skill is an archetype primary skill
+    // Check if skill is an archetype primary skill (highest priority - 5 XP)
     if (selectedArchetype?.primarySkills?.some(s => s.id === skill.id)) {
       return { cost: 5, category: 'primary' };
     }
     
-    // Check if skill is an archetype secondary skill
-    if (selectedArchetype?.secondarySkills?.some(s => s.id === skill.id)) {
+    // Check if skill is a heritage secondary skill OR archetype secondary skill (10 XP)
+    if (selectedHeritage?.secondarySkills?.some(s => s.id === skill.id) || 
+        selectedArchetype?.secondarySkills?.some(s => s.id === skill.id)) {
       return { cost: 10, category: 'secondary' };
     }
     
-    // Default cost for other skills
-    return { cost: 15, category: 'other' };
+    // Default cost for all other skills (20 XP)
+    return { cost: 20, category: 'other' };
   };
 
   // Check if skill prerequisites are met
@@ -615,8 +611,8 @@ export default function CharacterCreationModal({
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <p>• Primary Skills: 5 XP (Your heritage secondary skills, culture/archetype primary skills)</p>
-                  <p>• Secondary Skills: 10 XP (Culture/archetype secondary skills)</p>
+                  <p>• Primary Skills: 5 XP (Archetype primary skills)</p>
+                  <p>• Secondary Skills: 10 XP (Heritage secondary skills, archetype secondary skills)</p>
                   <p>• Other Skills: 20 XP (All other skills)</p>
                   <p>• Body/Stamina: Variable XP (Based on current value - see cost chart below)</p>
                 </div>

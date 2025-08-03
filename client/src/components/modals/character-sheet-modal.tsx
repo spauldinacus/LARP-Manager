@@ -37,7 +37,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User, Shield, Zap, BookOpen, Plus, Minus, UserX, AlertTriangle, Settings, MapPin, Trash2 } from "lucide-react";
-import { getSkillCost, getAttributeCost, HERITAGE_BASES, SKILLS, HERITAGES, CULTURES, ARCHETYPES, type Heritage, type Culture, type Archetype, type Skill } from "@shared/schema";
+import { getSkillCost, getAttributeCost, HERITAGE_BASES, SKILLS } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,6 +67,34 @@ interface CharacterSheetModalProps {
   characterId: string | null;
 }
 
+interface DynamicSkill {
+  id: string;
+  name: string;
+  description?: string;
+  prerequisiteSkillId?: string | null;
+}
+
+interface DynamicHeritage {
+  id: string;
+  name: string;
+  body: number;
+  stamina: number;
+  icon: string;
+  description: string;
+  costumeRequirements: string;
+  benefit: string;
+  weakness: string;
+  secondarySkills?: DynamicSkill[];
+}
+
+interface DynamicArchetype {
+  id: string;
+  name: string;
+  description?: string;
+  primarySkills?: DynamicSkill[];
+  secondarySkills?: DynamicSkill[];
+}
+
 export default function CharacterSheetModal({
   isOpen,
   onClose,
@@ -74,6 +102,22 @@ export default function CharacterSheetModal({
 }: CharacterSheetModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Fetch dynamic game data for real-time XP calculations
+  const { data: skills = [] } = useQuery({
+    queryKey: ["/api/admin/skills"],
+    enabled: isOpen && !!characterId,
+  });
+
+  const { data: heritages = [] } = useQuery({
+    queryKey: ["/api/admin/heritages"], 
+    enabled: isOpen && !!characterId,
+  });
+
+  const { data: archetypes = [] } = useQuery({
+    queryKey: ["/api/admin/archetypes"],
+    enabled: isOpen && !!characterId,
+  });
   const [showExperienceSpending, setShowExperienceSpending] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string>("");
   const [additionalBody, setAdditionalBody] = useState(0);
@@ -128,18 +172,34 @@ export default function CharacterSheetModal({
     return totalCost;
   };
 
-  // Calculate skill cost based on character's heritage and archetype(s)
-  const getSkillCostForCharacter = (skill: string, heritage: string, archetype: string, secondArchetype?: string) => {
-    const cost = getSkillCost(skill, heritage, archetype, secondArchetype);
-    
-    // Return with category for UI display
-    if (cost === 5) {
-      return { cost: 5, category: 'primary' as const };
-    } else if (cost === 10) {
-      return { cost: 10, category: 'secondary' as const };
-    } else {
+  // Calculate skill cost dynamically based on character's heritage and archetype(s)
+  const getSkillCostForCharacter = (skillName: string, heritageId: string, archetypeId: string, secondArchetypeId?: string) => {
+    // Find the skill in dynamic data
+    const skillData = skills.find((s: DynamicSkill) => s.name === skillName);
+    if (!skillData) {
+      // Fallback for skills not yet in dynamic data
       return { cost: 20, category: 'other' as const };
     }
+
+    const selectedHeritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
+    const selectedArchetype = archetypes.find((a: DynamicArchetype) => a.id === archetypeId);
+    const selectedSecondArchetype = secondArchetypeId ? archetypes.find((a: DynamicArchetype) => a.id === secondArchetypeId) : null;
+    
+    // Check if skill is a primary skill from any archetype (5 XP)
+    if (selectedArchetype?.primarySkills?.some(s => s.id === skillData.id) ||
+        selectedSecondArchetype?.primarySkills?.some(s => s.id === skillData.id)) {
+      return { cost: 5, category: 'primary' as const };
+    }
+    
+    // Check if skill is a secondary skill from heritage or any archetype (10 XP)
+    if (selectedHeritage?.secondarySkills?.some(s => s.id === skillData.id) || 
+        selectedArchetype?.secondarySkills?.some(s => s.id === skillData.id) ||
+        selectedSecondArchetype?.secondarySkills?.some(s => s.id === skillData.id)) {
+      return { cost: 10, category: 'secondary' as const };
+    }
+    
+    // Default cost for all other skills (20 XP)
+    return { cost: 20, category: 'other' as const };
   };
 
   // Mutations for spending experience
@@ -527,6 +587,41 @@ export default function CharacterSheetModal({
                   </CardContent>
                 </Card>
 
+                {/* Experience Point Summary for All Users */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Zap className="h-5 w-5 text-yellow-600" />
+                      <span>Experience Points</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg border">
+                        <p className="text-2xl font-bold text-yellow-600">{(character as any).experience}</p>
+                        <p className="text-sm text-muted-foreground">Available XP</p>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border">
+                        <p className="text-2xl font-bold text-green-600">{(character as any).totalXpSpent || 0}</p>
+                        <p className="text-sm text-muted-foreground">Total XP Spent</p>
+                      </div>
+                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border">
+                        <p className="text-2xl font-bold text-blue-600">{((character as any).experience || 0) + ((character as any).totalXpSpent || 0)}</p>
+                        <p className="text-sm text-muted-foreground">Total XP Earned</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
+                      <p className="font-medium mb-2">Current Experience Point Costs:</p>
+                      <p>• Primary Skills: 5 XP (Archetype primary skills)</p>
+                      <p>• Secondary Skills: 10 XP (Heritage secondary skills, archetype secondary skills)</p>
+                      <p>• Other Skills: 20 XP (All other skills)</p>
+                      <p>• Body/Stamina: Variable XP (1-10 XP per point based on current value)</p>
+                      <p>• Second Archetype: 50 XP (Unlocks skills from additional archetype)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Experience Spending Section - Admin Only */}
                 {user?.isAdmin && (character as any)?.experience > 0 && !(character as any)?.isRetired && (
                   <Card>
@@ -558,12 +653,12 @@ export default function CharacterSheetModal({
                                   <SelectValue placeholder="Choose a skill" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
+                                  {skills.filter((skill: DynamicSkill) => !(character as any)?.skills?.some((s: string) => s === skill.name)).map((skill: DynamicSkill) => {
+                                    const skillData = getSkillCostForCharacter(skill.name, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     return (
-                                      <SelectItem key={skill} value={skill}>
+                                      <SelectItem key={skill.id} value={skill.name}>
                                         <div className="flex items-center justify-between w-full">
-                                          <span>{skill}</span>
+                                          <span>{skill.name}</span>
                                           <Badge
                                             variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
                                             className="ml-2 text-xs"
@@ -579,7 +674,7 @@ export default function CharacterSheetModal({
                               {selectedSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
+                                    const skillData = getSkillCostForCharacter(selectedSkill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     if (skillData.cost <= (character as any).experience) {
                                       purchaseSkillMutation.mutate({ skill: selectedSkill, cost: skillData.cost });
                                     } else {
@@ -757,8 +852,8 @@ export default function CharacterSheetModal({
 
                         <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
                           <p className="font-medium mb-2">Experience Point Costs:</p>
-                          <p>• Primary Skills: 5 XP (Heritage secondary, Culture/Archetype primary)</p>
-                          <p>• Secondary Skills: 10 XP (Culture/Archetype secondary)</p>
+                          <p>• Primary Skills: 5 XP (Archetype primary skills)</p>
+                          <p>• Secondary Skills: 10 XP (Heritage secondary skills, archetype secondary skills)</p>
                           <p>• Other Skills: 20 XP (All other skills)</p>
                           <p>• Body/Stamina: Variable XP (1-10 XP per point based on current value)</p>
                           <p>• Second Archetype: 50 XP (Unlocks skills from additional archetype)</p>
@@ -820,12 +915,12 @@ export default function CharacterSheetModal({
                                   <SelectValue placeholder="Choose a skill" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {SKILLS.filter(skill => !(character as any)?.skills?.includes(skill)).map((skill) => {
-                                    const skillData = getSkillCostForCharacter(skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
+                                  {skills.filter((skill: DynamicSkill) => !(character as any)?.skills?.some((s: string) => s === skill.name)).map((skill: DynamicSkill) => {
+                                    const skillData = getSkillCostForCharacter(skill.name, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     return (
-                                      <SelectItem key={skill} value={skill}>
+                                      <SelectItem key={skill.id} value={skill.name}>
                                         <div className="flex items-center justify-between w-full">
-                                          <span>{skill}</span>
+                                          <span>{skill.name}</span>
                                           <Badge
                                             variant={skillData.category === 'primary' ? 'default' : skillData.category === 'secondary' ? 'secondary' : 'outline'}
                                             className="ml-2 text-xs"
@@ -841,7 +936,7 @@ export default function CharacterSheetModal({
                               {selectedAdminSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedAdminSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
+                                    const skillData = getSkillCostForCharacter(selectedAdminSkill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     adminAddSkillMutation.mutate({ skill: selectedAdminSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedAdminSkill || adminAddSkillMutation.isPending}
