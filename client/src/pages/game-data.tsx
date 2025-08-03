@@ -83,7 +83,7 @@ export default function GameDataPage() {
 
   // Mutations
   const createSkillMutation = useMutation({
-    mutationFn: (data: z.infer<typeof skillSchema>) => apiRequest("/api/admin/skills", { method: "POST", body: data }),
+    mutationFn: (data: z.infer<typeof skillSchema>) => apiRequest("POST", "/api/admin/skills", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
       setSelectedItem(null);
@@ -93,7 +93,7 @@ export default function GameDataPage() {
 
   const updateSkillMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof skillSchema> }) => 
-      apiRequest(`/api/admin/skills/${id}`, { method: "PUT", body: data }),
+      apiRequest("PUT", `/api/admin/skills/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
       setSelectedItem(null);
@@ -101,14 +101,14 @@ export default function GameDataPage() {
   });
 
   const deleteSkillMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/admin/skills/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/skills/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
     },
   });
 
   const createHeritageMutation = useMutation({
-    mutationFn: (data: z.infer<typeof heritageSchema>) => apiRequest("/api/admin/heritages", { method: "POST", body: data }),
+    mutationFn: (data: z.infer<typeof heritageSchema>) => apiRequest("POST", "/api/admin/heritages", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
       setSelectedItem(null);
@@ -118,7 +118,7 @@ export default function GameDataPage() {
 
   const updateHeritageMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof heritageSchema> }) => 
-      apiRequest(`/api/admin/heritages/${id}`, { method: "PUT", body: data }),
+      apiRequest("PUT", `/api/admin/heritages/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
       setSelectedItem(null);
@@ -126,14 +126,14 @@ export default function GameDataPage() {
   });
 
   const deleteHeritageMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/admin/heritages/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/heritages/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
     },
   });
 
   const createCultureMutation = useMutation({
-    mutationFn: (data: z.infer<typeof cultureSchema>) => apiRequest("/api/admin/cultures", { method: "POST", body: data }),
+    mutationFn: (data: z.infer<typeof cultureSchema>) => apiRequest("POST", "/api/admin/cultures", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
       setSelectedItem(null);
@@ -143,7 +143,7 @@ export default function GameDataPage() {
 
   const updateCultureMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof cultureSchema> }) => 
-      apiRequest(`/api/admin/cultures/${id}`, { method: "PUT", body: data }),
+      apiRequest("PUT", `/api/admin/cultures/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
       setSelectedItem(null);
@@ -151,14 +151,14 @@ export default function GameDataPage() {
   });
 
   const deleteCultureMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/admin/cultures/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/cultures/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
     },
   });
 
   const createArchetypeMutation = useMutation({
-    mutationFn: (data: z.infer<typeof archetypeSchema>) => apiRequest("/api/admin/archetypes", { method: "POST", body: data }),
+    mutationFn: (data: z.infer<typeof archetypeSchema>) => apiRequest("POST", "/api/admin/archetypes", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
       setSelectedItem(null);
@@ -168,7 +168,7 @@ export default function GameDataPage() {
 
   const updateArchetypeMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof archetypeSchema> }) => 
-      apiRequest(`/api/admin/archetypes/${id}`, { method: "PUT", body: data }),
+      apiRequest("PUT", `/api/admin/archetypes/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
       setSelectedItem(null);
@@ -176,7 +176,7 @@ export default function GameDataPage() {
   });
 
   const deleteArchetypeMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/admin/archetypes/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/archetypes/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
     },
