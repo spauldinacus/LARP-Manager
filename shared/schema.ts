@@ -139,6 +139,80 @@ export const systemSettings = pgTable("system_settings", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+// Dynamic game data management tables
+export const skillsTable = pgTable("skills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  prerequisiteSkillId: uuid("prerequisite_skill_id").references(() => skillsTable.id),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+export const heritagesTable = pgTable("heritages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  body: integer("body").notNull(),
+  stamina: integer("stamina").notNull(),
+  icon: text("icon").notNull(),
+  description: text("description").notNull(),
+  costumeRequirements: text("costume_requirements").notNull(),
+  benefit: text("benefit").notNull(),
+  weakness: text("weakness").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+export const culturesTable = pgTable("cultures", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  heritageId: uuid("heritage_id").references(() => heritagesTable.id, { onDelete: "cascade" }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+export const archetypesTable = pgTable("archetypes", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: uuid("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
+// Junction tables for skill relationships
+export const heritageSecondarySkills = pgTable("heritage_secondary_skills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  heritageId: uuid("heritage_id").references(() => heritagesTable.id, { onDelete: "cascade" }).notNull(),
+  skillId: uuid("skill_id").references(() => skillsTable.id, { onDelete: "cascade" }).notNull(),
+});
+
+export const cultureSecondarySkills = pgTable("culture_secondary_skills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  cultureId: uuid("culture_id").references(() => culturesTable.id, { onDelete: "cascade" }).notNull(),
+  skillId: uuid("skill_id").references(() => skillsTable.id, { onDelete: "cascade" }).notNull(),
+});
+
+export const archetypePrimarySkills = pgTable("archetype_primary_skills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  archetypeId: uuid("archetype_id").references(() => archetypesTable.id, { onDelete: "cascade" }).notNull(),
+  skillId: uuid("skill_id").references(() => skillsTable.id, { onDelete: "cascade" }).notNull(),
+});
+
+export const archetypeSecondarySkills = pgTable("archetype_secondary_skills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  archetypeId: uuid("archetype_id").references(() => archetypesTable.id, { onDelete: "cascade" }).notNull(),
+  skillId: uuid("skill_id").references(() => skillsTable.id, { onDelete: "cascade" }).notNull(),
+});
+
 // Candle transaction tracking
 export const candleTransactions = pgTable("candle_transactions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -337,6 +411,31 @@ export const insertCustomMilestoneSchema = createInsertSchema(customMilestones).
 export const insertCharacterAchievementSchema = createInsertSchema(characterAchievements).omit({
   id: true,
   unlockedAt: true,
+});
+
+// Insert schemas for dynamic game data
+export const insertSkillSchema = createInsertSchema(skillsTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHeritageSchema = createInsertSchema(heritagesTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCultureSchema = createInsertSchema(culturesTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertArchetypeSchema = createInsertSchema(archetypesTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Helper function to get heritage base values from the HERITAGES data

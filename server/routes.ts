@@ -1734,6 +1734,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dynamic game data management routes (admin only)
+  
+  // Skills management
+  app.get("/api/admin/skills", requireAdmin, async (req, res) => {
+    try {
+      const skills = await storage.getAllSkills();
+      res.json(skills);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get skills" });
+    }
+  });
+
+  app.post("/api/admin/skills", requireAdmin, async (req, res) => {
+    try {
+      const skill = await storage.createSkill({
+        ...req.body,
+        createdBy: req.session.userId!,
+      });
+      res.json(skill);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create skill" });
+    }
+  });
+
+  app.put("/api/admin/skills/:id", requireAdmin, async (req, res) => {
+    try {
+      const skill = await storage.updateSkill(req.params.id, req.body);
+      res.json(skill);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update skill" });
+    }
+  });
+
+  app.delete("/api/admin/skills/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteSkill(req.params.id);
+      res.json({ message: "Skill deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete skill" });
+    }
+  });
+
+  // Heritages management
+  app.get("/api/admin/heritages", requireAdmin, async (req, res) => {
+    try {
+      const heritages = await storage.getAllHeritages();
+      res.json(heritages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get heritages" });
+    }
+  });
+
+  app.post("/api/admin/heritages", requireAdmin, async (req, res) => {
+    try {
+      const heritage = await storage.createHeritage({
+        ...req.body,
+        createdBy: req.session.userId!,
+      });
+      res.json(heritage);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create heritage" });
+    }
+  });
+
+  app.put("/api/admin/heritages/:id", requireAdmin, async (req, res) => {
+    try {
+      const heritage = await storage.updateHeritage(req.params.id, req.body);
+      res.json(heritage);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update heritage" });
+    }
+  });
+
+  app.delete("/api/admin/heritages/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteHeritage(req.params.id);
+      res.json({ message: "Heritage deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete heritage" });
+    }
+  });
+
+  // Cultures management
+  app.get("/api/admin/cultures", requireAdmin, async (req, res) => {
+    try {
+      const cultures = await storage.getAllCultures();
+      res.json(cultures);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get cultures" });
+    }
+  });
+
+  app.post("/api/admin/cultures", requireAdmin, async (req, res) => {
+    try {
+      const culture = await storage.createCulture({
+        ...req.body,
+        createdBy: req.session.userId!,
+      });
+      res.json(culture);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create culture" });
+    }
+  });
+
+  app.put("/api/admin/cultures/:id", requireAdmin, async (req, res) => {
+    try {
+      const culture = await storage.updateCulture(req.params.id, req.body);
+      res.json(culture);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update culture" });
+    }
+  });
+
+  app.delete("/api/admin/cultures/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteCulture(req.params.id);
+      res.json({ message: "Culture deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete culture" });
+    }
+  });
+
+  // Archetypes management
+  app.get("/api/admin/archetypes", requireAdmin, async (req, res) => {
+    try {
+      const archetypes = await storage.getAllArchetypes();
+      res.json(archetypes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get archetypes" });
+    }
+  });
+
+  app.post("/api/admin/archetypes", requireAdmin, async (req, res) => {
+    try {
+      const archetype = await storage.createArchetype({
+        ...req.body,
+        createdBy: req.session.userId!,
+      });
+      res.json(archetype);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create archetype" });
+    }
+  });
+
+  app.put("/api/admin/archetypes/:id", requireAdmin, async (req, res) => {
+    try {
+      const archetype = await storage.updateArchetype(req.params.id, req.body);
+      res.json(archetype);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update archetype" });
+    }
+  });
+
+  app.delete("/api/admin/archetypes/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteArchetype(req.params.id);
+      res.json({ message: "Archetype deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete archetype" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -14,6 +14,7 @@ import {
   Shield,
   TrendingUp,
   Flame,
+  Database,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -74,6 +75,12 @@ const navigationItems = [
     href: "/candles",
     icon: Flame,
     label: "Candle Management",
+    adminOnly: true,
+  },
+  {
+    href: "/game-data",
+    icon: Database,
+    label: "Game Data",
     adminOnly: true,
   },
   {

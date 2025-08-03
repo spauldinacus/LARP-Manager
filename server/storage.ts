@@ -14,6 +14,14 @@ import {
   customMilestones,
   characterAchievements,
   defaultPermissions,
+  skillsTable,
+  heritagesTable,
+  culturesTable,
+  archetypesTable,
+  heritageSecondarySkills,
+  cultureSecondarySkills,
+  archetypePrimarySkills,
+  archetypeSecondarySkills,
   type Chapter,
   type InsertChapter,
   type User,
@@ -48,7 +56,10 @@ import {
   type InsertStaticMilestoneOverride,
   type StaticAchievementOverride,
   type InsertStaticAchievementOverride,
-
+  insertSkillSchema,
+  insertHeritageSchema,
+  insertCultureSchema,
+  insertArchetypeSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sum, sql } from "drizzle-orm";
@@ -163,6 +174,45 @@ export interface IStorage {
     count: number;
     nextEvent: { name: string; date: Date; daysUntil: number } | null;
   }>;
+
+  // Dynamic game data methods
+  getAllSkills(): Promise<any[]>;
+  getSkill(id: string): Promise<any | undefined>;
+  createSkill(skill: any): Promise<any>;
+  updateSkill(id: string, skill: Partial<any>): Promise<any>;
+  deleteSkill(id: string): Promise<void>;
+  
+  getAllHeritages(): Promise<any[]>;
+  getHeritage(id: string): Promise<any | undefined>;
+  getHeritageWithSkills(id: string): Promise<any | undefined>;
+  createHeritage(heritage: any): Promise<any>;
+  updateHeritage(id: string, heritage: Partial<any>): Promise<any>;
+  deleteHeritage(id: string): Promise<void>;
+  
+  getAllCultures(): Promise<any[]>;
+  getCulture(id: string): Promise<any | undefined>;
+  getCultureWithSkills(id: string): Promise<any | undefined>;
+  getCulturesByHeritage(heritageId: string): Promise<any[]>;
+  createCulture(culture: any): Promise<any>;
+  updateCulture(id: string, culture: Partial<any>): Promise<any>;
+  deleteCulture(id: string): Promise<void>;
+  
+  getAllArchetypes(): Promise<any[]>;
+  getArchetype(id: string): Promise<any | undefined>;
+  getArchetypeWithSkills(id: string): Promise<any | undefined>;
+  createArchetype(archetype: any): Promise<any>;
+  updateArchetype(id: string, archetype: Partial<any>): Promise<any>;
+  deleteArchetype(id: string): Promise<void>;
+  
+  // Skill relationship methods
+  addHeritageSecondarySkill(heritageId: string, skillId: string): Promise<void>;
+  removeHeritageSecondarySkill(heritageId: string, skillId: string): Promise<void>;
+  addCultureSecondarySkill(cultureId: string, skillId: string): Promise<void>;
+  removeCultureSecondarySkill(cultureId: string, skillId: string): Promise<void>;
+  addArchetypePrimarySkill(archetypeId: string, skillId: string): Promise<void>;
+  removeArchetypePrimarySkill(archetypeId: string, skillId: string): Promise<void>;
+  addArchetypeSecondarySkill(archetypeId: string, skillId: string): Promise<void>;
+  removeArchetypeSecondarySkill(archetypeId: string, skillId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1622,6 +1672,277 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { created, updated };
+  }
+
+  // Dynamic game data methods implementation
+  async getAllSkills(): Promise<any[]> {
+    const skills = await db
+      .select({
+        id: skillsTable.id,
+        name: skillsTable.name,
+        description: skillsTable.description,
+        prerequisiteSkillId: skillsTable.prerequisiteSkillId,
+        prerequisiteSkillName: sql<string>`ps.name`,
+        isActive: skillsTable.isActive,
+        createdAt: skillsTable.createdAt,
+      })
+      .from(skillsTable)
+      .leftJoin(sql`${skillsTable} ps`, sql`ps.id = ${skillsTable.prerequisiteSkillId}`)
+      .where(eq(skillsTable.isActive, true))
+      .orderBy(skillsTable.name);
+    
+    return skills;
+  }
+
+  async getSkill(id: string): Promise<any | undefined> {
+    const [skill] = await db.select().from(skillsTable).where(eq(skillsTable.id, id));
+    return skill || undefined;
+  }
+
+  async createSkill(skill: any): Promise<any> {
+    const [newSkill] = await db.insert(skillsTable).values(skill).returning();
+    return newSkill;
+  }
+
+  async updateSkill(id: string, skill: Partial<any>): Promise<any> {
+    const [updatedSkill] = await db
+      .update(skillsTable)
+      .set({ ...skill, updatedAt: new Date() })
+      .where(eq(skillsTable.id, id))
+      .returning();
+    return updatedSkill;
+  }
+
+  async deleteSkill(id: string): Promise<void> {
+    await db.update(skillsTable)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(skillsTable.id, id));
+  }
+
+  async getAllHeritages(): Promise<any[]> {
+    const heritages = await db
+      .select()
+      .from(heritagesTable)
+      .where(eq(heritagesTable.isActive, true))
+      .orderBy(heritagesTable.name);
+    
+    return heritages;
+  }
+
+  async getHeritage(id: string): Promise<any | undefined> {
+    const [heritage] = await db.select().from(heritagesTable).where(eq(heritagesTable.id, id));
+    return heritage || undefined;
+  }
+
+  async getHeritageWithSkills(id: string): Promise<any | undefined> {
+    const heritage = await this.getHeritage(id);
+    if (!heritage) return undefined;
+
+    const secondarySkills = await db
+      .select({
+        id: skillsTable.id,
+        name: skillsTable.name,
+      })
+      .from(heritageSecondarySkills)
+      .innerJoin(skillsTable, eq(heritageSecondarySkills.skillId, skillsTable.id))
+      .where(eq(heritageSecondarySkills.heritageId, id));
+
+    return {
+      ...heritage,
+      secondarySkills,
+    };
+  }
+
+  async createHeritage(heritage: any): Promise<any> {
+    const [newHeritage] = await db.insert(heritagesTable).values(heritage).returning();
+    return newHeritage;
+  }
+
+  async updateHeritage(id: string, heritage: Partial<any>): Promise<any> {
+    const [updatedHeritage] = await db
+      .update(heritagesTable)
+      .set({ ...heritage, updatedAt: new Date() })
+      .where(eq(heritagesTable.id, id))
+      .returning();
+    return updatedHeritage;
+  }
+
+  async deleteHeritage(id: string): Promise<void> {
+    await db.update(heritagesTable)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(heritagesTable.id, id));
+  }
+
+  async getAllCultures(): Promise<any[]> {
+    const cultures = await db
+      .select({
+        id: culturesTable.id,
+        name: culturesTable.name,
+        heritageId: culturesTable.heritageId,
+        heritageName: heritagesTable.name,
+        description: culturesTable.description,
+        isActive: culturesTable.isActive,
+        createdAt: culturesTable.createdAt,
+      })
+      .from(culturesTable)
+      .innerJoin(heritagesTable, eq(culturesTable.heritageId, heritagesTable.id))
+      .where(eq(culturesTable.isActive, true))
+      .orderBy(heritagesTable.name, culturesTable.name);
+    
+    return cultures;
+  }
+
+  async getCulture(id: string): Promise<any | undefined> {
+    const [culture] = await db.select().from(culturesTable).where(eq(culturesTable.id, id));
+    return culture || undefined;
+  }
+
+  async getCultureWithSkills(id: string): Promise<any | undefined> {
+    const culture = await this.getCulture(id);
+    if (!culture) return undefined;
+
+    const secondarySkills = await db
+      .select({
+        id: skillsTable.id,
+        name: skillsTable.name,
+      })
+      .from(cultureSecondarySkills)
+      .innerJoin(skillsTable, eq(cultureSecondarySkills.skillId, skillsTable.id))
+      .where(eq(cultureSecondarySkills.cultureId, id));
+
+    return {
+      ...culture,
+      secondarySkills,
+    };
+  }
+
+  async getCulturesByHeritage(heritageId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(culturesTable)
+      .where(and(eq(culturesTable.heritageId, heritageId), eq(culturesTable.isActive, true)))
+      .orderBy(culturesTable.name);
+  }
+
+  async createCulture(culture: any): Promise<any> {
+    const [newCulture] = await db.insert(culturesTable).values(culture).returning();
+    return newCulture;
+  }
+
+  async updateCulture(id: string, culture: Partial<any>): Promise<any> {
+    const [updatedCulture] = await db
+      .update(culturesTable)
+      .set({ ...culture, updatedAt: new Date() })
+      .where(eq(culturesTable.id, id))
+      .returning();
+    return updatedCulture;
+  }
+
+  async deleteCulture(id: string): Promise<void> {
+    await db.update(culturesTable)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(culturesTable.id, id));
+  }
+
+  async getAllArchetypes(): Promise<any[]> {
+    const archetypes = await db
+      .select()
+      .from(archetypesTable)
+      .where(eq(archetypesTable.isActive, true))
+      .orderBy(archetypesTable.name);
+    
+    return archetypes;
+  }
+
+  async getArchetype(id: string): Promise<any | undefined> {
+    const [archetype] = await db.select().from(archetypesTable).where(eq(archetypesTable.id, id));
+    return archetype || undefined;
+  }
+
+  async getArchetypeWithSkills(id: string): Promise<any | undefined> {
+    const archetype = await this.getArchetype(id);
+    if (!archetype) return undefined;
+
+    const primarySkills = await db
+      .select({
+        id: skillsTable.id,
+        name: skillsTable.name,
+      })
+      .from(archetypePrimarySkills)
+      .innerJoin(skillsTable, eq(archetypePrimarySkills.skillId, skillsTable.id))
+      .where(eq(archetypePrimarySkills.archetypeId, id));
+
+    const secondarySkills = await db
+      .select({
+        id: skillsTable.id,
+        name: skillsTable.name,
+      })
+      .from(archetypeSecondarySkills)
+      .innerJoin(skillsTable, eq(archetypeSecondarySkills.skillId, skillsTable.id))
+      .where(eq(archetypeSecondarySkills.archetypeId, id));
+
+    return {
+      ...archetype,
+      primarySkills,
+      secondarySkills,
+    };
+  }
+
+  async createArchetype(archetype: any): Promise<any> {
+    const [newArchetype] = await db.insert(archetypesTable).values(archetype).returning();
+    return newArchetype;
+  }
+
+  async updateArchetype(id: string, archetype: Partial<any>): Promise<any> {
+    const [updatedArchetype] = await db
+      .update(archetypesTable)
+      .set({ ...archetype, updatedAt: new Date() })
+      .where(eq(archetypesTable.id, id))
+      .returning();
+    return updatedArchetype;
+  }
+
+  async deleteArchetype(id: string): Promise<void> {
+    await db.update(archetypesTable)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(archetypesTable.id, id));
+  }
+
+  // Skill relationship methods
+  async addHeritageSecondarySkill(heritageId: string, skillId: string): Promise<void> {
+    await db.insert(heritageSecondarySkills).values({ heritageId, skillId });
+  }
+
+  async removeHeritageSecondarySkill(heritageId: string, skillId: string): Promise<void> {
+    await db.delete(heritageSecondarySkills)
+      .where(and(eq(heritageSecondarySkills.heritageId, heritageId), eq(heritageSecondarySkills.skillId, skillId)));
+  }
+
+  async addCultureSecondarySkill(cultureId: string, skillId: string): Promise<void> {
+    await db.insert(cultureSecondarySkills).values({ cultureId, skillId });
+  }
+
+  async removeCultureSecondarySkill(cultureId: string, skillId: string): Promise<void> {
+    await db.delete(cultureSecondarySkills)
+      .where(and(eq(cultureSecondarySkills.cultureId, cultureId), eq(cultureSecondarySkills.skillId, skillId)));
+  }
+
+  async addArchetypePrimarySkill(archetypeId: string, skillId: string): Promise<void> {
+    await db.insert(archetypePrimarySkills).values({ archetypeId, skillId });
+  }
+
+  async removeArchetypePrimarySkill(archetypeId: string, skillId: string): Promise<void> {
+    await db.delete(archetypePrimarySkills)
+      .where(and(eq(archetypePrimarySkills.archetypeId, archetypeId), eq(archetypePrimarySkills.skillId, skillId)));
+  }
+
+  async addArchetypeSecondarySkill(archetypeId: string, skillId: string): Promise<void> {
+    await db.insert(archetypeSecondarySkills).values({ archetypeId, skillId });
+  }
+
+  async removeArchetypeSecondarySkill(archetypeId: string, skillId: string): Promise<void> {
+    await db.delete(archetypeSecondarySkills)
+      .where(and(eq(archetypeSecondarySkills.archetypeId, archetypeId), eq(archetypeSecondarySkills.skillId, skillId)));
   }
 }
 

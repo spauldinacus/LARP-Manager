@@ -17,6 +17,7 @@ import UsersPage from "@/pages/users";
 import RolesPage from "@/pages/roles";
 import SettingsPage from "@/pages/settings";
 import CandlesPage from "@/pages/candles";
+import GameDataPage from "@/pages/game-data";
 
 function Router() {
   return (
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/users" component={UsersPage} />
       <Route path="/roles" component={RolesPage} />
       <Route path="/candles" component={CandlesPage} />
+      <Route path="/game-data" component={GameDataPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>
