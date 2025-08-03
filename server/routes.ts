@@ -1896,6 +1896,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Skill relationship management routes
+  
+  // Heritage secondary skills
+  app.post("/api/admin/heritages/:id/secondary-skills", requireAdmin, async (req, res) => {
+    try {
+      const { skillId } = req.body;
+      await storage.addHeritageSecondarySkill(req.params.id, skillId);
+      res.json({ message: "Secondary skill added to heritage successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add secondary skill to heritage" });
+    }
+  });
+
+  app.delete("/api/admin/heritages/:id/secondary-skills/:skillId", requireAdmin, async (req, res) => {
+    try {
+      await storage.removeHeritageSecondarySkill(req.params.id, req.params.skillId);
+      res.json({ message: "Secondary skill removed from heritage successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove secondary skill from heritage" });
+    }
+  });
+
+  // Culture secondary skills
+  app.post("/api/admin/cultures/:id/secondary-skills", requireAdmin, async (req, res) => {
+    try {
+      const { skillId } = req.body;
+      await storage.addCultureSecondarySkill(req.params.id, skillId);
+      res.json({ message: "Secondary skill added to culture successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add secondary skill to culture" });
+    }
+  });
+
+  app.delete("/api/admin/cultures/:id/secondary-skills/:skillId", requireAdmin, async (req, res) => {
+    try {
+      await storage.removeCultureSecondarySkill(req.params.id, req.params.skillId);
+      res.json({ message: "Secondary skill removed from culture successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove secondary skill from culture" });
+    }
+  });
+
+  // Archetype primary skills
+  app.post("/api/admin/archetypes/:id/primary-skills", requireAdmin, async (req, res) => {
+    try {
+      const { skillId } = req.body;
+      await storage.addArchetypePrimarySkill(req.params.id, skillId);
+      res.json({ message: "Primary skill added to archetype successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add primary skill to archetype" });
+    }
+  });
+
+  app.delete("/api/admin/archetypes/:id/primary-skills/:skillId", requireAdmin, async (req, res) => {
+    try {
+      await storage.removeArchetypePrimarySkill(req.params.id, req.params.skillId);
+      res.json({ message: "Primary skill removed from archetype successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove primary skill from archetype" });
+    }
+  });
+
+  // Archetype secondary skills
+  app.post("/api/admin/archetypes/:id/secondary-skills", requireAdmin, async (req, res) => {
+    try {
+      const { skillId } = req.body;
+      await storage.addArchetypeSecondarySkill(req.params.id, skillId);
+      res.json({ message: "Secondary skill added to archetype successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add secondary skill to archetype" });
+    }
+  });
+
+  app.delete("/api/admin/archetypes/:id/secondary-skills/:skillId", requireAdmin, async (req, res) => {
+    try {
+      await storage.removeArchetypeSecondarySkill(req.params.id, req.params.skillId);
+      res.json({ message: "Secondary skill removed from archetype successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove secondary skill from archetype" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

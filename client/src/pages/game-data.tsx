@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit2, Trash2, Link, Unlink } from "lucide-react";
+import { Plus, Edit2, Trash2, Link, Unlink, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import Sidebar from "@/components/layout/sidebar";
@@ -53,6 +53,12 @@ const archetypeSchema = z.object({
 export default function GameDataPage() {
   const [activeTab, setActiveTab] = useState("skills");
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [skillManagementModal, setSkillManagementModal] = useState<{
+    isOpen: boolean;
+    itemId: string;
+    itemType: 'heritage' | 'culture' | 'archetype';
+    skillType: 'primary' | 'secondary';
+  }>({ isOpen: false, itemId: '', itemType: 'heritage', skillType: 'secondary' });
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -182,6 +188,41 @@ export default function GameDataPage() {
     },
   });
 
+  // Skill relationship mutations
+  const addSkillRelationshipMutation = useMutation({
+    mutationFn: ({ itemId, skillId, itemType, skillType }: { 
+      itemId: string; 
+      skillId: string; 
+      itemType: 'heritage' | 'culture' | 'archetype'; 
+      skillType: 'primary' | 'secondary' 
+    }) => {
+      const endpoint = skillType === 'primary' 
+        ? `/api/admin/${itemType}s/${itemId}/primary-skills`
+        : `/api/admin/${itemType}s/${itemId}/secondary-skills`;
+      return apiRequest("POST", endpoint, { skillId });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/${variables.itemType}s`] });
+    },
+  });
+
+  const removeSkillRelationshipMutation = useMutation({
+    mutationFn: ({ itemId, skillId, itemType, skillType }: { 
+      itemId: string; 
+      skillId: string; 
+      itemType: 'heritage' | 'culture' | 'archetype'; 
+      skillType: 'primary' | 'secondary' 
+    }) => {
+      const endpoint = skillType === 'primary' 
+        ? `/api/admin/${itemType}s/${itemId}/primary-skills/${skillId}`
+        : `/api/admin/${itemType}s/${itemId}/secondary-skills/${skillId}`;
+      return apiRequest("DELETE", endpoint);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/${variables.itemType}s`] });
+    },
+  });
+
   // Skill form
   const skillForm = useForm<z.infer<typeof skillSchema>>({
     resolver: zodResolver(skillSchema),
@@ -235,6 +276,28 @@ export default function GameDataPage() {
     heritageForm.reset();
     cultureForm.reset();
     archetypeForm.reset();
+  };
+
+  const openSkillManagement = (itemId: string, itemType: 'heritage' | 'culture' | 'archetype', skillType: 'primary' | 'secondary') => {
+    setSkillManagementModal({ isOpen: true, itemId, itemType, skillType });
+  };
+
+  const handleAddSkillRelationship = (skillId: string) => {
+    addSkillRelationshipMutation.mutate({
+      itemId: skillManagementModal.itemId,
+      skillId,
+      itemType: skillManagementModal.itemType,
+      skillType: skillManagementModal.skillType,
+    });
+  };
+
+  const handleRemoveSkillRelationship = (skillId: string) => {
+    removeSkillRelationshipMutation.mutate({
+      itemId: skillManagementModal.itemId,
+      skillId,
+      itemType: skillManagementModal.itemType,
+      skillType: skillManagementModal.skillType,
+    });
   };
 
   const handleEdit = (item: any) => {
@@ -662,7 +725,25 @@ export default function GameDataPage() {
                       <Badge>Body: {heritage.body}</Badge>
                       <Badge>Stamina: {heritage.stamina}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{heritage.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{heritage.description}</p>
+                    
+                    {/* Secondary Skills */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Secondary Skills</h4>
+                        <Button size="sm" variant="outline" onClick={() => openSkillManagement(heritage.id, 'heritage', 'secondary')}>
+                          <Settings className="h-3 w-3 mr-1" />
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {heritage.secondarySkills?.map((skill: any) => (
+                          <Badge key={skill.id} variant="secondary" className="text-xs">
+                            {skill.name}
+                          </Badge>
+                        )) || <span className="text-xs text-muted-foreground">No secondary skills</span>}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -786,8 +867,26 @@ export default function GameDataPage() {
                       {culture.heritageName}
                     </Badge>
                     {culture.description && (
-                      <p className="text-sm text-muted-foreground">{culture.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{culture.description}</p>
                     )}
+                    
+                    {/* Secondary Skills */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Secondary Skills</h4>
+                        <Button size="sm" variant="outline" onClick={() => openSkillManagement(culture.id, 'culture', 'secondary')}>
+                          <Settings className="h-3 w-3 mr-1" />
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {culture.secondarySkills?.map((skill: any) => (
+                          <Badge key={skill.id} variant="secondary" className="text-xs">
+                            {skill.name}
+                          </Badge>
+                        )) || <span className="text-xs text-muted-foreground">No secondary skills</span>}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -884,8 +983,44 @@ export default function GameDataPage() {
                   </CardHeader>
                   <CardContent>
                     {archetype.description && (
-                      <p className="text-sm text-muted-foreground">{archetype.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{archetype.description}</p>
                     )}
+                    
+                    {/* Primary Skills */}
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Primary Skills</h4>
+                        <Button size="sm" variant="outline" onClick={() => openSkillManagement(archetype.id, 'archetype', 'primary')}>
+                          <Settings className="h-3 w-3 mr-1" />
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {archetype.primarySkills?.map((skill: any) => (
+                          <Badge key={skill.id} variant="default" className="text-xs">
+                            {skill.name}
+                          </Badge>
+                        )) || <span className="text-xs text-muted-foreground">No primary skills</span>}
+                      </div>
+                    </div>
+                    
+                    {/* Secondary Skills */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Secondary Skills</h4>
+                        <Button size="sm" variant="outline" onClick={() => openSkillManagement(archetype.id, 'archetype', 'secondary')}>
+                          <Settings className="h-3 w-3 mr-1" />
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {archetype.secondarySkills?.map((skill: any) => (
+                          <Badge key={skill.id} variant="secondary" className="text-xs">
+                            {skill.name}
+                          </Badge>
+                        )) || <span className="text-xs text-muted-foreground">No secondary skills</span>}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -893,6 +1028,104 @@ export default function GameDataPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Skill Management Modal */}
+      <Dialog open={skillManagementModal.isOpen} onOpenChange={(open) => setSkillManagementModal(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Manage {skillManagementModal.skillType === 'primary' ? 'Primary' : 'Secondary'} Skills
+            </DialogTitle>
+            <DialogDescription>
+              Add or remove skills for this {skillManagementModal.itemType}.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Available Skills</h4>
+              <div className="grid gap-2 max-h-60 overflow-y-auto">
+                {skillsLoading ? (
+                  <div className="text-center py-4">Loading skills...</div>
+                ) : (
+                  skills?.filter((skill: any) => {
+                    // Get current item's skills to filter out already assigned ones
+                    const currentItem = skillManagementModal.itemType === 'heritage' 
+                      ? heritages?.find((h: any) => h.id === skillManagementModal.itemId)
+                      : skillManagementModal.itemType === 'culture'
+                      ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
+                      : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
+                    
+                    const assignedSkills = skillManagementModal.skillType === 'primary' 
+                      ? currentItem?.primarySkills || []
+                      : currentItem?.secondarySkills || [];
+                    
+                    return !assignedSkills.some((s: any) => s.id === skill.id);
+                  }).map((skill: any) => (
+                    <div key={skill.id} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <span className="font-medium">{skill.name}</span>
+                        {skill.description && (
+                          <p className="text-sm text-muted-foreground">{skill.description}</p>
+                        )}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleAddSkillRelationship(skill.id)}
+                        disabled={addSkillRelationshipMutation.isPending}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Assigned Skills</h4>
+              <div className="grid gap-2 max-h-60 overflow-y-auto">
+                {(() => {
+                  const currentItem = skillManagementModal.itemType === 'heritage' 
+                    ? heritages?.find((h: any) => h.id === skillManagementModal.itemId)
+                    : skillManagementModal.itemType === 'culture'
+                    ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
+                    : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
+                  
+                  const assignedSkills = skillManagementModal.skillType === 'primary' 
+                    ? currentItem?.primarySkills || []
+                    : currentItem?.secondarySkills || [];
+                  
+                  return assignedSkills.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No skills assigned yet
+                    </div>
+                  ) : (
+                    assignedSkills.map((skill: any) => (
+                      <div key={skill.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <span className="font-medium">{skill.name}</span>
+                          {skill.description && (
+                            <p className="text-sm text-muted-foreground">{skill.description}</p>
+                          )}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => handleRemoveSkillRelationship(skill.id)}
+                          disabled={removeSkillRelationshipMutation.isPending}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
         </div>
       </div>
     </div>

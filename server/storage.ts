@@ -1711,13 +1711,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllHeritages(): Promise<any[]> {
-    const heritages = await db
-      .select()
-      .from(heritagesTable)
-      .where(eq(heritagesTable.isActive, true))
-      .orderBy(heritagesTable.name);
+    const heritagesList = await db.select().from(heritagesTable).where(eq(heritagesTable.isActive, true)).orderBy(heritagesTable.name);
     
-    return heritages;
+    // Get heritage with secondary skills for each heritage
+    const heritagesWithSkills = await Promise.all(
+      heritagesList.map(async (heritage) => {
+        return await this.getHeritageWithSkills(heritage.id);
+      })
+    );
+    
+    return heritagesWithSkills;
   }
 
   async getHeritage(id: string): Promise<any | undefined> {
@@ -1733,6 +1736,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: skillsTable.id,
         name: skillsTable.name,
+        description: skillsTable.description,
       })
       .from(heritageSecondarySkills)
       .innerJoin(skillsTable, eq(heritageSecondarySkills.skillId, skillsTable.id))
@@ -1765,13 +1769,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllCultures(): Promise<any[]> {
-    const cultures = await db
-      .select()
+    const culturesList = await db
+      .select({
+        id: culturesTable.id,
+        name: culturesTable.name,
+        description: culturesTable.description,
+        heritageId: culturesTable.heritageId,
+        heritageName: heritagesTable.name,
+        isActive: culturesTable.isActive,
+        createdBy: culturesTable.createdBy,
+        createdAt: culturesTable.createdAt,
+        updatedAt: culturesTable.updatedAt,
+      })
       .from(culturesTable)
+      .innerJoin(heritagesTable, eq(culturesTable.heritageId, heritagesTable.id))
       .where(eq(culturesTable.isActive, true))
       .orderBy(culturesTable.name);
     
-    return cultures;
+    // Get culture with secondary skills for each culture
+    const culturesWithSkills = await Promise.all(
+      culturesList.map(async (culture) => {
+        return await this.getCultureWithSkills(culture.id);
+      })
+    );
+    
+    return culturesWithSkills;
   }
 
   async getCulture(id: string): Promise<any | undefined> {
@@ -1780,13 +1802,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCultureWithSkills(id: string): Promise<any | undefined> {
-    const culture = await this.getCulture(id);
+    // Get culture with heritage name
+    const [culture] = await db
+      .select({
+        id: culturesTable.id,
+        name: culturesTable.name,
+        description: culturesTable.description,
+        heritageId: culturesTable.heritageId,
+        heritageName: heritagesTable.name,
+        isActive: culturesTable.isActive,
+        createdBy: culturesTable.createdBy,
+        createdAt: culturesTable.createdAt,
+        updatedAt: culturesTable.updatedAt,
+      })
+      .from(culturesTable)
+      .innerJoin(heritagesTable, eq(culturesTable.heritageId, heritagesTable.id))
+      .where(eq(culturesTable.id, id));
+    
     if (!culture) return undefined;
 
     const secondarySkills = await db
       .select({
         id: skillsTable.id,
         name: skillsTable.name,
+        description: skillsTable.description,
       })
       .from(cultureSecondarySkills)
       .innerJoin(skillsTable, eq(cultureSecondarySkills.skillId, skillsTable.id))
@@ -1827,13 +1866,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllArchetypes(): Promise<any[]> {
-    const archetypes = await db
-      .select()
-      .from(archetypesTable)
-      .where(eq(archetypesTable.isActive, true))
-      .orderBy(archetypesTable.name);
+    const archetypesList = await db.select().from(archetypesTable).where(eq(archetypesTable.isActive, true)).orderBy(archetypesTable.name);
     
-    return archetypes;
+    // Get archetype with primary and secondary skills for each archetype
+    const archetypesWithSkills = await Promise.all(
+      archetypesList.map(async (archetype) => {
+        return await this.getArchetypeWithSkills(archetype.id);
+      })
+    );
+    
+    return archetypesWithSkills;
   }
 
   async getArchetype(id: string): Promise<any | undefined> {
@@ -1849,6 +1891,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: skillsTable.id,
         name: skillsTable.name,
+        description: skillsTable.description,
       })
       .from(archetypePrimarySkills)
       .innerJoin(skillsTable, eq(archetypePrimarySkills.skillId, skillsTable.id))
@@ -1858,6 +1901,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: skillsTable.id,
         name: skillsTable.name,
+        description: skillsTable.description,
       })
       .from(archetypeSecondarySkills)
       .innerJoin(skillsTable, eq(archetypeSecondarySkills.skillId, skillsTable.id))
