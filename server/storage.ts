@@ -1677,17 +1677,8 @@ export class DatabaseStorage implements IStorage {
   // Dynamic game data methods implementation
   async getAllSkills(): Promise<any[]> {
     const skills = await db
-      .select({
-        id: skillsTable.id,
-        name: skillsTable.name,
-        description: skillsTable.description,
-        prerequisiteSkillId: skillsTable.prerequisiteSkillId,
-        prerequisiteSkillName: sql<string>`ps.name`,
-        isActive: skillsTable.isActive,
-        createdAt: skillsTable.createdAt,
-      })
+      .select()
       .from(skillsTable)
-      .leftJoin(sql`${skillsTable} ps`, sql`ps.id = ${skillsTable.prerequisiteSkillId}`)
       .where(eq(skillsTable.isActive, true))
       .orderBy(skillsTable.name);
     
@@ -1775,19 +1766,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllCultures(): Promise<any[]> {
     const cultures = await db
-      .select({
-        id: culturesTable.id,
-        name: culturesTable.name,
-        heritageId: culturesTable.heritageId,
-        heritageName: heritagesTable.name,
-        description: culturesTable.description,
-        isActive: culturesTable.isActive,
-        createdAt: culturesTable.createdAt,
-      })
+      .select()
       .from(culturesTable)
-      .innerJoin(heritagesTable, eq(culturesTable.heritageId, heritagesTable.id))
       .where(eq(culturesTable.isActive, true))
-      .orderBy(heritagesTable.name, culturesTable.name);
+      .orderBy(culturesTable.name);
     
     return cultures;
   }

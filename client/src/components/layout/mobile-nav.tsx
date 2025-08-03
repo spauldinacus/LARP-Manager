@@ -14,6 +14,8 @@ import {
   Building2,
   Shield,
   TrendingUp,
+  Database,
+  Flame,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -70,6 +72,18 @@ const navigationItems = [
     href: "/roles",
     icon: Shield,
     label: "Role Management",
+    adminOnly: true,
+  },
+  {
+    href: "/candles",
+    icon: Flame,
+    label: "Candle Management",
+    adminOnly: true,
+  },
+  {
+    href: "/game-data",
+    icon: Database,
+    label: "Game Data",
     adminOnly: true,
   },
   {
