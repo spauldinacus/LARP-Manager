@@ -104,17 +104,17 @@ export default function CharacterSheetModal({
   const queryClient = useQueryClient();
 
   // Fetch dynamic game data for real-time XP calculations
-  const { data: skills = [] } = useQuery({
+  const { data: skills = [] } = useQuery<DynamicSkill[]>({
     queryKey: ["/api/admin/skills"],
     enabled: isOpen && !!characterId,
   });
 
-  const { data: heritages = [] } = useQuery({
+  const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
     queryKey: ["/api/admin/heritages"], 
     enabled: isOpen && !!characterId,
   });
 
-  const { data: archetypes = [] } = useQuery({
+  const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
     queryKey: ["/api/admin/archetypes"],
     enabled: isOpen && !!characterId,
   });
@@ -186,15 +186,15 @@ export default function CharacterSheetModal({
     const selectedSecondArchetype = secondArchetypeId ? archetypes.find((a: DynamicArchetype) => a.id === secondArchetypeId) : null;
     
     // Check if skill is a primary skill from any archetype (5 XP)
-    if (selectedArchetype?.primarySkills?.some(s => s.id === skillData.id) ||
-        selectedSecondArchetype?.primarySkills?.some(s => s.id === skillData.id)) {
+    if (selectedArchetype?.primarySkills?.some((s: DynamicSkill) => s.id === skillData.id) ||
+        selectedSecondArchetype?.primarySkills?.some((s: DynamicSkill) => s.id === skillData.id)) {
       return { cost: 5, category: 'primary' as const };
     }
     
     // Check if skill is a secondary skill from heritage or any archetype (10 XP)
-    if (selectedHeritage?.secondarySkills?.some(s => s.id === skillData.id) || 
-        selectedArchetype?.secondarySkills?.some(s => s.id === skillData.id) ||
-        selectedSecondArchetype?.secondarySkills?.some(s => s.id === skillData.id)) {
+    if (selectedHeritage?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id) || 
+        selectedArchetype?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id) ||
+        selectedSecondArchetype?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id)) {
       return { cost: 10, category: 'secondary' as const };
     }
     
@@ -504,7 +504,7 @@ export default function CharacterSheetModal({
                           <p className="text-3xl font-bold text-primary">{(character as any).body}</p>
                           <p className="text-sm text-muted-foreground">Body</p>
                           {(() => {
-                            const heritage = HERITAGES.find(h => h.id === (character as any).heritage);
+                            const heritage = heritages.find((h: DynamicHeritage) => h.id === (character as any).heritage);
                             const startingBody = heritage?.body || 10;
                             const purchasedBody = (character as any).body - startingBody;
                             return (
@@ -519,7 +519,7 @@ export default function CharacterSheetModal({
                           <p className="text-3xl font-bold text-accent">{(character as any).stamina}</p>
                           <p className="text-sm text-muted-foreground">Stamina</p>
                           {(() => {
-                            const heritage = HERITAGES.find(h => h.id === (character as any).heritage);
+                            const heritage = heritages.find((h: DynamicHeritage) => h.id === (character as any).heritage);
                             const startingStamina = heritage?.stamina || 10;
                             const purchasedStamina = (character as any).stamina - startingStamina;
                             return (
@@ -818,7 +818,7 @@ export default function CharacterSheetModal({
                                       <SelectValue placeholder="Choose a second archetype" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {ARCHETYPES.filter(archetype => archetype.id !== (character as any).archetype).map((archetype) => (
+                                      {archetypes.filter((archetype: DynamicArchetype) => archetype.id !== (character as any).archetype).map((archetype: DynamicArchetype) => (
                                         <SelectItem key={archetype.id} value={archetype.id}>
                                           {archetype.name}
                                         </SelectItem>
@@ -980,7 +980,7 @@ export default function CharacterSheetModal({
                               {selectedRemoveSkill && (
                                 <Button
                                   onClick={() => {
-                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill as Skill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
+                                    const skillData = getSkillCostForCharacter(selectedRemoveSkill, (character as any).heritage, (character as any).archetype, (character as any).secondArchetype);
                                     adminRemoveSkillMutation.mutate({ skill: selectedRemoveSkill, cost: skillData.cost });
                                   }}
                                   disabled={!selectedRemoveSkill || adminRemoveSkillMutation.isPending}
