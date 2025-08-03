@@ -142,9 +142,14 @@ export default function CharacterCreationModal({
     },
   });
 
-  // Get heritage base values for attributes
-  const getHeritageBaseValues = (heritage: string) => {
-    return HERITAGE_BASES[heritage as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
+  // Get heritage base values for attributes from dynamic heritage data
+  const getHeritageBaseValues = (heritageId: string) => {
+    const heritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
+    if (heritage) {
+      return { body: heritage.body, stamina: heritage.stamina };
+    }
+    // Fallback to static values if heritage not found
+    return HERITAGE_BASES[heritageId as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
   };
 
   // Calculate skill cost dynamically based on selected heritage and archetype
@@ -273,7 +278,7 @@ export default function CharacterCreationModal({
         body: heritageValues.body + additionalBody,
         stamina: heritageValues.stamina + additionalStamina,
         experience: 25, // Start with full 25 XP - server will calculate total spent
-        skills: selectedSkills.map(s => s.name), // Add selected skills
+        skills: selectedSkills.map(s => s.id), // Add selected skill IDs
       };
 
       const response = await apiRequest("POST", "/api/characters", characterData);
@@ -358,8 +363,14 @@ export default function CharacterCreationModal({
           {/* Heritage Selection */}
           <div>
             <Label className="text-base font-medium mb-3 block">Heritage</Label>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              {heritages.map((heritage: DynamicHeritage) => {
+            {heritagesLoading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                Loading heritages...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                {heritages.map((heritage: DynamicHeritage) => {
                 const Icon = heritageIcons[heritage.icon as keyof typeof heritageIcons] || User;
                 const isSelected = form.watch("heritage") === heritage.id;
 
@@ -387,8 +398,9 @@ export default function CharacterCreationModal({
                     </div>
                   </Card>
                 );
-              })}
-            </div>
+                })}
+              </div>
+            )}
             {form.formState.errors.heritage && (
               <p className="text-sm text-destructive mt-1">
                 {form.formState.errors.heritage.message}
@@ -403,10 +415,10 @@ export default function CharacterCreationModal({
               <Select
                 value={form.watch("culture")}
                 onValueChange={(value) => form.setValue("culture", value)}
-                disabled={!watchedHeritage}
+                disabled={!watchedHeritage || culturesLoading}
               >
                 <SelectTrigger className={form.formState.errors.culture ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Select Culture" />
+                  <SelectValue placeholder={culturesLoading ? "Loading cultures..." : "Select Culture"} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableCultures.map((culture) => (
@@ -428,9 +440,10 @@ export default function CharacterCreationModal({
               <Select
                 value={form.watch("archetype")}
                 onValueChange={(value) => form.setValue("archetype", value)}
+                disabled={archetypesLoading}
               >
                 <SelectTrigger className={form.formState.errors.archetype ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Select Archetype" />
+                  <SelectValue placeholder={archetypesLoading ? "Loading archetypes..." : "Select Archetype"} />
                 </SelectTrigger>
                 <SelectContent>
                   {archetypes.map((archetype: DynamicArchetype) => (
@@ -511,9 +524,9 @@ export default function CharacterCreationModal({
                     <div className="mt-3">
                       <p className="text-sm font-medium text-muted-foreground">Secondary Skills Available</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedHeritageData.secondarySkills.map((skill: string, index: number) => (
+                        {(selectedHeritageData.secondarySkills || []).map((skill: DynamicSkill, index: number) => (
                           <span key={index} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                            {skill}
+                            {skill.name}
                           </span>
                         ))}
                       </div>
@@ -564,9 +577,9 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {(selectedArchetypeData.primarySkills || []).map((skill: string, index: number) => (
+                            {(selectedArchetypeData.primarySkills || []).map((skill: DynamicSkill, index: number) => (
                               <span key={index} className="text-xs bg-yellow-500/20 text-yellow-600 px-2 py-1 rounded">
-                                {skill}
+                                {skill.name}
                               </span>
                             ))}
                           </div>
@@ -574,9 +587,9 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {(selectedArchetypeData.secondarySkills || []).map((skill: string, index: number) => (
+                            {(selectedArchetypeData.secondarySkills || []).map((skill: DynamicSkill, index: number) => (
                               <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-                                {skill}
+                                {skill.name}
                               </span>
                             ))}
                           </div>
