@@ -492,24 +492,29 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Get user's characters - use simplest possible query
+      // Get user's characters with heritage/archetype names
       console.log("Getting characters for userId:", id);
       const userCharacters = await db
-        .select()
+        .select({
+          id: characters.id,
+          name: characters.name,
+          heritage: heritagesTable.name,
+          culture: culturesTable.name,
+          archetype: archetypesTable.name,
+          isActive: characters.isActive,
+          totalXpSpent: characters.totalXpSpent,
+        })
         .from(characters)
+        .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
+        .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
+        .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
         .where(eq(characters.userId, id));
 
       console.log("Found", userCharacters.length, "characters");
 
       const result = {
         ...basicUser,
-        characters: userCharacters.map(char => ({
-          id: char.id,
-          name: char.name,
-          heritage: char.heritage,
-          isActive: char.isActive,
-          totalXpSpent: char.totalXpSpent,
-        })),
+        characters: userCharacters,
         role: roleData,
         chapter: chapterData,
       };
@@ -619,8 +624,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Character methods
-  async getCharacter(id: string): Promise<Character | undefined> {
-    const [character] = await db.select().from(characters).where(eq(characters.id, id));
+  async getCharacter(id: string): Promise<any | undefined> {
+    const [character] = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        userId: characters.userId,
+        heritage: heritagesTable.name,
+        culture: culturesTable.name,
+        archetype: archetypesTable.name,
+        secondArchetype: sql<string>`second_arch.name`,
+        body: characters.body,
+        stamina: characters.stamina,
+        experience: characters.experience,
+        totalXpSpent: characters.totalXpSpent,
+        skills: characters.skills,
+        isActive: characters.isActive,
+        isRetired: characters.isRetired,
+        retiredAt: characters.retiredAt,
+        retirementReason: characters.retirementReason,
+        createdAt: characters.createdAt,
+        updatedAt: characters.updatedAt,
+      })
+      .from(characters)
+      .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
+      .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
+      .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
+      .leftJoin(sql`archetypes second_arch`, eq(characters.secondArchetype, sql`second_arch.id`))
+      .where(eq(characters.id, id));
+    
     return character || undefined;
   }
 
@@ -638,9 +670,10 @@ export class DatabaseStorage implements IStorage {
         id: characters.id,
         name: characters.name,
         userId: characters.userId,
-        heritage: characters.heritage,
-        culture: characters.culture,
-        archetype: characters.archetype,
+        heritage: heritagesTable.name,
+        culture: culturesTable.name,
+        archetype: archetypesTable.name,
+        secondArchetype: sql<string>`second_arch.name`,
         body: characters.body,
         stamina: characters.stamina,
         experience: characters.experience,
@@ -658,6 +691,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(characters)
       .leftJoin(users, eq(characters.userId, users.id))
+      .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
+      .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
+      .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
+      .leftJoin(sql`archetypes second_arch`, eq(characters.secondArchetype, sql`second_arch.id`))
       .orderBy(desc(characters.createdAt));
 
     return charactersWithPlayers;
