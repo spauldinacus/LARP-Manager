@@ -633,7 +633,6 @@ export class DatabaseStorage implements IStorage {
         heritage: heritagesTable.name,
         culture: culturesTable.name,
         archetype: archetypesTable.name,
-        secondArchetype: sql<string>`second_arch.name`,
         body: characters.body,
         stamina: characters.stamina,
         experience: characters.experience,
@@ -650,7 +649,6 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
       .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
       .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
-      .leftJoin(sql`archetypes second_arch`, eq(characters.secondArchetype, sql`second_arch.id`))
       .where(eq(characters.id, id));
     
     return character || undefined;
@@ -673,7 +671,6 @@ export class DatabaseStorage implements IStorage {
         heritage: heritagesTable.name,
         culture: culturesTable.name,
         archetype: archetypesTable.name,
-        secondArchetype: sql<string>`second_arch.name`,
         body: characters.body,
         stamina: characters.stamina,
         experience: characters.experience,
@@ -694,7 +691,6 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
       .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
       .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
-      .leftJoin(sql`archetypes second_arch`, eq(characters.secondArchetype, sql`second_arch.id`))
       .orderBy(desc(characters.createdAt));
 
     return charactersWithPlayers;
