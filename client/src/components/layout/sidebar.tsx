@@ -81,7 +81,7 @@ const navigationItems = [
     href: "/game-data",
     icon: Database,
     label: "Game Data",
-    adminOnly: true,
+    adminOnly: false,
   },
   {
     href: "/settings",
