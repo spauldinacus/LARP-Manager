@@ -144,7 +144,7 @@ export const skillsTable = pgTable("skills", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description"),
-  prerequisiteSkillId: uuid("prerequisite_skill_id").references(() => skillsTable.id),
+  prerequisiteSkillId: uuid("prerequisite_skill_id"),
   isActive: boolean("is_active").default(true).notNull(),
   createdBy: uuid("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
@@ -1034,34 +1034,63 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // ADDITIONAL HELPER FUNCTIONS
 // ===========================
 
+// Type guard to check if a string is a valid skill
+export function isValidSkill(skill: string): skill is Skill {
+  return SKILLS.includes(skill as Skill);
+}
+
+// Type guard to safely validate skill input
+export function validateSkill(skillInput: string): Skill | null {
+  if (isValidSkill(skillInput)) {
+    return skillInput;
+  }
+  return null;
+}
+
 // Function to calculate skill XP cost based on heritage and archetype(s)
-export function getSkillCost(skill: string, heritage: string, archetype: string, secondArchetype?: string): number {
+export function getSkillCost(skill: Skill | string, heritage: string, archetype: string, secondArchetype?: string): number {
+  // Validate skill input if it's a string
+  if (typeof skill === 'string' && !isValidSkill(skill)) {
+    throw new Error(`Invalid skill: ${skill}. Must be one of the valid skills.`);
+  }
+  
+  const validSkill = typeof skill === 'string' ? skill as Skill : skill;
+  
   const heritageData = HERITAGES.find(h => h.id === heritage);
   const archetypeData = ARCHETYPES.find(a => a.id === archetype);
   const secondArchetypeData = secondArchetype ? ARCHETYPES.find(a => a.id === secondArchetype) : null;
   
-  // Get all skill lists - cast readonly arrays to mutable arrays
-  const heritageSecondarySkills = [...(heritageData?.secondarySkills || [])];
-  const archetypePrimarySkills = [...(archetypeData?.primarySkills || [])];
-  const archetypeSecondarySkills = [...(archetypeData?.secondarySkills || [])];
-  const secondArchetypePrimarySkills = [...(secondArchetypeData?.primarySkills || [])];
-  const secondArchetypeSecondarySkills = [...(secondArchetypeData?.secondarySkills || [])];
+  // Get all skill lists and cast to string arrays to avoid type conflicts
+  const heritageSecondarySkills = (heritageData?.secondarySkills || []) as string[];
+  const archetypePrimarySkills = (archetypeData?.primarySkills || []) as string[];
+  const archetypeSecondarySkills = (archetypeData?.secondarySkills || []) as string[];
+  const secondArchetypePrimarySkills = (secondArchetypeData?.primarySkills || []) as string[];
+  const secondArchetypeSecondarySkills = (secondArchetypeData?.secondarySkills || []) as string[];
   
   // Check if skill is PRIMARY (5 XP) - heritage secondary OR any archetype primary
-  if (heritageSecondarySkills.includes(skill) || 
-      archetypePrimarySkills.includes(skill) || 
-      secondArchetypePrimarySkills.includes(skill)) {
+  if (heritageSecondarySkills.includes(validSkill) || 
+      archetypePrimarySkills.includes(validSkill) || 
+      secondArchetypePrimarySkills.includes(validSkill)) {
     return 5;
   }
 
   // Check if skill is SECONDARY (10 XP) - any archetype secondary
-  if (archetypeSecondarySkills.includes(skill) || 
-      secondArchetypeSecondarySkills.includes(skill)) {
+  if (archetypeSecondarySkills.includes(validSkill) || 
+      secondArchetypeSecondarySkills.includes(validSkill)) {
     return 10;
   }
 
   // Otherwise it's a general skill (20 XP)
   return 20;
+}
+
+// Safe wrapper function that validates skill input before calculating cost
+export function calculateSkillCostSafely(skillInput: string, heritage: string, archetype: string, secondArchetype?: string): number | null {
+  const validSkill = validateSkill(skillInput);
+  if (!validSkill) {
+    return null; // Invalid skill
+  }
+  return getSkillCost(validSkill, heritage, archetype, secondArchetype);
 }
 
 
