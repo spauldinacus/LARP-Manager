@@ -31,13 +31,13 @@ const skillSchema = z.object({
 
 const heritageSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  body: z.number().min(1, "Body must be at least 1"),
-  stamina: z.number().min(1, "Stamina must be at least 1"),
-  icon: z.string().min(1, "Icon is required"),
+  bodyBase: z.number().min(1, "Body base must be at least 1"),
+  mindBase: z.number().min(1, "Mind base must be at least 1"),
+  spiritBase: z.number().min(1, "Spirit base must be at least 1"),
   description: z.string().min(1, "Description is required"),
   costumeRequirements: z.string().min(1, "Costume requirements are required"),
-  benefit: z.string().min(1, "Benefit is required"),
-  weakness: z.string().min(1, "Weakness is required"),
+  primarySkills: z.array(z.string()).default([]),
+  secondarySkills: z.array(z.string()).default([]),
 });
 
 const cultureSchema = z.object({
@@ -259,13 +259,13 @@ export default function GameDataPage() {
     resolver: zodResolver(heritageSchema),
     defaultValues: {
       name: "",
-      body: 10,
-      stamina: 10,
-      icon: "",
+      bodyBase: 10,
+      mindBase: 10,
+      spiritBase: 10,
       description: "",
       costumeRequirements: "",
-      benefit: "",
-      weakness: "",
+      primarySkills: [],
+      secondarySkills: [],
     },
   });
 
@@ -621,13 +621,13 @@ export default function GameDataPage() {
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={heritageForm.control}
-                        name="body"
+                        name="bodyBase"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Body</FormLabel>
+                            <FormLabel>Body Base</FormLabel>
                             <FormControl>
                               <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
                             </FormControl>
@@ -637,10 +637,23 @@ export default function GameDataPage() {
                       />
                       <FormField
                         control={heritageForm.control}
-                        name="stamina"
+                        name="mindBase"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Stamina</FormLabel>
+                            <FormLabel>Mind Base</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={heritageForm.control}
+                        name="spiritBase"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Spirit Base</FormLabel>
                             <FormControl>
                               <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
                             </FormControl>
@@ -651,28 +664,46 @@ export default function GameDataPage() {
                     </div>
                     <FormField
                       control={heritageForm.control}
-                      name="icon"
+                      name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Icon</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select an icon" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {/* TODO: Populate with actual icon identifiers from a predefined list or dynamically */}
-                              <SelectItem value="sword">Sword</SelectItem>
-                              <SelectItem value="shield">Shield</SelectItem>
-                              <SelectItem value="bow">Bow</SelectItem>
-                              <SelectItem value="staff">Staff</SelectItem>
-                              <SelectItem value="axe">Axe</SelectItem>
-                              <SelectItem value="hammer">Hammer</SelectItem>
-                              <SelectItem value="dagger">Dagger</SelectItem>
-                              <SelectItem value="book">Book</SelectItem>
-                              <SelectItem value="scroll">Scroll</SelectItem>
-                              <SelectItem value="potion">Potion</SelectItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Heritage description" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={heritageForm.control}
+                      name="costumeRequirements"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Costume Requirements</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Costume requirements" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="space-y-4">
+                      <div>
+                        <FormLabel>Primary Skills</FormLabel>
+                        <div className="text-sm text-muted-foreground mb-2">
+                          Select skills that will cost 5 XP for this heritage
+                        </div>
+                        {/* TODO: Add skill selection interface */}
+                      </div>
+                      <div>
+                        <FormLabel>Secondary Skills</FormLabel>
+                        <div className="text-sm text-muted-foreground mb-2">
+                          Select skills that will cost 10 XP for this heritage
+                        </div>
+                        {/* TODO: Add skill selection interface */}
+                      </div>
+                    </div>
                               <SelectItem value="armor">Armor</SelectItem>
                               <SelectItem value="helmet">Helmet</SelectItem>
                               <SelectItem value="boots">Boots</SelectItem>
@@ -701,58 +732,8 @@ export default function GameDataPage() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={heritageForm.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Heritage description" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={heritageForm.control}
-                      name="costumeRequirements"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Costume Requirements</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Costume requirements" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={heritageForm.control}
-                      name="benefit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Benefit</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Heritage benefit" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={heritageForm.control}
-                      name="weakness"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Weakness</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Heritage weakness" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
+
                     <div className="flex justify-end space-x-2">
                       <Button type="button" variant="outline" onClick={() => {
                         setIsCreateMode(false);
