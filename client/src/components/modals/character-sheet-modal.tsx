@@ -133,13 +133,13 @@ export default function CharacterSheetModal({
 
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
-    queryKey: ["/api/characters", characterId],
+    queryKey: ["/api/characters", characterId!],
     enabled: isOpen && !!characterId,
   });
 
   // Fetch character experience history
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
-    queryKey: ["/api/characters", characterId, "experience"],
+    queryKey: ["/api/characters", characterId!, "experience"],
     enabled: isOpen && !!characterId,
   });
 
@@ -209,8 +209,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       setSelectedSkill("");
       toast({
         title: "Skill purchased!",
@@ -232,8 +232,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       setAdditionalBody(0);
       setAdditionalStamina(0);
       toast({
@@ -256,7 +256,7 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
       setRetirementReason("");
       toast({
@@ -285,9 +285,9 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "attendance-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "attendance-xp"] });
       setSelectedEvent("");
       setXpAmount(3);
       setShowAddEvent(false);
@@ -307,8 +307,8 @@ export default function CharacterSheetModal({
 
   // Fetch attendance-based XP calculation
   const { data: attendanceXP } = useQuery({
-    queryKey: ["/api/characters", characterId, "attendance-xp"],
-    enabled: !!characterId,
+    queryKey: ["/api/characters", characterId!, "attendance-xp"],
+    enabled: isOpen && !!characterId,
   });
 
   // Admin remove experience entry mutation
@@ -318,8 +318,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       toast({
         title: "Experience entry removed",
         description: "The experience entry has been successfully removed.",
@@ -341,8 +341,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       setSelectedAdminSkill("");
       toast({
         title: "Skill added (Admin)",
@@ -364,8 +364,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       setSelectedRemoveSkill("");
       toast({
         title: "Skill removed (Admin)",
@@ -387,8 +387,8 @@ export default function CharacterSheetModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId, "experience"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", characterId!, "experience"] });
       setSelectedSecondArchetype("");
       toast({
         title: "Second archetype purchased!",
