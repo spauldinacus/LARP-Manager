@@ -107,16 +107,19 @@ export default function CharacterSheetModal({
   const { data: skills = [] } = useQuery<DynamicSkill[]>({
     queryKey: ["/api/admin/skills"],
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
   });
 
   const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
     queryKey: ["/api/admin/heritages"], 
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
   });
 
   const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
     queryKey: ["/api/admin/archetypes"],
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
   });
   const [showExperienceSpending, setShowExperienceSpending] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string>("");
@@ -139,6 +142,8 @@ export default function CharacterSheetModal({
   const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["/api/characters", characterId!],
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Debug logging for query results
@@ -149,6 +154,8 @@ export default function CharacterSheetModal({
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId!, "experience"],
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Debug logging for experience history
@@ -321,6 +328,7 @@ export default function CharacterSheetModal({
   const { data: attendanceXP } = useQuery({
     queryKey: ["/api/characters", characterId!, "attendance-xp"],
     enabled: isOpen && !!characterId,
+    refetchOnMount: true,
   });
 
   // Admin remove experience entry mutation
