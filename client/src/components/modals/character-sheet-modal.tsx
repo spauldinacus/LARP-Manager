@@ -107,19 +107,19 @@ export default function CharacterSheetModal({
   const { data: skills = [] } = useQuery<DynamicSkill[]>({
     queryKey: ["/api/admin/skills"],
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
+    staleTime: 0,
   });
 
   const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
     queryKey: ["/api/admin/heritages"], 
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
+    staleTime: 0,
   });
 
   const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
     queryKey: ["/api/admin/archetypes"],
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
+    staleTime: 0,
   });
   const [showExperienceSpending, setShowExperienceSpending] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string>("");
@@ -142,8 +142,7 @@ export default function CharacterSheetModal({
   const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["/api/characters", characterId!],
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Always treat data as stale to force fresh requests
   });
 
   // Debug logging for query results
@@ -154,8 +153,7 @@ export default function CharacterSheetModal({
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId!, "experience"],
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Always treat data as stale to force fresh requests
   });
 
   // Debug logging for experience history
@@ -328,7 +326,7 @@ export default function CharacterSheetModal({
   const { data: attendanceXP } = useQuery({
     queryKey: ["/api/characters", characterId!, "attendance-xp"],
     enabled: isOpen && !!characterId,
-    refetchOnMount: true,
+    staleTime: 0,
   });
 
   // Admin remove experience entry mutation

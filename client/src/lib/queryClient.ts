@@ -47,9 +47,18 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes instead of Infinity
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      retry: 1, // Retry once on failure
+      staleTime: 30 * 1000, // 30 seconds - shorter for serverless
+      gcTime: 5 * 60 * 1000, // 5 minutes (gcTime replaces cacheTime)
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401, 403, or 404 errors
+        if (error?.message?.includes('401') || 
+            error?.message?.includes('403') || 
+            error?.message?.includes('404')) {
+          return false;
+        }
+        return failureCount < 2; // Retry up to 2 times for other errors
+      },
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: false,
