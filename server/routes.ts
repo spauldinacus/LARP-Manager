@@ -790,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Remove skill from character
-      const updatedSkills = character.skills.filter(s => s !== skill);
+      const updatedSkills = character.skills.filter((s: string) => s !== skill);
       
       // Create refund experience entry (positive amount to add XP back)
       await storage.createExperienceEntry({
