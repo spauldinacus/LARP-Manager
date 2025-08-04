@@ -47,6 +47,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
     queryKey: ["/api/candles/transactions", user?.id],
     queryFn: () => fetch(`/api/candles/transactions/${user?.id}`).then(res => res.json()),
     enabled: !!user?.id,
+    refetchOnMount: true,
   });
 
   const candleTransactionMutation = useMutation({
@@ -105,7 +106,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
               Current balance: {user.candles} candles
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Transaction History</h3>
@@ -176,7 +177,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
               Adjust candle balance for {user.playerName}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="candle-amount">Amount</Label>
@@ -191,7 +192,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
                 Use positive numbers to add candles, negative to remove
               </p>
             </div>
-            
+
             <div>
               <Label htmlFor="candle-reason">Reason</Label>
               <Textarea
@@ -203,7 +204,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button 
               variant="outline"

@@ -110,24 +110,22 @@ export default function CharacterCreationModal({
   const [additionalStamina, setAdditionalStamina] = useState(0);
 
   // Fetch dynamic game data
-  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+  const { data: skills = [] } = useQuery<DynamicSkill[]>({
     queryKey: ["/api/admin/skills"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
-  const { data: heritages = [], isLoading: heritagesLoading } = useQuery({
-    queryKey: ["/api/admin/heritages"], 
+  const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
+    queryKey: ["/api/admin/heritages"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
-  const { data: cultures = [], isLoading: culturesLoading } = useQuery({
-    queryKey: ["/api/admin/cultures"],
-    enabled: isOpen,
-  });
-
-  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
+  const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
     queryKey: ["/api/admin/archetypes"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
   const form = useForm<CharacterForm>({
@@ -156,18 +154,18 @@ export default function CharacterCreationModal({
   const getSkillCostForCharacter = (skill: DynamicSkill, heritageId: string, archetypeId: string): { cost: number; category: 'primary' | 'secondary' | 'other' } => {
     const selectedHeritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
     const selectedArchetype = archetypes.find((a: DynamicArchetype) => a.id === archetypeId);
-    
+
     // Check if skill is an archetype primary skill (highest priority - 5 XP)
     if (selectedArchetype?.primarySkills?.some(s => s.id === skill.id)) {
       return { cost: 5, category: 'primary' };
     }
-    
+
     // Check if skill is a heritage secondary skill OR archetype secondary skill (10 XP)
     if (selectedHeritage?.secondarySkills?.some(s => s.id === skill.id) || 
         selectedArchetype?.secondarySkills?.some(s => s.id === skill.id)) {
       return { cost: 10, category: 'secondary' };
     }
-    
+
     // Default cost for all other skills (20 XP)
     return { cost: 20, category: 'other' };
   };
@@ -182,7 +180,7 @@ export default function CharacterCreationModal({
     const heritage = form.watch("heritage");
     const culture = form.watch("culture");
     const archetype = form.watch("archetype");
-    
+
     if (!heritage || !archetype) {
       toast({
         title: "Selection Required",
@@ -204,7 +202,7 @@ export default function CharacterCreationModal({
     }
 
     const skillData = getSkillCostForCharacter(skill, heritage, archetype);
-    
+
     if (skillData.cost > availableExperience) {
       toast({
         title: "Insufficient Experience",
@@ -253,7 +251,7 @@ export default function CharacterCreationModal({
   const heritageBaseValues = getHeritageBaseValues(watchedHeritage);
   const baseBody = heritageBaseValues.body;
   const baseStamina = heritageBaseValues.stamina;
-  
+
   // Calculate attribute costs based on incremental cost from current values
   const bodyCost = (additionalBody > 0 && baseBody) ? getAttributeCost(baseBody, additionalBody) : 0;
   const staminaCost = (additionalStamina > 0 && baseStamina) ? getAttributeCost(baseStamina, additionalStamina) : 0;
@@ -367,7 +365,7 @@ export default function CharacterCreationModal({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 {heritages.map((heritage: DynamicHeritage) => {
-                const Icon = heritageIcons[heritage.icon as keyof typeof heritageIcons] || User;
+                const Icon = heritageIcons[heritage.icon as keyof heritageIcons] || User;
                 const isSelected = form.watch("heritage") === heritage.id;
 
                 return (
@@ -667,7 +665,7 @@ export default function CharacterCreationModal({
                         const archetype = form.watch("archetype");
                         const skillData = getSkillCostForCharacter(skill, heritage, archetype);
                         const prerequisitesMet = hasPrerequisites(skill);
-                        
+
                         return (
                           <div
                             key={skill.id}

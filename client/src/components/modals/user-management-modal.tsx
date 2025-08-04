@@ -30,6 +30,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
     retry: 1,
     staleTime: 0, // Force fresh data
     gcTime: 0, // Don't cache
+    refetchOnMount: true,
   });
 
   console.log("UserManagementModal - userId:", userId, "userDetails:", userDetails, "error:", error);

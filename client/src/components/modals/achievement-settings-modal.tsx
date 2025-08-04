@@ -42,6 +42,7 @@ export default function AchievementSettingsModal({
   const { data: currentSettings } = useQuery({
     queryKey: ["/api/admin/achievement-settings"],
     enabled: isOpen,
+    refetchOnMount: true,
     onSuccess: (data) => {
       if (data) {
         setSettings(data);
