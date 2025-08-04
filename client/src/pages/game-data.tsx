@@ -520,7 +520,7 @@ export default function GameDataPage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="none">No prerequisite</SelectItem>
-                              {skills.map((skill: any) => (
+                              {(skills as any[]).map((skill: any) => (
                                 <SelectItem key={skill.id} value={skill.id}>
                                   {skill.name}
                                 </SelectItem>
@@ -552,7 +552,7 @@ export default function GameDataPage() {
             {skillsLoading ? (
               <div className="col-span-full text-center py-8">Loading skills...</div>
             ) : (
-              skills.map((skill: any) => (
+              (skills as any[]).map((skill: any) => (
                 <Card key={skill.id}>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -730,35 +730,6 @@ export default function GameDataPage() {
                         </FormItem>
                       )}
                     />
-                              <SelectItem value="armor">Armor</SelectItem>
-                              <SelectItem value="helmet">Helmet</SelectItem>
-                              <SelectItem value="boots">Boots</SelectItem>
-                              <SelectItem value="gloves">Gloves</SelectItem>
-                              <SelectItem value="ring">Ring</SelectItem>
-                              <SelectItem value="amulet">Amulet</SelectItem>
-                              <SelectItem value="wand">Wand</SelectItem>
-                              <SelectItem value="orb">Orb</SelectItem>
-                              <SelectItem value="crystal">Crystal</SelectItem>
-                              <SelectItem value="gem">Gem</SelectItem>
-                              <SelectItem value="coin">Coin</SelectItem>
-                              <SelectItem value="key">Key</SelectItem>
-                              <SelectItem value="map">Map</SelectItem>
-                              <SelectItem value="compass">Compass</SelectItem>
-                              <SelectItem value="lantern">Lantern</SelectItem>
-                              <SelectItem value="torch">Torch</SelectItem>
-                              <SelectItem value="shield_fire">Fire Shield</SelectItem>
-                              <SelectItem value="shield_ice">Ice Shield</SelectItem>
-                              <SelectItem value="shield_lightning">Lightning Shield</SelectItem>
-                              <SelectItem value="sword_fire">Fire Sword</SelectItem>
-                              <SelectItem value="sword_ice">Ice Sword</SelectItem>
-                              <SelectItem value="sword_lightning">Lightning Sword</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
 
                     <div className="flex justify-end space-x-2">
                       <Button type="button" variant="outline" onClick={() => {
@@ -781,7 +752,7 @@ export default function GameDataPage() {
             {heritagesLoading ? (
               <div className="col-span-full text-center py-8">Loading heritages...</div>
             ) : (
-              heritages.map((heritage: any) => (
+              (heritages as any[]).map((heritage: any) => (
                 <Card key={heritage.id}>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -878,7 +849,7 @@ export default function GameDataPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {heritages.map((heritage: any) => (
+                              {(heritages as any[]).map((heritage: any) => (
                                 <SelectItem key={heritage.id} value={heritage.id}>
                                   {heritage.name}
                                 </SelectItem>
@@ -923,7 +894,7 @@ export default function GameDataPage() {
             {culturesLoading ? (
               <div className="col-span-full text-center py-8">Loading cultures...</div>
             ) : (
-              cultures.map((culture: any) => (
+              (cultures as any[]).map((culture: any) => (
                 <Card key={culture.id}>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -1042,7 +1013,7 @@ export default function GameDataPage() {
             {archetypesLoading ? (
               <div className="col-span-full text-center py-8">Loading archetypes...</div>
             ) : (
-              archetypes.map((archetype: any) => (
+              (archetypes as any[]).map((archetype: any) => (
                 <Card key={archetype.id}>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -1124,13 +1095,13 @@ export default function GameDataPage() {
                 {skillsLoading ? (
                   <div className="text-center py-4">Loading skills...</div>
                 ) : (
-                  skills?.filter((skill: any) => {
+                  (skills as any[])?.filter((skill: any) => {
                     // Get current item's skills to filter out already assigned ones
                     const currentItem = skillManagementModal.itemType === 'heritage' 
-                      ? heritages?.find((h: any) => h.id === skillManagementModal.itemId)
+                      ? (heritages as any[])?.find((h: any) => h.id === skillManagementModal.itemId)
                       : skillManagementModal.itemType === 'culture'
-                      ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
-                      : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
+                      ? (cultures as any[])?.find((c: any) => c.id === skillManagementModal.itemId)
+                      : (archetypes as any[])?.find((a: any) => a.id === skillManagementModal.itemId);
 
                     const assignedSkills = skillManagementModal.skillType === 'primary' 
                       ? currentItem?.primarySkills || []
@@ -1163,10 +1134,10 @@ export default function GameDataPage() {
               <div className="grid gap-2 max-h-60 overflow-y-auto">
                 {(() => {
                   const currentItem = skillManagementModal.itemType === 'heritage' 
-                    ? heritages?.find((h: any) => h.id === skillManagementModal.itemId)
+                    ? (heritages as any[])?.find((h: any) => h.id === skillManagementModal.itemId)
                     : skillManagementModal.itemType === 'culture'
-                    ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
-                    : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
+                    ? (cultures as any[])?.find((c: any) => c.id === skillManagementModal.itemId)
+                    : (archetypes as any[])?.find((a: any) => a.id === skillManagementModal.itemId);
 
                   const assignedSkills = skillManagementModal.skillType === 'primary' 
                     ? currentItem?.primarySkills || []

@@ -1,0 +1,153 @@
+[16:34:07.475] Running build in Washington, D.C., USA (East) – iad1
+[16:34:07.475] Build machine configuration: 2 cores, 8 GB
+[16:34:07.521] Cloning github.com/spauldinacus/LARP-Manager (Branch: main, Commit: 42d5421)
+[16:34:07.923] Cloning completed: 402.000ms
+[16:34:09.347] Restored build cache from previous deployment (CQyoykd3v8zMJVfJXWZL1BkHbeMc)
+[16:34:10.134] Running "vercel build"
+[16:34:11.975] Vercel CLI 44.6.4
+[16:34:14.350] Running "install" command: `npm ci`...
+[16:34:22.666] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[16:34:22.684] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[16:34:31.340] 
+[16:34:31.341] added 490 packages, and audited 491 packages in 17s
+[16:34:31.342] 
+[16:34:31.343] 66 packages are looking for funding
+[16:34:31.343]   run `npm fund` for details
+[16:34:31.380] 
+[16:34:31.381] 11 vulnerabilities (3 low, 8 moderate)
+[16:34:31.382] 
+[16:34:31.382] To address issues that do not require attention, run:
+[16:34:31.384]   npm audit fix
+[16:34:31.390] 
+[16:34:31.391] To address all issues (including breaking changes), run:
+[16:34:31.391]   npm audit fix --force
+[16:34:31.392] 
+[16:34:31.392] Run `npm audit` for details.
+[16:34:31.944] 
+[16:34:31.944] > rest-express@1.0.0 build
+[16:34:31.944] > vite build
+[16:34:31.944] 
+[16:34:32.393] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[16:34:32.462] transforming...
+[16:34:32.906] Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+[16:34:32.907]   npx update-browserslist-db@latest
+[16:34:32.907]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[16:34:33.602] [32m✓[39m 16 modules transformed.
+[16:34:33.605] [31mx[39m Build failed in 1.18s
+[16:34:33.606] [31merror during build:
+[16:34:33.606] [31m[vite:esbuild] Transform failed with 12 errors:
+[16:34:33.606] /vercel/path0/client/src/pages/game-data.tsx:755:30: ERROR: Unexpected closing "SelectContent" tag does not match opening "form" tag
+[16:34:33.606] /vercel/path0/client/src/pages/game-data.tsx:756:28: ERROR: Unexpected closing "Select" tag does not match opening "Form" tag
+[16:34:33.606] /vercel/path0/client/src/pages/game-data.tsx:758:26: ERROR: Unexpected closing "FormItem" tag does not match opening "DialogContent" tag
+[16:34:33.606] /vercel/path0/client/src/pages/game-data.tsx:759:23: ERROR: The character "}" is not valid inside a JSX element
+[16:34:33.607] /vercel/path0/client/src/pages/game-data.tsx:760:21: ERROR: The character ">" is not valid inside a JSX element
+[16:34:33.607] ...[31m
+[16:34:33.607] file: [36m/vercel/path0/client/src/pages/game-data.tsx:755:30[31m
+[16:34:33.607] [33m
+[16:34:33.607] [33mUnexpected closing "SelectContent" tag does not match opening "form" tag[33m
+[16:34:33.607] 753|                                <SelectItem value="sword_ice">Ice Sword</SelectItem>
+[16:34:33.607] 754|                                <SelectItem value="sword_lightning">Lightning Sword</SelectItem>
+[16:34:33.607] 755|                              </SelectContent>
+[16:34:33.607]    |                                ^
+[16:34:33.607] 756|                            </Select>
+[16:34:33.608] 757|                            <FormMessage />
+[16:34:33.608] 
+[16:34:33.608] [33mUnexpected closing "Select" tag does not match opening "Form" tag[33m
+[16:34:33.608] 754|                                <SelectItem value="sword_lightning">Lightning Sword</SelectItem>
+[16:34:33.608] 755|                              </SelectContent>
+[16:34:33.608] 756|                            </Select>
+[16:34:33.608]    |                              ^
+[16:34:33.608] 757|                            <FormMessage />
+[16:34:33.608] 758|                          </FormItem>
+[16:34:33.608] 
+[16:34:33.608] [33mUnexpected closing "FormItem" tag does not match opening "DialogContent" tag[33m
+[16:34:33.608] 756|                            </Select>
+[16:34:33.609] 757|                            <FormMessage />
+[16:34:33.609] 758|                          </FormItem>
+[16:34:33.609]    |                            ^
+[16:34:33.609] 759|                        )}
+[16:34:33.609] 760|                      />
+[16:34:33.609] 
+[16:34:33.609] [33mThe character "}" is not valid inside a JSX element[33m
+[16:34:33.609] 757|                            <FormMessage />
+[16:34:33.609] 758|                          </FormItem>
+[16:34:33.609] 759|                        )}
+[16:34:33.609]    |                         ^
+[16:34:33.610] 760|                      />
+[16:34:33.610] 761|  
+[16:34:33.610] 
+[16:34:33.610] [33mThe character ">" is not valid inside a JSX element[33m
+[16:34:33.610] 758|                          </FormItem>
+[16:34:33.610] 759|                        )}
+[16:34:33.610] 760|                      />
+[16:34:33.610]    |                       ^
+[16:34:33.610] 761|  
+[16:34:33.610] 762|  
+[16:34:33.610] 
+[16:34:33.610] [33mUnexpected closing "form" tag does not match opening "Dialog" tag[33m
+[16:34:33.610] 772|                        </Button>
+[16:34:33.611] 773|                      </div>
+[16:34:33.620] 774|                    </form>
+[16:34:33.620]    |                      ^
+[16:34:33.620] 775|                  </Form>
+[16:34:33.620] 776|                </DialogContent>
+[16:34:33.621] 
+[16:34:33.621] [33mUnexpected closing "Form" tag does not match opening "div" tag[33m
+[16:34:33.621] 773|                      </div>
+[16:34:33.621] 774|                    </form>
+[16:34:33.622] 775|                  </Form>
+[16:34:33.622]    |                    ^
+[16:34:33.622] 776|                </DialogContent>
+[16:34:33.623] 777|              </Dialog>
+[16:34:33.623] 
+[16:34:33.623] [33mUnexpected closing "DialogContent" tag does not match opening "TabsContent" tag[33m
+[16:34:33.623] 774|                    </form>
+[16:34:33.624] 775|                  </Form>
+[16:34:33.624] 776|                </DialogContent>
+[16:34:33.624]    |                  ^
+[16:34:33.625] 777|              </Dialog>
+[16:34:33.625] 778|            </div>
+[16:34:33.625] 
+[16:34:33.625] [33mUnexpected closing "Dialog" tag does not match opening "Tabs" tag[33m
+[16:34:33.626] 775|                  </Form>
+[16:34:33.626] 776|                </DialogContent>
+[16:34:33.626] 777|              </Dialog>
+[16:34:33.627]    |                ^
+[16:34:33.627] 778|            </div>
+[16:34:33.627] 779|  
+[16:34:33.627] 
+[16:34:33.628] [33mUnexpected closing "TabsContent" tag does not match opening "div" tag[33m
+[16:34:33.628] 826|              )}
+[16:34:33.628] 827|            </div>
+[16:34:33.629] 828|          </TabsContent>
+[16:34:33.629]    |            ^
+[16:34:33.629] 829|  
+[16:34:33.629] 830|          {/* Cultures Tab */}
+[16:34:33.630] 
+[16:34:33.630] [33mUnexpected closing "Tabs" tag does not match opening "div" tag[33m
+[16:34:33.634] 1104|            </div>
+[16:34:33.634] 1105|          </TabsContent>
+[16:34:33.635] 1106|        </Tabs>
+[16:34:33.635]    |          ^
+[16:34:33.635] 1107|  
+[16:34:33.636] 1108|        {/* Skill Management Modal */}
+[16:34:33.636] 
+[16:34:33.636] [33mExpected ")" but found "{"[33m
+[16:34:33.637] 1106|        </Tabs>
+[16:34:33.637] 1107|  
+[16:34:33.637] 1108|        {/* Skill Management Modal */}
+[16:34:33.638]    |        ^
+[16:34:33.638] 1109|        <Dialog open={skillManagementModal.isOpen} onOpenChange={(open) => setSkillManagementModal(prev => ({ ...prev, isOpen: open }))}>
+[16:34:33.638] 1110|          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+[16:34:33.639] [31m
+[16:34:33.639]     at failureErrorWithLog (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:1472:15)
+[16:34:33.639]     at /vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:755:50
+[16:34:33.639]     at responseCallbacks.<computed> (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:622:9)
+[16:34:33.640]     at handleIncomingPacket (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:677:12)
+[16:34:33.640]     at Socket.readFromStdout (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:600:7)
+[16:34:33.640]     at Socket.emit (node:events:518:28)
+[16:34:33.640]     at addChunk (node:internal/streams/readable:561:12)
+[16:34:33.641]     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+[16:34:33.641]     at Readable.push (node:internal/streams/readable:392:5)
+[16:34:33.641]     at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
+[16:34:33.658] Error: Command "npm run build" exited with 1
