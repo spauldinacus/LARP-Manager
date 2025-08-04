@@ -8,8 +8,15 @@ import { hashPassword, comparePassword, getUserByEmail, createUser } from '../..
 export default async function handler(req, res) {
   const { method } = req;
   
-  // Extract action from query parameter or URL path
-  const action = req.query.action || req.url?.split('/').pop();
+  // For Vercel, the URL path after /api/auth/ will be in req.url
+  // Extract action from URL path or query parameter
+  let action = req.query.action;
+  
+  if (!action && req.url) {
+    // Remove leading slash and get the action
+    const pathParts = req.url.split('/').filter(Boolean);
+    action = pathParts[0]; // This should be the action (login, register, etc.)
+  }
 
   try {
     switch (action) {
@@ -22,9 +29,11 @@ export default async function handler(req, res) {
       case 'me':
         return await handleMe(req, res, method);
       default:
-        // Default to login if no action specified and it's a POST
+        // If no action specified, default based on method
         if (method === 'POST') {
           return await handleLogin(req, res, method);
+        } else if (method === 'GET') {
+          return await handleMe(req, res, method);
         }
         return res.status(404).json({ message: 'Auth endpoint not found' });
     }
