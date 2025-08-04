@@ -31,6 +31,7 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Experience History Cost Updates**: Fixed XP recalculation to properly update individual experience entries in character history when skill costs change, ensuring accurate tracking and display of XP expenditures based on current game data relationships
 - **Character Data Migration**: Updated all characters to use proper UUID references to dynamic heritage/archetype tables instead of legacy string values, enabling full integration with the dynamic game data system
 - **Complete Vercel Serverless Migration**: Successfully migrated from monolithic Express.js server to Vercel serverless functions using Neon HTTP driver, iron-session encrypted cookies, and preserved 100% frontend compatibility with zero code changes required
+- **Serverless Schema Compatibility Fix**: Converted TypeScript schema to JavaScript ES modules (shared/schema.js) to resolve import issues in serverless functions, enabling proper database operations in the serverless environment
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
