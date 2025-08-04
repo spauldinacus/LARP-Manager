@@ -1,5 +1,6 @@
 // Login endpoint for Vercel
 import { getUserByEmail, comparePassword } from '../lib/auth.js';
+import { setSessionData } from '../lib/session.js';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -25,8 +26,16 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // For now, return user data directly
-    // In a full implementation, you'd create a JWT token or session
+    // Create session data (only non-sensitive info)
+    const sessionData = {
+      userId: user.id,
+      isAdmin: user.isAdmin,
+      userRole: user.roleId || 'user',
+    };
+
+    // Set encrypted session cookie
+    await setSessionData(res, sessionData);
+
     return res.status(200).json({ 
       user: { 
         id: user.id, 

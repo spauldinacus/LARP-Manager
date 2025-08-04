@@ -1,5 +1,6 @@
 // Characters API endpoint for Vercel
 import { db, characters, users, heritagesTable, culturesTable, archetypesTable } from './lib/db.js';
+import { getSessionData } from './lib/session.js';
 import { eq, desc } from 'drizzle-orm';
 
 export default async function handler(req, res) {
@@ -40,9 +41,16 @@ export default async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      // Create new character
-      // This would need authentication middleware adapted for serverless
-      const characterData = req.body;
+      // Create new character - require authentication
+      const session = await getSessionData(req);
+      if (!session) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const characterData = {
+        ...req.body,
+        userId: session.userId, // Ensure character belongs to authenticated user
+      };
       
       const [newCharacter] = await db.insert(characters)
         .values(characterData)

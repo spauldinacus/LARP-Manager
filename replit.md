@@ -30,6 +30,7 @@ This is a modern full-stack web application for a LARP (Live Action Role Playing
 - **Dynamic XP Recalculation System**: Implemented comprehensive XP cost updates when game data changes - when admins modify heritage secondary skills, archetype primary/secondary skills, the system automatically recalculates all character XP costs and updates experience history entries to reflect new costs (5 XP primary archetype, 10 XP secondary archetype/heritage, 20 XP default)
 - **Experience History Cost Updates**: Fixed XP recalculation to properly update individual experience entries in character history when skill costs change, ensuring accurate tracking and display of XP expenditures based on current game data relationships
 - **Character Data Migration**: Updated all characters to use proper UUID references to dynamic heritage/archetype tables instead of legacy string values, enabling full integration with the dynamic game data system
+- **Complete Vercel Serverless Migration**: Successfully migrated from monolithic Express.js server to Vercel serverless functions using Neon HTTP driver, iron-session encrypted cookies, and preserved 100% frontend compatibility with zero code changes required
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

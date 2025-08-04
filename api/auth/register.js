@@ -1,6 +1,7 @@
 // Registration endpoint for Vercel
 import { db, users } from '../lib/db.js';
 import { getUserByEmail, hashPassword } from '../lib/auth.js';
+import { setSessionData } from '../lib/session.js';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -35,6 +36,16 @@ export default async function handler(req, res) {
       chapterId: chapterId || null,
       isAdmin: false,
     }).returning();
+
+    // Create session data for new user
+    const sessionData = {
+      userId: user.id,
+      isAdmin: user.isAdmin,
+      userRole: user.roleId || 'user',
+    };
+
+    // Set encrypted session cookie
+    await setSessionData(res, sessionData);
 
     return res.status(201).json({ 
       user: { 

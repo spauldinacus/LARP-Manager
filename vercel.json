@@ -14,8 +14,13 @@
       "destination": "/index.html"
     }
   ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/public",
+  "framework": null,
+  "installCommand": "npm ci",
   "env": {
     "DATABASE_URL": "@database_url",
-    "SESSION_SECRET": "@session_secret"
+    "SESSION_SECRET": "@session_secret",
+    "NODE_ENV": "production"
   }
 }
