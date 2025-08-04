@@ -203,7 +203,7 @@ export default function EventsPage() {
   // Admin RSVP modification mutations
   const updateRsvpMutation = useMutation({
     mutationFn: ({ rsvpId, data }: { rsvpId: string; data: Partial<EventRsvp> }) =>
-      apiRequest("PATCH", `/api/rsvps/${rsvpId}`, data),
+      apiRequest("PATCH", `/api/events/rsvps/${rsvpId}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
@@ -224,7 +224,7 @@ export default function EventsPage() {
 
   const deleteRsvpMutation = useMutation({
     mutationFn: (rsvpId: string) =>
-      apiRequest("DELETE", `/api/rsvps/${rsvpId}`),
+      apiRequest("DELETE", `/api/events/rsvps/${rsvpId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
@@ -245,7 +245,7 @@ export default function EventsPage() {
   // Admin attendance marking mutation
   const markAttendanceMutation = useMutation({
     mutationFn: ({ rsvpId, attended }: { rsvpId: string; attended: boolean }) =>
-      apiRequest("POST", `/api/rsvps/${rsvpId}/attendance`, { attended }),
+      apiRequest("POST", `/api/events/rsvps/${rsvpId}/attendance`, { attended }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });

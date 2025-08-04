@@ -73,18 +73,18 @@ export default function PlayersPage() {
 
   // Fetch all players with their characters
   const { data: players, isLoading } = useQuery({
-    queryKey: ["/api/admin/players"],
+    queryKey: ["/api/admin/users"],
     enabled: !!user?.isAdmin,
   });
 
   // Update player number mutation
   const updatePlayerNumberMutation = useMutation({
     mutationFn: async ({ playerId, playerNumber }: { playerId: string; playerNumber: string }) => {
-      const response = await apiRequest("PUT", `/api/admin/players/${playerId}/player-number`, { playerNumber });
+      const response = await apiRequest("PUT", `/api/admin/users/${playerId}/player-number`, { playerNumber });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       setIsPlayerModalOpen(false);
       setSelectedPlayer(null);
       setNewPlayerNumber("");
@@ -105,11 +105,11 @@ export default function PlayersPage() {
   // Add skill mutation
   const addSkillMutation = useMutation({
     mutationFn: async ({ characterId, skill }: { characterId: string; skill: string }) => {
-      const response = await apiRequest("POST", `/api/admin/characters/${characterId}/add-skill`, { skill });
+      const response = await apiRequest("POST", `/api/characters/${characterId}/add-skill`, { skill });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       setNewSkill("");
       toast({
         title: "Skill added",
@@ -128,11 +128,11 @@ export default function PlayersPage() {
   // Remove skill mutation
   const removeSkillMutation = useMutation({
     mutationFn: async ({ characterId, skill }: { characterId: string; skill: string }) => {
-      const response = await apiRequest("DELETE", `/api/admin/characters/${characterId}/remove-skill`, { skill });
+      const response = await apiRequest("DELETE", `/api/characters/${characterId}/remove-skill`, { skill });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: "Skill removed",
         description: "The skill has been removed from the character.",

@@ -69,18 +69,18 @@ export default function CandlesPage() {
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<CandleTransaction[]>({
-    queryKey: ["/api/candles/transactions", selectedUser?.id],
-    queryFn: () => fetch(`/api/candles/transactions/${selectedUser?.id}`).then(res => res.json()),
+    queryKey: ["/api/admin/candles/transactions", selectedUser?.id],
+    queryFn: () => fetch(`/api/admin/candles/transactions/${selectedUser?.id}`).then(res => res.json()),
     enabled: !!selectedUser?.id,
   });
 
   const candleTransactionMutation = useMutation({
     mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
-      return apiRequest("POST", `/api/users/${userId}/candles`, { amount, reason });
+      return apiRequest("POST", `/api/admin/users/${userId}/candles`, { amount, reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/candles/transactions", selectedUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/candles/transactions", selectedUser?.id] });
       setShowTransactionModal(false);
       setTransactionAmount("");
       setTransactionReason("");

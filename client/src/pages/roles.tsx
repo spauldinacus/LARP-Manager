@@ -40,11 +40,11 @@ export default function RolesPage() {
 
   // Fetch roles and permissions
   const { data: roles = [], isLoading: rolesLoading } = useQuery({
-    queryKey: ["/api/roles"],
+    queryKey: ["/api/admin/roles"],
   });
 
   const { data: permissions = [], isLoading: permissionsLoading } = useQuery({
-    queryKey: ["/api/permissions"],
+    queryKey: ["/api/admin/permissions"],
   });
 
   // Group permissions by category
@@ -58,11 +58,11 @@ export default function RolesPage() {
 
   const createRoleMutation = useMutation({
     mutationFn: async (data: RoleFormData) => {
-      const response = await apiRequest("POST", "/api/roles", data);
+      const response = await apiRequest("POST", "/api/admin/roles", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
       setShowCreateModal(false);
       toast({
         title: "Success",
@@ -80,11 +80,11 @@ export default function RolesPage() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: RoleFormData }) => {
-      const response = await apiRequest("PATCH", `/api/roles/${id}`, data);
+      const response = await apiRequest("PATCH", `/api/admin/roles/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
       setEditingRole(null);
       toast({
         title: "Success",
@@ -102,11 +102,11 @@ export default function RolesPage() {
 
   const deleteRoleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/roles/${id}`);
+      const response = await apiRequest("DELETE", `/api/admin/roles/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/roles"] });
       setShowDeleteDialog(null);
       toast({
         title: "Success",
@@ -144,7 +144,7 @@ export default function RolesPage() {
     setEditingRole(role);
     
     // Fetch role permissions
-    const response = await fetch(`/api/roles/${role.id}/permissions`);
+    const response = await fetch(`/api/admin/roles/${role.id}/permissions`);
     const rolePermissions = await response.json();
     
     form.reset({
