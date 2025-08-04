@@ -57,7 +57,7 @@ async function handleLogin(req, res, method) {
   const sessionData = {
     userId: user.id,
     isAdmin: user.isAdmin,
-    userRole: user.role
+    role: user.role
   };
   
   await setSessionData(res, sessionData);
@@ -100,7 +100,7 @@ async function handleRegister(req, res, method) {
   const sessionData = {
     userId: newUser.id,
     isAdmin: newUser.isAdmin,
-    userRole: newUser.role
+    role: newUser.role
   };
   
   await setSessionData(res, sessionData);
