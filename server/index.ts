@@ -19,7 +19,7 @@ async function createServer() {
     });
 
     // Use vite's connect instance as middleware
-    app.use(vite.ssrLoadModule);
+    app.use(vite.middlewares);
   } else {
     // Serve static files in production
     const path = await import("path");
@@ -27,7 +27,7 @@ async function createServer() {
   }
 
   // API Routes will be imported here when they exist
-  const { setupApiRoutes } = await import("./routes.js").catch(() => ({ setupApiRoutes: () => {} }));
+  const { setupApiRoutes } = await import("./routes").catch(() => ({ setupApiRoutes: () => {} }));
   await setupApiRoutes(app);
 
   // Serve index.html for client-side routing
@@ -72,7 +72,7 @@ async function createServer() {
     }
   });
 
-  const port = process.env.PORT || 5000;
+  const port = Number(process.env.PORT) || 5000;
   app.listen(port, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://0.0.0.0:${port}`);
     if (process.env.NODE_ENV === "development") {
