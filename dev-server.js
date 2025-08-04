@@ -26,7 +26,7 @@ const setupApiRoutes = async () => {
 
   // Auth endpoints (consolidated)
   const { default: authHandler } = await import('./api/auth/index.js');
-  app.all('/api/auth', authHandler);
+  app.all('/api/auth', (req, res) => authHandler(req, res));
   app.all('/api/auth/:action', (req, res) => {
     req.url = `/${req.params.action}`;
     authHandler(req, res);
@@ -34,7 +34,7 @@ const setupApiRoutes = async () => {
 
   // Characters endpoint
   const { default: charactersHandler } = await import('./api/characters.js');
-  app.all('/api/characters', charactersHandler);
+  app.all('/api/characters', (req, res) => charactersHandler(req, res));
   app.all('/api/characters/:action', (req, res) => {
     req.url = `/${req.params.action}`;
     charactersHandler(req, res);
@@ -42,15 +42,15 @@ const setupApiRoutes = async () => {
 
   // Chapters endpoint
   const { default: chaptersHandler } = await import('./api/chapters.js');
-  app.all('/api/chapters', chaptersHandler);
+  app.all('/api/chapters', (req, res) => chaptersHandler(req, res));
 
   // Events endpoint
   const { default: eventsHandler } = await import('./api/events.js');
-  app.all('/api/events', eventsHandler);
+  app.all('/api/events', (req, res) => eventsHandler(req, res));
 
   // Admin endpoints (consolidated)
   const { default: adminHandler } = await import('./api/admin.js');
-  app.all('/api/admin', adminHandler);
+  app.all('/api/admin', (req, res) => adminHandler(req, res));
   app.all('/api/admin/:action', (req, res) => {
     req.url = `/${req.params.action}`;
     adminHandler(req, res);
