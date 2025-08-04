@@ -93,7 +93,7 @@ export default function UsersPage() {
   // Player number update mutation
   const updatePlayerNumberMutation = useMutation({
     mutationFn: async ({ userId, playerNumber }: { userId: string; playerNumber: string }) => {
-      const response = await apiRequest("PUT", `/api/admin/players/${userId}/player-number`, { playerNumber });
+      const response = await apiRequest("PUT", `/api/admin/users/${userId}/player-number`, { playerNumber });
       return response.json();
     },
     onSuccess: () => {
@@ -121,7 +121,7 @@ export default function UsersPage() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await apiRequest("DELETE", `/api/users/${userId}`);
+      const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
       return response.json();
     },
     onSuccess: () => {
