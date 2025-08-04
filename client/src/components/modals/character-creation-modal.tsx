@@ -115,19 +115,19 @@ export default function CharacterCreationModal({
     enabled: isOpen,
   });
 
-  const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
+  const { data: heritages = [], isLoading: heritagesLoading } = useQuery<DynamicHeritage[]>({
     queryKey: ["/api/admin/heritages"],
     enabled: isOpen,
     staleTime: 0,
   });
 
-  const { data: cultures = [] } = useQuery<DynamicCulture[]>({
+  const { data: cultures = [], isLoading: culturesLoading } = useQuery<DynamicCulture[]>({
     queryKey: ["/api/admin/cultures"],
     enabled: isOpen,
     staleTime: 0,
   });
 
-  const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
+  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery<DynamicArchetype[]>({
     queryKey: ["/api/admin/archetypes"],
     enabled: isOpen,
     staleTime: 0,
