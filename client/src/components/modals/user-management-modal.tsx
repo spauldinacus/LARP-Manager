@@ -62,7 +62,8 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      return apiRequest("PUT", `/api/admin/users/${userId}`, userData);
+      const response = await apiRequest("PUT", `/api/admin/users/${userId}`, userData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });

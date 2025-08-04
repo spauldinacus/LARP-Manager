@@ -54,7 +54,7 @@ export default function ProgressionPage() {
   // Edit XP mutation
   const editXpMutation = useMutation({
     mutationFn: async (data: { entryId: string; amount: number; reason: string }) => {
-      const response = await apiRequest("PUT", `/api/experience/${data.entryId}`, {
+      const response = await apiRequest("PUT", `/api/characters/experience/${data.entryId}`, {
         amount: data.amount,
         reason: data.reason,
       });
@@ -84,7 +84,7 @@ export default function ProgressionPage() {
   // Delete XP mutation
   const deleteXpMutation = useMutation({
     mutationFn: async (entryId: string) => {
-      const response = await apiRequest("DELETE", `/api/experience/${entryId}`);
+      const response = await apiRequest("DELETE", `/api/characters/experience/${entryId}`);
       return response.json();
     },
     onSuccess: () => {

@@ -149,8 +149,8 @@ export default function CharacterSheetModal({
   console.log("CharacterSheetModal Debug - character data:", character);
   console.log("CharacterSheetModal Debug - characterLoading:", characterLoading);
 
-  // Fetch character experience history
-  const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
+  // Fetch experience history for character
+  const { data: experienceHistory = [], isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId!, "experience"],
     enabled: isOpen && !!characterId,
     staleTime: 0, // Always treat data as stale to force fresh requests
@@ -170,7 +170,7 @@ export default function CharacterSheetModal({
   const getAttributeCost = (currentValue: number, increaseAmount: number): number => {
     let totalCost = 0;
     let currentVal = currentValue;
-    
+
     for (let i = 0; i < increaseAmount; i++) {
       if (currentVal < 20) totalCost += 1;
       else if (currentVal < 40) totalCost += 2;
@@ -182,10 +182,10 @@ export default function CharacterSheetModal({
       else if (currentVal < 160) totalCost += 8;
       else if (currentVal < 180) totalCost += 9;
       else totalCost += 10;
-      
+
       currentVal++;
     }
-    
+
     return totalCost;
   };
 
@@ -201,20 +201,20 @@ export default function CharacterSheetModal({
     const selectedHeritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
     const selectedArchetype = archetypes.find((a: DynamicArchetype) => a.id === archetypeId);
     const selectedSecondArchetype = secondArchetypeId ? archetypes.find((a: DynamicArchetype) => a.id === secondArchetypeId) : null;
-    
+
     // Check if skill is a primary skill from any archetype (5 XP)
     if (selectedArchetype?.primarySkills?.some((s: DynamicSkill) => s.id === skillData.id) ||
         selectedSecondArchetype?.primarySkills?.some((s: DynamicSkill) => s.id === skillData.id)) {
       return { cost: 5, category: 'primary' as const };
     }
-    
+
     // Check if skill is a secondary skill from heritage or any archetype (10 XP)
     if (selectedHeritage?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id) || 
         selectedArchetype?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id) ||
         selectedSecondArchetype?.secondarySkills?.some((s: DynamicSkill) => s.id === skillData.id)) {
       return { cost: 10, category: 'secondary' as const };
     }
-    
+
     // Default cost for all other skills (20 XP)
     return { cost: 20, category: 'other' as const };
   };
@@ -628,7 +628,7 @@ export default function CharacterSheetModal({
                         <p className="text-sm text-muted-foreground">Total XP Earned</p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
                       <p className="font-medium mb-2">Current Experience Point Costs:</p>
                       <p>• Primary Skills: 5 XP (Archetype primary skills)</p>
@@ -715,7 +715,7 @@ export default function CharacterSheetModal({
                           {/* Attribute Increases */}
                           <div className="space-y-4">
                             <h4 className="font-medium">Increase Attributes</h4>
-                            
+
                             {/* Body */}
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
@@ -1286,7 +1286,7 @@ export default function CharacterSheetModal({
                           </div>
                         </div>
                       </div>
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" className="w-full">

@@ -52,9 +52,11 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
 
   const candleTransactionMutation = useMutation({
     mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
-      return apiRequest("POST", `/api/users/${userId}/candles`, { amount, reason });
+      return apiRequest("POST", `/api/admin/users/${userId}/candles`, { amount, reason });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", user.id, "candles"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/candles/transactions", user?.id] });
       setShowTransactionModal(false);

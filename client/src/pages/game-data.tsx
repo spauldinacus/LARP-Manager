@@ -70,7 +70,7 @@ export default function GameDataPage() {
 
   // XP Recalculation mutation
   const recalculateXpMutation = useMutation({
-    mutationFn: () => apiRequest("/api/admin/recalculate-xp", { method: "POST" }),
+    mutationFn: () => apiRequest("POST", "/api/admin/recalculate-xp"),
     onSuccess: () => {
       toast({
         title: "Success",

@@ -46,7 +46,7 @@ export default function SettingsPage() {
   // Update user settings mutation
   const updateUserMutation = useMutation({
     mutationFn: async (data: { playerName: string; chapterId: string }) => {
-      const response = await apiRequest("PUT", "/api/users/settings", data);
+      const response = await apiRequest("PUT", "/api/admin/users/settings", data);
       return response.json();
     },
     onSuccess: () => {

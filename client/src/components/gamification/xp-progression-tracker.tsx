@@ -387,7 +387,7 @@ export default function XPProgressionTracker({
   const totalXpEarned = (character.experience || 0) + (character.totalXpSpent || 0);
   const currentMilestone = XP_MILESTONES.find(m => totalXpEarned >= m.threshold) || XP_MILESTONES[0];
   const nextMilestone = XP_MILESTONES.find(m => totalXpEarned < m.threshold);
-  
+
   const progressToNext = nextMilestone 
     ? ((totalXpEarned - (currentMilestone?.threshold || 0)) / (nextMilestone.threshold - (currentMilestone?.threshold || 0))) * 100
     : 100;
@@ -395,7 +395,7 @@ export default function XPProgressionTracker({
   // Calculate achievement percentages
   const calculateAchievementPercentage = (achievement: any) => {
     if (!allCharacters.length) return 0;
-    
+
     const achieversCount = allCharacters.filter((char: any) => {
       if (achievement.id && achievement.id.startsWith('static-')) {
         // Static achievement - use the check function
@@ -420,7 +420,7 @@ export default function XPProgressionTracker({
         return achievement.check(char);
       }
     }).length;
-    
+
     return Math.round((achieversCount / allCharacters.length) * 100);
   };
 
@@ -743,7 +743,7 @@ export default function XPProgressionTracker({
                   Edit any milestone including static ones. Changes to static milestones are saved to the database.
                 </CardDescription>
               </CardHeader>
-              
+
               {/* Static Milestones - Editable */}
               <CardContent>
                 <div className="space-y-4">
@@ -854,8 +854,6 @@ export default function XPProgressionTracker({
             })}
           </div>
         </TabsContent>
-
-
 
         <TabsContent value="history" className="space-y-4">
           <Card>
