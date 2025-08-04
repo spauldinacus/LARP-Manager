@@ -1,8 +1,8 @@
 
 // Combined auth endpoints for Vercel
-import { getUserByEmail, comparePassword, hashPassword, getUserById } from '../lib/auth.js';
-import { setSessionData, getSessionData, clearSession, requireAuth } from '../lib/session.js';
-import { db, users } from '../lib/db.js';
+import { getUserByEmail, comparePassword, hashPassword, getUserById } from '../../lib/auth.js';
+import { setSessionData, getSessionData, clearSession, requireAuth } from '../../lib/session.js';
+import { db, users } from '../../lib/db.js';
 import { z } from 'zod';
 
 export default async function handler(req, res) {

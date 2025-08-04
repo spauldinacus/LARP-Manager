@@ -1,6 +1,6 @@
 // Admin stats endpoint for Vercel
-import { db, characters, users, events } from '../lib/db.js';
-import { requireAdmin } from '../lib/session.js';
+import { db, characters, users, events } from '../../lib/db.js';
+import { requireAdmin } from '../../lib/session.js';
 import { count, gte, and, eq } from 'drizzle-orm';
 
 export default async function handler(req, res) {

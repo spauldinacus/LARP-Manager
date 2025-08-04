@@ -1,6 +1,6 @@
 // Characters API endpoint for Vercel
-import { db, characters, users, heritagesTable, culturesTable, archetypesTable } from './lib/db.js';
-import { getSessionData } from './lib/session.js';
+import { db, characters, users, heritagesTable, culturesTable, archetypesTable } from '../lib/db.js';
+import { getSessionData } from '../lib/session.js';
 import { eq, desc } from 'drizzle-orm';
 
 export default async function handler(req, res) {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json(charactersWithPlayers);
     }
-    
+
     if (req.method === 'POST') {
       // Create new character - require authentication
       const session = await getSessionData(req);
@@ -51,14 +51,14 @@ export default async function handler(req, res) {
         ...req.body,
         userId: session.userId, // Ensure character belongs to authenticated user
       };
-      
+
       const [newCharacter] = await db.insert(characters)
         .values(characterData)
         .returning();
-      
+
       return res.status(201).json(newCharacter);
     }
-    
+
     return res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Characters API error:', error);

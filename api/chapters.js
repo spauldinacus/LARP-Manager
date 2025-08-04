@@ -1,5 +1,5 @@
 // Chapters API endpoint for Vercel
-import { db, chapters, users } from './lib/db.js';
+import { db, chapters, users } from '../lib/db.js';
 import { eq, count } from 'drizzle-orm';
 
 export default async function handler(req, res) {

@@ -1,6 +1,6 @@
 // Current user endpoint for Vercel
-import { getSessionData } from '../lib/session.js';
-import { getUserById } from '../lib/auth.js';
+import { getSessionData } from '../../lib/session.js';
+import { getUserById } from '../../lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

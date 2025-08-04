@@ -1,6 +1,6 @@
 // Events API endpoint for Vercel
-import { db, events } from './lib/db.js';
-import { getSessionData, requireAdmin } from './lib/session.js';
+import { db, events } from '../lib/db.js';
+import { getSessionData, requireAdmin } from '../lib/session.js';
 import { desc } from 'drizzle-orm';
 
 export default async function handler(req, res) {

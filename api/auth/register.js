@@ -1,7 +1,7 @@
 // Registration endpoint for Vercel
-import { db, users } from '../lib/db.js';
-import { getUserByEmail, hashPassword } from '../lib/auth.js';
-import { setSessionData } from '../lib/session.js';
+import { db, users } from '../../lib/db.js';
+import { getUserByEmail, hashPassword } from '../../lib/auth.js';
+import { setSessionData } from '../../lib/session.js';
 import { z } from 'zod';
 
 const registerSchema = z.object({

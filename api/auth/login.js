@@ -1,6 +1,6 @@
 // Login endpoint for Vercel
-import { getUserByEmail, comparePassword } from '../lib/auth.js';
-import { setSessionData } from '../lib/session.js';
+import { getUserByEmail, comparePassword } from '../../lib/auth.js';
+import { setSessionData } from '../../lib/session.js';
 import { z } from 'zod';
 
 const loginSchema = z.object({
