@@ -1,6 +1,6 @@
 
 // Combined admin endpoints for Vercel
-import { db, users, heritages, archetypes, skills } from '../lib/db.js';
+import { db, users, characters, heritages, archetypes, skills } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc } from 'drizzle-orm';
 

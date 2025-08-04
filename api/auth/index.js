@@ -1,7 +1,8 @@
 
 // Combined auth endpoints for Vercel
 import { db, users } from '../../lib/db.js';
-import { getSessionData, setSessionData, clearSessionData } from '../../lib/session.js';
+import { eq } from 'drizzle-orm';
+import { getSessionData, setSessionData, clearSession } from '../../lib/session.js';
 import { hashPassword, comparePassword, getUserByEmail, createUser } from '../../lib/auth.js';
 
 export default async function handler(req, res) {
@@ -114,7 +115,7 @@ async function handleLogout(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  await clearSessionData(res);
+  await clearSession(res);
   return res.status(200).json({ message: 'Logged out successfully' });
 }
 
