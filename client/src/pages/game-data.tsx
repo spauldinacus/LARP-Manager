@@ -211,7 +211,7 @@ export default function GameDataPage() {
 
   // Skill relationship mutations
   const addSkillRelationshipMutation = useMutation({
-    mutationFn: ({ itemId, skillId, itemType, skillType }: { 
+    mutationFn: ({itemId, skillId, itemType, skillType }: { 
       itemId: string; 
       skillId: string; 
       itemType: 'heritage' | 'culture' | 'archetype'; 
@@ -228,7 +228,7 @@ export default function GameDataPage() {
   });
 
   const removeSkillRelationshipMutation = useMutation({
-    mutationFn: ({ itemId, skillId, itemType, skillType }: { 
+    mutationFn: ({itemId, skillId, itemType, skillType }: { 
       itemId: string; 
       skillId: string; 
       itemType: 'heritage' | 'culture' | 'archetype'; 
@@ -291,7 +291,7 @@ export default function GameDataPage() {
   const handleCreate = (type: string) => {
     setIsCreateMode(true);
     setSelectedItem(null);
-    
+
     // Reset forms
     skillForm.reset();
     heritageForm.reset();
@@ -324,7 +324,7 @@ export default function GameDataPage() {
   const handleEdit = (item: any) => {
     setIsCreateMode(false);
     setSelectedItem(item);
-    
+
     // Populate forms based on type
     if (activeTab === "skills") {
       skillForm.reset({
@@ -372,7 +372,7 @@ export default function GameDataPage() {
       ...data,
       prerequisiteSkillId: data.prerequisiteSkillId === "none" ? null : data.prerequisiteSkillId
     };
-    
+
     if (isCreateMode) {
       createSkillMutation.mutate(processedData);
     } else if (selectedItem) {
@@ -413,7 +413,7 @@ export default function GameDataPage() {
         user={user}
         currentPath={location}
       />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
         {isMobile && (
@@ -655,9 +655,48 @@ export default function GameDataPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Icon identifier" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an icon" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {/* TODO: Populate with actual icon identifiers from a predefined list or dynamically */}
+                              <SelectItem value="sword">Sword</SelectItem>
+                              <SelectItem value="shield">Shield</SelectItem>
+                              <SelectItem value="bow">Bow</SelectItem>
+                              <SelectItem value="staff">Staff</SelectItem>
+                              <SelectItem value="axe">Axe</SelectItem>
+                              <SelectItem value="hammer">Hammer</SelectItem>
+                              <SelectItem value="dagger">Dagger</SelectItem>
+                              <SelectItem value="book">Book</SelectItem>
+                              <SelectItem value="scroll">Scroll</SelectItem>
+                              <SelectItem value="potion">Potion</SelectItem>
+                              <SelectItem value="armor">Armor</SelectItem>
+                              <SelectItem value="helmet">Helmet</SelectItem>
+                              <SelectItem value="boots">Boots</SelectItem>
+                              <SelectItem value="gloves">Gloves</SelectItem>
+                              <SelectItem value="ring">Ring</SelectItem>
+                              <SelectItem value="amulet">Amulet</SelectItem>
+                              <SelectItem value="wand">Wand</SelectItem>
+                              <SelectItem value="orb">Orb</SelectItem>
+                              <SelectItem value="crystal">Crystal</SelectItem>
+                              <SelectItem value="gem">Gem</SelectItem>
+                              <SelectItem value="coin">Coin</SelectItem>
+                              <SelectItem value="key">Key</SelectItem>
+                              <SelectItem value="map">Map</SelectItem>
+                              <SelectItem value="compass">Compass</SelectItem>
+                              <SelectItem value="lantern">Lantern</SelectItem>
+                              <SelectItem value="torch">Torch</SelectItem>
+                              <SelectItem value="shield_fire">Fire Shield</SelectItem>
+                              <SelectItem value="shield_ice">Ice Shield</SelectItem>
+                              <SelectItem value="shield_lightning">Lightning Shield</SelectItem>
+                              <SelectItem value="sword_fire">Fire Sword</SelectItem>
+                              <SelectItem value="sword_ice">Ice Sword</SelectItem>
+                              <SelectItem value="sword_lightning">Lightning Sword</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -756,7 +795,7 @@ export default function GameDataPage() {
                       <Badge>Stamina: {heritage.stamina}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{heritage.description}</p>
-                    
+
                     {/* Secondary Skills */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -899,7 +938,7 @@ export default function GameDataPage() {
                     {culture.description && (
                       <p className="text-sm text-muted-foreground mb-3">{culture.description}</p>
                     )}
-                    
+
                     {/* Secondary Skills */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -1015,7 +1054,7 @@ export default function GameDataPage() {
                     {archetype.description && (
                       <p className="text-sm text-muted-foreground mb-3">{archetype.description}</p>
                     )}
-                    
+
                     {/* Primary Skills */}
                     <div className="space-y-2 mb-3">
                       <div className="flex items-center justify-between">
@@ -1033,7 +1072,7 @@ export default function GameDataPage() {
                         )) || <span className="text-xs text-muted-foreground">No primary skills</span>}
                       </div>
                     </div>
-                    
+
                     {/* Secondary Skills */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -1070,7 +1109,7 @@ export default function GameDataPage() {
               Add or remove skills for this {skillManagementModal.itemType}.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-medium mb-2">Available Skills</h4>
@@ -1085,11 +1124,11 @@ export default function GameDataPage() {
                       : skillManagementModal.itemType === 'culture'
                       ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
                       : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
-                    
+
                     const assignedSkills = skillManagementModal.skillType === 'primary' 
                       ? currentItem?.primarySkills || []
                       : currentItem?.secondarySkills || [];
-                    
+
                     return !assignedSkills.some((s: any) => s.id === skill.id);
                   }).map((skill: any) => (
                     <div key={skill.id} className="flex items-center justify-between p-2 border rounded">
@@ -1111,7 +1150,7 @@ export default function GameDataPage() {
                 )}
               </div>
             </div>
-            
+
             <div>
               <h4 className="text-sm font-medium mb-2">Assigned Skills</h4>
               <div className="grid gap-2 max-h-60 overflow-y-auto">
@@ -1121,11 +1160,11 @@ export default function GameDataPage() {
                     : skillManagementModal.itemType === 'culture'
                     ? cultures?.find((c: any) => c.id === skillManagementModal.itemId)
                     : archetypes?.find((a: any) => a.id === skillManagementModal.itemId);
-                  
+
                   const assignedSkills = skillManagementModal.skillType === 'primary' 
                     ? currentItem?.primarySkills || []
                     : currentItem?.secondarySkills || [];
-                  
+
                   return assignedSkills.length === 0 ? (
                     <div className="text-center py-4 text-muted-foreground">
                       No skills assigned yet
