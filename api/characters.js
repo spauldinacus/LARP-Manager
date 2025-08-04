@@ -1,65 +1,35 @@
-// Characters API endpoint for Vercel
-import { db, characters, users, heritagesTable, culturesTable, archetypesTable } from '../lib/db.js';
-import { getSessionData } from '../lib/session.js';
+
+// Combined characters endpoints for Vercel
+import { db, characters, experienceEntries } from '../lib/db.js';
+import { getSessionData, requireAuth, requireAdmin } from '../lib/session.js';
 import { eq, desc } from 'drizzle-orm';
 
 export default async function handler(req, res) {
+  const { method } = req;
+  const pathParts = req.url?.split('/').filter(Boolean) || [];
+  const characterId = pathParts[1]; // characters/[id]
+  const action = pathParts[2]; // characters/[id]/[action]
+
   try {
-    if (req.method === 'GET') {
-      // Get all characters with player information
-      const charactersWithPlayers = await db
-        .select({
-          id: characters.id,
-          name: characters.name,
-          userId: characters.userId,
-          heritage: heritagesTable.name,
-          culture: culturesTable.name,
-          archetype: archetypesTable.name,
-          body: characters.body,
-          stamina: characters.stamina,
-          experience: characters.experience,
-          totalXpSpent: characters.totalXpSpent,
-          skills: characters.skills,
-          isActive: characters.isActive,
-          isRetired: characters.isRetired,
-          retiredAt: characters.retiredAt,
-          retirementReason: characters.retirementReason,
-          createdAt: characters.createdAt,
-          updatedAt: characters.updatedAt,
-          playerName: users.playerName,
-          playerTitle: users.title,
-          playerNumber: users.playerNumber,
-        })
-        .from(characters)
-        .leftJoin(users, eq(characters.userId, users.id))
-        .leftJoin(heritagesTable, eq(characters.heritage, heritagesTable.id))
-        .leftJoin(culturesTable, eq(characters.culture, culturesTable.id))
-        .leftJoin(archetypesTable, eq(characters.archetype, archetypesTable.id))
-        .orderBy(desc(characters.createdAt));
-
-      return res.status(200).json(charactersWithPlayers);
+    // Handle character list operations
+    if (!characterId) {
+      return await handleCharactersList(req, res, method);
     }
 
-    if (req.method === 'POST') {
-      // Create new character - require authentication
-      const session = await getSessionData(req);
-      if (!session) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
-
-      const characterData = {
-        ...req.body,
-        userId: session.userId, // Ensure character belongs to authenticated user
-      };
-
-      const [newCharacter] = await db.insert(characters)
-        .values(characterData)
-        .returning();
-
-      return res.status(201).json(newCharacter);
+    // Handle individual character operations
+    if (!action) {
+      return await handleSingleCharacter(req, res, method, characterId);
     }
 
-    return res.status(405).json({ message: 'Method not allowed' });
+    // Handle character sub-resources
+    switch (action) {
+      case 'experience':
+        return await handleCharacterExperience(req, res, method, characterId);
+      case 'attendance-xp':
+        return await handleAttendanceXp(req, res, method, characterId);
+      default:
+        return res.status(404).json({ message: 'Character endpoint not found' });
+    }
   } catch (error) {
     console.error('Characters API error:', error);
     return res.status(500).json({ 
@@ -67,4 +37,119 @@ export default async function handler(req, res) {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+}
+
+async function handleCharactersList(req, res, method) {
+  if (method === 'GET') {
+    const session = await getSessionData(req);
+    if (!session) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const allCharacters = await db.select().from(characters);
+    return res.status(200).json(allCharacters);
+  }
+  
+  if (method === 'POST') {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+
+    const [newCharacter] = await db.insert(characters)
+      .values({ ...req.body, userId: session.userId })
+      .returning();
+    
+    return res.status(201).json(newCharacter);
+  }
+  
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handleSingleCharacter(req, res, method, characterId) {
+  if (method === 'GET') {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+
+    const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
+    if (!character) {
+      return res.status(404).json({ message: 'Character not found' });
+    }
+
+    return res.status(200).json(character);
+  }
+  
+  if (method === 'PUT') {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+
+    const [updatedCharacter] = await db
+      .update(characters)
+      .set(req.body)
+      .where(eq(characters.id, characterId))
+      .returning();
+
+    return res.status(200).json(updatedCharacter);
+  }
+  
+  if (method === 'DELETE') {
+    const session = await requireAdmin(req, res);
+    if (!session) return;
+
+    await db.delete(characters).where(eq(characters.id, characterId));
+    return res.status(200).json({ message: 'Character deleted successfully' });
+  }
+  
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handleCharacterExperience(req, res, method, characterId) {
+  if (method === 'GET') {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+
+    const experience = await db
+      .select()
+      .from(experienceEntries)
+      .where(eq(experienceEntries.characterId, characterId))
+      .orderBy(desc(experienceEntries.createdAt));
+
+    return res.status(200).json(experience);
+  }
+  
+  if (method === 'POST') {
+    const session = await requireAdmin(req, res);
+    if (!session) return;
+
+    const [newEntry] = await db.insert(experienceEntries)
+      .values({
+        ...req.body,
+        characterId,
+        awardedBy: session.userId
+      })
+      .returning();
+
+    return res.status(201).json(newEntry);
+  }
+  
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handleAttendanceXp(req, res, method, characterId) {
+  if (method === 'POST') {
+    const session = await requireAdmin(req, res);
+    if (!session) return;
+
+    const [newEntry] = await db.insert(experienceEntries)
+      .values({
+        characterId,
+        amount: req.body.amount,
+        reason: `Attendance XP: ${req.body.eventName}`,
+        eventId: req.body.eventId,
+        awardedBy: session.userId
+      })
+      .returning();
+
+    return res.status(201).json(newEntry);
+  }
+  
+  return res.status(405).json({ message: 'Method not allowed' });
 }

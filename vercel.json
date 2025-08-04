@@ -6,16 +6,12 @@
       "destination": "/api/auth/index.js"
     },
     {
-      "source": "/api/characters/([^/]+)/experience",
-      "destination": "/api/characters/[id]/experience.js?id=$1"
+      "source": "/api/admin/(.*)",
+      "destination": "/api/admin.js"
     },
     {
-      "source": "/api/characters/([^/]+)/attendance-xp",
-      "destination": "/api/characters/[id]/attendance-xp.js?id=$1"
-    },
-    {
-      "source": "/api/characters/([^/]+)",
-      "destination": "/api/characters/[id].js?id=$1"
+      "source": "/api/characters/(.*)",
+      "destination": "/api/characters.js"
     },
     {
       "source": "/api/(.*)",
