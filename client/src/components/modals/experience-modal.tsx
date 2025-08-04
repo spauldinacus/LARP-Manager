@@ -56,12 +56,14 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
   const { data: characters, isLoading: charactersLoading } = useQuery({
     queryKey: ["/api/characters"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
   // Fetch events
   const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ["/api/events"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
   const createExperienceMutation = useMutation({

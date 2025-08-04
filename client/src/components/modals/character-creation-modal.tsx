@@ -110,14 +110,19 @@ export default function CharacterCreationModal({
   const [additionalStamina, setAdditionalStamina] = useState(0);
 
   // Fetch dynamic game data
-  const { data: skills = [] } = useQuery<DynamicSkill[]>({
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
     queryKey: ["/api/admin/skills"],
     enabled: isOpen,
-    refetchOnMount: true,
   });
 
   const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
     queryKey: ["/api/admin/heritages"],
+    enabled: isOpen,
+    refetchOnMount: true,
+  });
+
+  const { data: cultures = [] } = useQuery<DynamicCulture[]>({
+    queryKey: ["/api/admin/cultures"],
     enabled: isOpen,
     refetchOnMount: true,
   });

@@ -47,12 +47,14 @@ export default function UserCharactersModal({
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["/api/admin/users", userId],
     enabled: isOpen && !!userId,
+    refetchOnMount: true,
   });
 
   // Fetch user's characters
   const { data: characters, isLoading: charactersLoading } = useQuery({
     queryKey: ["/api/admin/users", userId, "characters"],
     enabled: isOpen && !!userId,
+    refetchOnMount: true,
   });
 
 

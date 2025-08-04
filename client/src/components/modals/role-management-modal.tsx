@@ -50,11 +50,13 @@ export default function RoleManagementModal({ isOpen, onClose, user }: RoleManag
   const { data: roles = [] } = useQuery<string[]>({
     queryKey: ["/api/roles"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
   const { data: permissions = {} } = useQuery<Record<string, string[]>>({
     queryKey: ["/api/permissions"],
     enabled: isOpen,
+    refetchOnMount: true,
   });
 
   const updateRoleMutation = useMutation({

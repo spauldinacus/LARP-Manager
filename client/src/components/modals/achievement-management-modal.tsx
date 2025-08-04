@@ -71,7 +71,7 @@ export default function AchievementManagementModal({
       resetForm();
     }
   }, [isOpen, achievement, mode]);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -141,7 +141,7 @@ export default function AchievementManagementModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !description.trim()) {
       toast({
         title: "Validation error",

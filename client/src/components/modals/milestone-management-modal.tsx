@@ -66,7 +66,7 @@ export default function MilestoneManagementModal({
       resetForm();
     }
   }, [isOpen, milestone, mode]);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -135,7 +135,7 @@ export default function MilestoneManagementModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !description.trim() || !threshold) {
       toast({
         title: "Validation error",
