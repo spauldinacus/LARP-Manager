@@ -7,8 +7,9 @@ import { hashPassword, comparePassword, getUserByEmail, createUser } from '../..
 
 export default async function handler(req, res) {
   const { method } = req;
-  const pathParts = req.url?.split('/').filter(Boolean) || [];
-  const action = pathParts[2]; // auth/[action]
+  
+  // Extract action from query parameter or URL path
+  const action = req.query.action || req.url?.split('/').pop();
 
   try {
     switch (action) {
@@ -21,6 +22,10 @@ export default async function handler(req, res) {
       case 'me':
         return await handleMe(req, res, method);
       default:
+        // Default to login if no action specified and it's a POST
+        if (method === 'POST') {
+          return await handleLogin(req, res, method);
+        }
         return res.status(404).json({ message: 'Auth endpoint not found' });
     }
   } catch (error) {
