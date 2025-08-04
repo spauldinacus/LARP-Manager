@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development vite",
+    "dev:serverless": "NODE_ENV=development node dev-server.js",
     "build": "vite build",
     "start": "echo 'Application deployed to Vercel serverless functions'",
     "check": "tsc",
