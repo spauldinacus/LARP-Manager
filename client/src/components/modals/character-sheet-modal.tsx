@@ -131,17 +131,29 @@ export default function CharacterSheetModal({
   const [xpAmount, setXpAmount] = useState(3);
   const [selectedSecondArchetype, setSelectedSecondArchetype] = useState("");
 
+  // Debug logging for query parameters
+  console.log("CharacterSheetModal Debug - isOpen:", isOpen, "characterId:", characterId);
+  console.log("CharacterSheetModal Debug - Query enabled condition:", isOpen && !!characterId);
+
   // Fetch character details
   const { data: character, isLoading: characterLoading } = useQuery({
     queryKey: ["/api/characters", characterId!],
     enabled: isOpen && !!characterId,
   });
 
+  // Debug logging for query results
+  console.log("CharacterSheetModal Debug - character data:", character);
+  console.log("CharacterSheetModal Debug - characterLoading:", characterLoading);
+
   // Fetch character experience history
   const { data: experienceHistory, isLoading: experienceLoading } = useQuery({
     queryKey: ["/api/characters", characterId!, "experience"],
     enabled: isOpen && !!characterId,
   });
+
+  // Debug logging for experience history
+  console.log("CharacterSheetModal Debug - experienceHistory:", experienceHistory);
+  console.log("CharacterSheetModal Debug - experienceLoading:", experienceLoading);
 
   // Fetch all events for admin event addition
   const { data: allEvents } = useQuery({

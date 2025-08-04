@@ -268,7 +268,10 @@ export default function CharactersPage() {
                       <Button 
                         variant="outline" 
                         className="flex-1"
-                        onClick={() => setSelectedCharacterId(character.id)}
+                        onClick={() => {
+                          console.log("Characters Page Debug - Opening sheet for character:", character.id, character.name);
+                          setSelectedCharacterId(character.id);
+                        }}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View Sheet
@@ -328,9 +331,15 @@ export default function CharactersPage() {
         <CharacterSheetModal 
           characterId={selectedCharacterId}
           isOpen={!!selectedCharacterId}
-          onClose={() => setSelectedCharacterId(null)}
+          onClose={() => {
+            console.log("Characters Page Debug - Closing character sheet modal");
+            setSelectedCharacterId(null);
+          }}
         />
       )}
+      
+      {/* Debug logging for modal state */}
+      {console.log("Characters Page Debug - selectedCharacterId:", selectedCharacterId, "modal isOpen:", !!selectedCharacterId)}
     </div>
   );
 }
