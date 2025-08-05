@@ -35,7 +35,7 @@ export default function SettingsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [playerName, setPlayerName] = useState(user?.playerName || "");
   const [selectedChapterId, setSelectedChapterId] = useState(user?.chapterId || "");
-  
+
   const queryClient = useQueryClient();
 
   // Fetch chapters for selection
@@ -45,8 +45,8 @@ export default function SettingsPage() {
 
   // Update user settings mutation
   const updateUserMutation = useMutation({
-    mutationFn: async (data: { playerName: string; chapterId: string }) => {
-      const response = await apiRequest("PUT", "/api/admin/users/settings", data);
+    mutationFn: async (data: { playerName: string; chapterId?: string }) => {
+      const response = await apiRequest("PUT", `/api/admin?type=users&id=${user?.id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -186,7 +186,7 @@ export default function SettingsPage() {
                     <MapPin className="h-5 w-5" />
                     <span>Chapter Assignment</span>
                   </CardTitle>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="chapter">Select Chapter</Label>

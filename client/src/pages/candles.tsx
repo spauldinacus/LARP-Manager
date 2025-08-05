@@ -57,7 +57,7 @@ export default function CandlesPage() {
   }, [authLoading, user, setLocation]);
 
   const { data: rawPlayers = [], isLoading: playersLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/admin?type=users"],
     enabled: !!user?.isAdmin,
   });
 
@@ -69,8 +69,8 @@ export default function CandlesPage() {
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<CandleTransaction[]>({
-    queryKey: ["/api/admin/candles/transactions", selectedUser?.id],
-    queryFn: () => fetch(`/api/admin/candles/transactions/${selectedUser?.id}`).then(res => res.json()),
+    queryKey: ["/api/admin?type=candle-transactions", selectedUser?.id],
+    queryFn: () => apiRequest("GET", `/api/admin?type=candle-transactions&userId=${selectedUser?.id}`),
     enabled: !!selectedUser?.id,
   });
 
@@ -79,8 +79,8 @@ export default function CandlesPage() {
       return apiRequest("POST", `/api/admin/users/${userId}/candles`, { amount, reason });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/candles/transactions", selectedUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=candle-transactions", selectedUser?.id] });
       setShowTransactionModal(false);
       setTransactionAmount("");
       setTransactionReason("");
@@ -312,7 +312,7 @@ export default function CandlesPage() {
               Current balance: {selectedUser?.candles} candles
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Transaction History</h3>
@@ -386,7 +386,7 @@ export default function CandlesPage() {
               Current balance: {selectedUser?.candles} candles
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="transaction-amount">Amount</Label>

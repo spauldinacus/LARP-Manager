@@ -52,7 +52,13 @@ export default function ChaptersPage() {
   // No need to redirect non-admin users - chapters are viewable by all
 
   const { data: chapters = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/chapters"],
+    queryKey: ["/api/chapters?type=chapters"],
+    enabled: !!user?.isAdmin,
+  });
+
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ["/api/chapters?type=users"],
+    enabled: !!user?.isAdmin,
   });
 
   const { data: chapterMembers = [], isLoading: membersLoading } = useQuery<any[]>({
@@ -61,9 +67,10 @@ export default function ChaptersPage() {
   });
 
   const createChapterMutation = useMutation({
-    mutationFn: (data: ChapterFormData) => apiRequest("POST", "/api/chapters", data),
+    mutationFn: (data: ChapterFormData) =>
+      apiRequest("POST", "/api/chapters?type=chapters", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=chapters"] });
       setIsCreateModalOpen(false);
       toast({
         title: "Chapter created",
@@ -81,13 +88,13 @@ export default function ChaptersPage() {
 
   const updateChapterMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ChapterFormData> }) =>
-      apiRequest("PATCH", `/api/chapters/${id}`, data),
+      apiRequest("PATCH", `/api/chapters?type=chapters&id=${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=chapters"] });
       setEditingChapter(null);
       toast({
-        title: "Chapter updated",
-        description: "The chapter has been updated successfully.",
+        title: "Success",
+        description: "Chapter updated successfully",
       });
     },
     onError: (error: any) => {
@@ -100,9 +107,10 @@ export default function ChaptersPage() {
   });
 
   const deleteChapterMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/chapters/${id}`),
+    mutationFn: (id: string) =>
+      apiRequest("DELETE", `/api/chapters?type=chapters&id=${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=chapters"] });
       toast({
         title: "Chapter deactivated",
         description: "The chapter has been deactivated successfully.",
@@ -118,7 +126,7 @@ export default function ChaptersPage() {
   });
 
   const generatePlayerNumberMutation = useMutation({
-    mutationFn: (chapterId: string) => apiRequest("POST", `/api/chapters/${chapterId}/generate-player-number`),
+    mutationFn: (chapterId: string) => apiRequest("POST", `/api/chapters?type=chapters&id=${chapterId}/generate-player-number`),
     onSuccess: (data: any) => {
       toast({
         title: "Player number generated",
