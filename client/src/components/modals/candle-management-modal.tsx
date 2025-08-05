@@ -44,8 +44,8 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
   const { toast } = useToast();
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<CandleTransaction[]>({
-    queryKey: ["/api/candles/transactions", user?.id],
-    queryFn: () => fetch(`/api/candles/transactions/${user?.id}`).then(res => res.json()),
+    queryKey: ["/api/admin?type=candle-transactions&userId=" + user?.id],
+    queryFn: () => apiRequest("GET", `/api/admin?type=candle-transactions&userId=${user?.id}`).then(res => res.json()),
     enabled: !!user?.id,
     refetchOnMount: true,
   });
@@ -57,7 +57,7 @@ export default function CandleManagementModal({ user, onClose, showAdminControls
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/candles/transactions", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=candle-transactions&userId=" + user?.id] });
       setShowTransactionModal(false);
       setTransactionAmount("");
       setTransactionReason("");

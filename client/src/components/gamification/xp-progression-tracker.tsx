@@ -209,34 +209,34 @@ export default function XPProgressionTracker({
 
   // Fetch custom achievements and milestones for all users
   const { data: customAchievements = [] } = useQuery({
-    queryKey: ["/api/achievements"],
+    queryKey: ["/api/admin?type=achievements"],
     enabled: !!characterId,
   });
 
   const { data: customMilestones = [] } = useQuery({
-    queryKey: ["/api/milestones"],
+    queryKey: ["/api/admin?type=milestones"],
     enabled: !!characterId,
   });
 
   // Fetch admin-specific data only for admins
   const { data: adminAchievements = [] } = useQuery({
-    queryKey: ["/api/admin/achievements"],
+    queryKey: ["/api/admin?type=achievements"],
     enabled: isAdmin,
   });
 
   const { data: adminMilestones = [] } = useQuery({
-    queryKey: ["/api/admin/milestones"],
+    queryKey: ["/api/admin?type=milestones"],
     enabled: isAdmin,
   });
 
   // Delete achievement mutation
   const deleteAchievementMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/admin/achievements/${id}`);
+      const response = await apiRequest("DELETE", `/api/admin?type=achievements&id=${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       toast({
         title: "Achievement deleted",
         description: "Achievement has been deleted successfully.",
@@ -254,11 +254,11 @@ export default function XPProgressionTracker({
   // Delete milestone mutation
   const deleteMilestoneMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/admin/milestones/${id}`);
+      const response = await apiRequest("DELETE", `/api/admin?type=milestones&id=${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=milestones"] });
       toast({
         title: "Milestone deleted",
         description: "Milestone has been deleted successfully.",

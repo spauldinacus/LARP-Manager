@@ -34,7 +34,7 @@ export default function AchievementSettingsModal({
     legendaryThreshold: 2, // 2% of players
     enableDynamicRarity: true,
   });
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -82,7 +82,7 @@ export default function AchievementSettingsModal({
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       toast({
         title: "Rarities recalculated",
-        description: "All achievement rarities have been recalculated based on current player statistics.",
+        description: "All achievement rarities have been recalculated based on player statistics.",
       });
     },
     onError: (error: any) => {
@@ -94,9 +94,28 @@ export default function AchievementSettingsModal({
     },
   });
 
+  const resetAchievementsMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin?type=achievements&action=reset"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      toast({
+        title: "Achievements reset",
+        description: "All achievements have been reset to default values.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to reset",
+        description: error.message || "Unable to reset achievements",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate thresholds
     if (settings.commonThreshold <= settings.rareThreshold ||
         settings.rareThreshold <= settings.epicThreshold ||
@@ -152,7 +171,7 @@ export default function AchievementSettingsModal({
                   <p className="text-sm text-muted-foreground">
                     Set percentage thresholds for automatic rarity assignment:
                   </p>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="common">Common (%)</Label>

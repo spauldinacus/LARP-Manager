@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit } from "lucide-react";
 import type { CustomMilestone } from "@shared/schema";
+import { z } from "zod"; // Assuming z is imported for schema validation
 
 interface MilestoneManagementModalProps {
   isOpen: boolean;
@@ -17,6 +18,16 @@ interface MilestoneManagementModalProps {
   milestone?: CustomMilestone;
   mode: "create" | "edit";
 }
+
+// Define a zod schema for milestone validation (assuming this exists in @shared/schema)
+// If not, it needs to be defined here or imported correctly.
+const milestoneSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  threshold: z.number().min(0, "Threshold must be non-negative"),
+  iconName: z.string(),
+  iconColor: z.string(),
+});
 
 const ICON_OPTIONS = [
   { value: "star", label: "Star" },
@@ -71,10 +82,8 @@ export default function MilestoneManagementModal({
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/admin?type=milestones", data);
-      return response.json();
-    },
+    mutationFn: (data: z.infer<typeof milestoneSchema>) => 
+      apiRequest("POST", "/api/admin?type=milestones", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=milestones"] });
       toast({
@@ -94,16 +103,8 @@ export default function MilestoneManagementModal({
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // Handle static milestone updates differently
-      if ((milestone as any)?.isStatic) {
-        const response = await apiRequest("PUT", `/api/admin/static-milestones/${(milestone as any).staticIndex}`, data);
-        return response.json();
-      } else {
-        const response = await apiRequest("PUT", `/api/admin?type=milestones/${milestone!.id}`, data);
-        return response.json();
-      }
-    },
+    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof milestoneSchema> }) =>
+      apiRequest("PUT", `/api/admin?type=milestones&id=${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=milestones"] });
       if ((milestone as any)?.isStatic) {
@@ -166,7 +167,16 @@ export default function MilestoneManagementModal({
     if (mode === "create") {
       createMutation.mutate(data);
     } else {
-      updateMutation.mutate(data);
+      // Ensure milestone.id exists before calling updateMutation
+      if (milestone && milestone.id) {
+        updateMutation.mutate({ id: milestone.id, data });
+      } else {
+        toast({
+          title: "Error",
+          description: "Milestone ID is missing for update.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
