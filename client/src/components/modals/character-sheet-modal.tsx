@@ -105,19 +105,19 @@ export default function CharacterSheetModal({
 
   // Fetch dynamic game data for real-time XP calculations
   const { data: skills = [] } = useQuery<DynamicSkill[]>({
-    queryKey: ["/api/admin/skills"],
+    queryKey: ["/api/admin?type=skills"],
     enabled: isOpen && !!characterId,
     staleTime: 0,
   });
 
   const { data: heritages = [] } = useQuery<DynamicHeritage[]>({
-    queryKey: ["/api/admin/heritages"], 
+    queryKey: ["/api/admin?type=heritages"], 
     enabled: isOpen && !!characterId,
     staleTime: 0,
   });
 
   const { data: archetypes = [] } = useQuery<DynamicArchetype[]>({
-    queryKey: ["/api/admin/archetypes"],
+    queryKey: ["/api/admin?type=archetypes"],
     enabled: isOpen && !!characterId,
     staleTime: 0,
   });

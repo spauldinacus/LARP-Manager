@@ -40,7 +40,7 @@ export default function AchievementSettingsModal({
 
   // Fetch current achievement settings
   const { data: currentSettings } = useQuery({
-    queryKey: ["/api/admin/achievement-settings"],
+    queryKey: ["/api/admin?type=achievement-settings"],
     enabled: isOpen,
     refetchOnMount: true,
     onSuccess: (data) => {
@@ -52,12 +52,12 @@ export default function AchievementSettingsModal({
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: RaritySettings) => {
-      const response = await apiRequest("PUT", "/api/admin/achievement-settings", newSettings);
+      const response = await apiRequest("PUT", "/api/admin", { type: "achievement-settings", ...newSettings });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievement-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievement-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       toast({
         title: "Settings updated",
         description: "Achievement rarity settings have been updated successfully.",
@@ -75,11 +75,11 @@ export default function AchievementSettingsModal({
 
   const recalculateRaritiesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/admin/recalculate-achievement-rarities");
+      const response = await apiRequest("POST", "/api/admin", { type: "recalculate-achievement-rarities" });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       toast({
         title: "Rarities recalculated",
         description: "All achievement rarities have been recalculated based on current player statistics.",

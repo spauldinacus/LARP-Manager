@@ -81,7 +81,7 @@ export default function AchievementManagementModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       toast({
         title: "Achievement created",
         description: "New achievement has been created successfully.",
@@ -110,7 +110,7 @@ export default function AchievementManagementModal({
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=achievements"] });
       if ((achievement as any)?.isStatic) {
         // Force a reload of the page to refresh static achievements
         window.location.reload();

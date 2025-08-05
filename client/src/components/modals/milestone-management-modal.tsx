@@ -72,11 +72,11 @@ export default function MilestoneManagementModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/admin/milestones", data);
+      const response = await apiRequest("POST", "/api/admin?type=milestones", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=milestones"] });
       toast({
         title: "Milestone created",
         description: "New milestone has been created successfully.",
@@ -100,12 +100,12 @@ export default function MilestoneManagementModal({
         const response = await apiRequest("PUT", `/api/admin/static-milestones/${(milestone as any).staticIndex}`, data);
         return response.json();
       } else {
-        const response = await apiRequest("PUT", `/api/admin/milestones/${milestone!.id}`, data);
+        const response = await apiRequest("PUT", `/api/admin?type=milestones/${milestone!.id}`, data);
         return response.json();
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=milestones"] });
       if ((milestone as any)?.isStatic) {
         // Force a reload of the page to refresh static milestones
         window.location.reload();
@@ -255,8 +255,8 @@ export default function MilestoneManagementModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {mode === "create" ? "Create" : "Update"}

@@ -45,14 +45,14 @@ export default function UserCharactersModal({
 
   // Fetch user details
   const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ["/api/admin/users", userId],
+    queryKey: ["/api/admin?type=users&id=" + userId],
     enabled: isOpen && !!userId,
     refetchOnMount: true,
   });
 
   // Fetch user's characters
   const { data: characters, isLoading: charactersLoading } = useQuery({
-    queryKey: ["/api/admin/users", userId, "characters"],
+    queryKey: ["/api/admin?type=user-characters&userId=" + userId],
     enabled: isOpen && !!userId,
     refetchOnMount: true,
   });
@@ -66,7 +66,7 @@ export default function UserCharactersModal({
     mutationFn: (characterId: string) => 
       apiRequest("DELETE", `/api/characters/${characterId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId, "characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=user-characters&userId=" + userId] });
       toast({
         title: "Character deleted",
         description: "Character has been successfully deleted.",

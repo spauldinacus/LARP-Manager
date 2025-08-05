@@ -48,22 +48,21 @@ export default function RoleManagementModal({ isOpen, onClose, user }: RoleManag
   const { toast } = useToast();
 
   const { data: roles = [] } = useQuery<string[]>({
-    queryKey: ["/api/roles"],
+    queryKey: ["/api/admin?type=roles"],
     enabled: isOpen,
     refetchOnMount: true,
   });
 
   const { data: permissions = {} } = useQuery<Record<string, string[]>>({
-    queryKey: ["/api/permissions"],
+    queryKey: ["/api/admin?type=permissions"],
     enabled: isOpen,
     refetchOnMount: true,
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: (role: string) => apiRequest("PATCH", `/api/users/${user.id}/role`, { role }),
+    mutationFn: (role: string) => apiRequest("PATCH", `/api/admin`, { type: "user-role", userId: user.id, role }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       toast({
         title: "Role updated",
         description: `${user.playerName} is now a ${selectedRole}`,

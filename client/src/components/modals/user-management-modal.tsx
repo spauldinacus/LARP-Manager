@@ -25,7 +25,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
 
   // Fetch user details
   const { data: userDetails, isLoading, error } = useQuery({
-    queryKey: ["/api/admin/users", userId],
+    queryKey: ["/api/admin?type=users&id=" + userId],
     enabled: !!userId,
     retry: 1,
     staleTime: 0, // Force fresh data
@@ -38,7 +38,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
 
   // Fetch available roles
   const { data: roles = [] } = useQuery({
-    queryKey: ["/api/roles"],
+    queryKey: ["/api/admin?type=roles"],
     enabled: !!userId,
   });
 
@@ -62,12 +62,12 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const response = await apiRequest("PUT", `/api/admin/users/${userId}`, userData);
+      const response = await apiRequest("PUT", `/api/admin`, { type: "users", id: userId, ...userData });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users&id=" + userId] });
       toast({
         title: "User Updated",
         description: "User information has been successfully updated.",
