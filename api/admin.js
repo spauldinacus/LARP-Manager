@@ -1,5 +1,5 @@
 // Combined admin endpoints for Vercel
-import { db, users, characters, heritages, archetypes, skills, cultures } from '../lib/db.js';
+import { db, users, characters, heritages, archetypes, skills, cultures, achievements, milestones } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc } from 'drizzle-orm';
 
@@ -24,6 +24,10 @@ export default async function handler(req, res) {
       return await handleCultures(req, res, method, id);
     } else if (type === 'archetypes') {
       return await handleArchetypes(req, res, method, id);
+    } else if (type === 'achievements') {
+      return await handleAchievements(req, res, method, id);
+    } else if (type === 'milestones') {
+      return await handleMilestones(req, res, method, id);
     }
 
     // Legacy path-based routing for backward compatibility
@@ -37,6 +41,94 @@ export default async function handler(req, res) {
     console.error('Admin API error:', error);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
+}
+
+// Achievements handlers
+async function handleAchievements(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [achievement] = await db.select().from(achievements).where(eq(achievements.id, id));
+      if (!achievement) {
+        return res.status(404).json({ message: 'Achievement not found' });
+      }
+      return res.status(200).json(achievement);
+    } else {
+      const allAchievements = await db.select().from(achievements);
+      return res.status(200).json(allAchievements);
+    }
+  }
+
+  if (method === 'POST') {
+    const [newAchievement] = await db.insert(achievements).values(req.body).returning();
+    return res.status(201).json(newAchievement);
+  }
+
+  if (method === 'PUT' && id) {
+    const [updatedAchievement] = await db.update(achievements)
+      .set(req.body)
+      .where(eq(achievements.id, id))
+      .returning();
+    if (!updatedAchievement) {
+      return res.status(404).json({ message: 'Achievement not found' });
+    }
+    return res.status(200).json(updatedAchievement);
+  }
+
+  if (method === 'DELETE' && id) {
+    const [deletedAchievement] = await db.delete(achievements)
+      .where(eq(achievements.id, id))
+      .returning();
+    if (!deletedAchievement) {
+      return res.status(404).json({ message: 'Achievement not found' });
+    }
+    return res.status(200).json({ message: 'Achievement deleted successfully' });
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+// Milestones handlers
+async function handleMilestones(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [milestone] = await db.select().from(milestones).where(eq(milestones.id, id));
+      if (!milestone) {
+        return res.status(404).json({ message: 'Milestone not found' });
+      }
+      return res.status(200).json(milestone);
+    } else {
+      const allMilestones = await db.select().from(milestones);
+      return res.status(200).json(allMilestones);
+    }
+  }
+
+  if (method === 'POST') {
+    const [newMilestone] = await db.insert(milestones).values(req.body).returning();
+    return res.status(201).json(newMilestone);
+  }
+
+  if (method === 'PUT' && id) {
+    const [updatedMilestone] = await db.update(milestones)
+      .set(req.body)
+      .where(eq(milestones.id, id))
+      .returning();
+    if (!updatedMilestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+    return res.status(200).json(updatedMilestone);
+  }
+
+  if (method === 'DELETE' && id) {
+    const [deletedMilestone] = await db.delete(milestones)
+      .where(eq(milestones.id, id))
+      .returning();
+    if (!deletedMilestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+    return res.status(200).json({ message: 'Milestone deleted successfully' });
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
 }
 
 async function handleUsers(req, res, method) {

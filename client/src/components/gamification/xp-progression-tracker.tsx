@@ -756,7 +756,7 @@ export default function XPProgressionTracker({
                             <milestone.icon className={`h-6 w-6 ${milestone.color}`} />
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm">{milestone.title}</p>
-                              <p className="text-xs text-muted-foreground">{milestone.description}</p>
+                              <p className="text-sm text-muted-foreground">{milestone.description}</p>
                               <p className="text-xs text-muted-foreground">{milestone.threshold} XP required</p>
                             </div>
                           </div>
@@ -781,7 +781,7 @@ export default function XPProgressionTracker({
                           <div key={milestone.id} className="flex items-center justify-between p-2 border rounded">
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{milestone.title}</p>
-                              <p className="text-xs text-muted-foreground truncate">{milestone.description}</p>
+                              <p className="text-sm text-muted-foreground truncate">{milestone.description}</p>
                               <p className="text-xs text-muted-foreground">{milestone.threshold} XP</p>
                             </div>
                             <div className="flex items-center space-x-1 ml-2">
