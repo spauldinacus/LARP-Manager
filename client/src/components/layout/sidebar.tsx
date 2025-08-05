@@ -51,7 +51,7 @@ const navigationItems = [
     href: "/chapters",
     icon: Building2,
     label: "Chapters",
-    adminOnly: false,
+    adminOnly: true,
   },
   {
     href: "/players",
