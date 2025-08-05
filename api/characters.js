@@ -46,7 +46,21 @@ async function handleCharactersList(req, res, method) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const allCharacters = await db.select().from(characters);
+    const allCharacters = await db.query.characters.findMany({
+      with: {
+        heritage: true,
+        culture: true,
+        archetype: true,
+        secondaryArchetype: true,
+        user: {
+          columns: {
+            id: true,
+            playerName: true,
+            email: true
+          }
+        }
+      }
+    });
     return res.status(200).json(allCharacters);
   }
   
@@ -69,7 +83,23 @@ async function handleSingleCharacter(req, res, method, characterId) {
     const session = await requireAuth(req, res);
     if (!session) return;
 
-    const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
+    const character = await db.query.characters.findFirst({
+      where: eq(characters.id, characterId),
+      with: {
+        heritage: true,
+        culture: true,
+        archetype: true,
+        secondaryArchetype: true,
+        user: {
+          columns: {
+            id: true,
+            playerName: true,
+            email: true
+          }
+        }
+      }
+    });
+
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });
     }
