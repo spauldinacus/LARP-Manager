@@ -111,24 +111,24 @@ export default function CharacterCreationModal({
 
   // Fetch dynamic game data
   const { data: skills = [], isLoading: skillsLoading } = useQuery({
-    queryKey: ["/api/admin/skills"],
+    queryKey: ["/api/admin?type=skills"],
     enabled: isOpen,
   });
 
   const { data: heritages = [], isLoading: heritagesLoading } = useQuery<DynamicHeritage[]>({
-    queryKey: ["/api/admin/heritages"],
+    queryKey: ["/api/admin?type=heritages"],
     enabled: isOpen,
     staleTime: 0,
   });
 
   const { data: cultures = [], isLoading: culturesLoading } = useQuery<DynamicCulture[]>({
-    queryKey: ["/api/admin/cultures"],
+    queryKey: ["/api/admin?type=cultures"],
     enabled: isOpen,
     staleTime: 0,
   });
 
   const { data: archetypes = [], isLoading: archetypesLoading } = useQuery<DynamicArchetype[]>({
-    queryKey: ["/api/admin/archetypes"],
+    queryKey: ["/api/admin?type=archetypes"],
     enabled: isOpen,
     staleTime: 0,
   });
@@ -285,7 +285,7 @@ export default function CharacterCreationModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=stats"] });
       toast({
         title: "Character created!",
         description: "Your character has been successfully created.",

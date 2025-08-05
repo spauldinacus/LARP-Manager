@@ -91,38 +91,38 @@ export default function GameDataPage() {
     return <div>Loading...</div>;
   }
 
-  // Queries
-  const { data: skills = [], isLoading: skillsLoading } = useQuery({
-    queryKey: ["/api/admin/skills"],
-  });
-
+  // Fetch data
   const { data: heritages = [], isLoading: heritagesLoading } = useQuery({
-    queryKey: ["/api/admin/heritages"],
+    queryKey: ["/api/admin?type=heritages"],
   });
 
   const { data: cultures = [], isLoading: culturesLoading } = useQuery({
-    queryKey: ["/api/admin/cultures"],
+    queryKey: ["/api/admin?type=cultures"],
   });
 
   const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
-    queryKey: ["/api/admin/archetypes"],
+    queryKey: ["/api/admin?type=archetypes"],
+  });
+
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+    queryKey: ["/api/admin?type=skills"],
   });
 
   // Mutations
   const createSkillMutation = useMutation({
-    mutationFn: (data: z.infer<typeof skillSchema>) => apiRequest("POST", "/api/admin/skills", data),
+    mutationFn: (data: z.infer<typeof skillSchema>) => apiRequest("POST", "/api/admin?type=skills", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=skills"] });
       setSelectedItem(null);
       setIsCreateMode(false);
     },
   });
 
   const updateSkillMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof skillSchema> }) => 
+    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof skillSchema> }) =>
       apiRequest("PUT", `/api/admin/skills/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=skills"] });
       setSelectedItem(null);
     },
   });
@@ -130,24 +130,24 @@ export default function GameDataPage() {
   const deleteSkillMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/skills/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=skills"] });
     },
   });
 
   const createHeritageMutation = useMutation({
-    mutationFn: (data: z.infer<typeof heritageSchema>) => apiRequest("POST", "/api/admin/heritages", data),
+    mutationFn: (data: z.infer<typeof heritageSchema>) => apiRequest("POST", "/api/admin?type=heritages", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=heritages"] });
       setSelectedItem(null);
       setIsCreateMode(false);
     },
   });
 
   const updateHeritageMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof heritageSchema> }) => 
+    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof heritageSchema> }) =>
       apiRequest("PUT", `/api/admin/heritages/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=heritages"] });
       setSelectedItem(null);
     },
   });
@@ -155,24 +155,24 @@ export default function GameDataPage() {
   const deleteHeritageMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/heritages/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/heritages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=heritages"] });
     },
   });
 
   const createCultureMutation = useMutation({
-    mutationFn: (data: z.infer<typeof cultureSchema>) => apiRequest("POST", "/api/admin/cultures", data),
+    mutationFn: (data: z.infer<typeof cultureSchema>) => apiRequest("POST", "/api/admin?type=cultures", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=cultures"] });
       setSelectedItem(null);
       setIsCreateMode(false);
     },
   });
 
   const updateCultureMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof cultureSchema> }) => 
+    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof cultureSchema> }) =>
       apiRequest("PUT", `/api/admin/cultures/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=cultures"] });
       setSelectedItem(null);
     },
   });
@@ -180,24 +180,24 @@ export default function GameDataPage() {
   const deleteCultureMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/cultures/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cultures"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=cultures"] });
     },
   });
 
   const createArchetypeMutation = useMutation({
-    mutationFn: (data: z.infer<typeof archetypeSchema>) => apiRequest("POST", "/api/admin/archetypes", data),
+    mutationFn: (data: z.infer<typeof archetypeSchema>) => apiRequest("POST", "/api/admin?type=archetypes", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=archetypes"] });
       setSelectedItem(null);
       setIsCreateMode(false);
     },
   });
 
   const updateArchetypeMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof archetypeSchema> }) => 
+    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof archetypeSchema> }) =>
       apiRequest("PUT", `/api/admin/archetypes/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=archetypes"] });
       setSelectedItem(null);
     },
   });
@@ -205,42 +205,42 @@ export default function GameDataPage() {
   const deleteArchetypeMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/archetypes/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/archetypes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=archetypes"] });
     },
   });
 
   // Skill relationship mutations
   const addSkillRelationshipMutation = useMutation({
-    mutationFn: ({itemId, skillId, itemType, skillType }: { 
-      itemId: string; 
-      skillId: string; 
-      itemType: 'heritage' | 'culture' | 'archetype'; 
-      skillType: 'primary' | 'secondary' 
+    mutationFn: ({itemId, skillId, itemType, skillType }: {
+      itemId: string;
+      skillId: string;
+      itemType: 'heritage' | 'culture' | 'archetype';
+      skillType: 'primary' | 'secondary'
     }) => {
-      const endpoint = skillType === 'primary' 
+      const endpoint = skillType === 'primary'
         ? `/api/admin/${itemType}s/${itemId}/primary-skills`
         : `/api/admin/${itemType}s/${itemId}/secondary-skills`;
       return apiRequest("POST", endpoint, { skillId });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/${variables.itemType}s`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin?type=${variables.itemType}s`] });
     },
   });
 
   const removeSkillRelationshipMutation = useMutation({
-    mutationFn: ({itemId, skillId, itemType, skillType }: { 
-      itemId: string; 
-      skillId: string; 
-      itemType: 'heritage' | 'culture' | 'archetype'; 
-      skillType: 'primary' | 'secondary' 
+    mutationFn: ({itemId, skillId, itemType, skillType }: {
+      itemId: string;
+      skillId: string;
+      itemType: 'heritage' | 'culture' | 'archetype';
+      skillType: 'primary' | 'secondary'
     }) => {
-      const endpoint = skillType === 'primary' 
+      const endpoint = skillType === 'primary'
         ? `/api/admin/${itemType}s/${itemId}/primary-skills/${skillId}`
         : `/api/admin/${itemType}s/${itemId}/secondary-skills/${skillId}`;
       return apiRequest("DELETE", endpoint);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/${variables.itemType}s`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin?type=${variables.itemType}s`] });
     },
   });
 
@@ -269,7 +269,7 @@ export default function GameDataPage() {
     },
   });
 
-  // Culture form  
+  // Culture form
   const cultureForm = useForm<z.infer<typeof cultureSchema>>({
     resolver: zodResolver(cultureSchema),
     defaultValues: {
@@ -1097,13 +1097,13 @@ export default function GameDataPage() {
                 ) : (
                   (skills as any[])?.filter((skill: any) => {
                     // Get current item's skills to filter out already assigned ones
-                    const currentItem = skillManagementModal.itemType === 'heritage' 
+                    const currentItem = skillManagementModal.itemType === 'heritage'
                       ? (heritages as any[])?.find((h: any) => h.id === skillManagementModal.itemId)
                       : skillManagementModal.itemType === 'culture'
                       ? (cultures as any[])?.find((c: any) => c.id === skillManagementModal.itemId)
                       : (archetypes as any[])?.find((a: any) => a.id === skillManagementModal.itemId);
 
-                    const assignedSkills = skillManagementModal.skillType === 'primary' 
+                    const assignedSkills = skillManagementModal.skillType === 'primary'
                       ? currentItem?.primarySkills || []
                       : currentItem?.secondarySkills || [];
 
@@ -1116,8 +1116,8 @@ export default function GameDataPage() {
                           <p className="text-sm text-muted-foreground">{skill.description}</p>
                         )}
                       </div>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => handleAddSkillRelationship(skill.id)}
                         disabled={addSkillRelationshipMutation.isPending}
                       >
@@ -1133,13 +1133,13 @@ export default function GameDataPage() {
               <h4 className="text-sm font-medium mb-2">Assigned Skills</h4>
               <div className="grid gap-2 max-h-60 overflow-y-auto">
                 {(() => {
-                  const currentItem = skillManagementModal.itemType === 'heritage' 
+                  const currentItem = skillManagementModal.itemType === 'heritage'
                     ? (heritages as any[])?.find((h: any) => h.id === skillManagementModal.itemId)
                     : skillManagementModal.itemType === 'culture'
                     ? (cultures as any[])?.find((c: any) => c.id === skillManagementModal.itemId)
                     : (archetypes as any[])?.find((a: any) => a.id === skillManagementModal.itemId);
 
-                  const assignedSkills = skillManagementModal.skillType === 'primary' 
+                  const assignedSkills = skillManagementModal.skillType === 'primary'
                     ? currentItem?.primarySkills || []
                     : currentItem?.secondarySkills || [];
 
@@ -1156,9 +1156,9 @@ export default function GameDataPage() {
                             <p className="text-sm text-muted-foreground">{skill.description}</p>
                           )}
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="destructive" 
+                        <Button
+                          size="sm"
+                          variant="destructive"
                           onClick={() => handleRemoveSkillRelationship(skill.id)}
                           disabled={removeSkillRelationshipMutation.isPending}
                         >
