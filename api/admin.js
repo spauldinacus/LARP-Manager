@@ -1,5 +1,5 @@
 // Combined admin endpoints for Vercel
-import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones } from '../lib/db.js';
+import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc } from 'drizzle-orm';
 
@@ -28,6 +28,14 @@ export default async function handler(req, res) {
       return await handleAchievements(req, res, method, id);
     } else if (type === 'milestones') {
       return await handleMilestones(req, res, method, id);
+    } else if (type === 'roles') {
+      return await handleRoles(req, res, method, id);
+    } else if (type === 'permissions') {
+      return await handlePermissions(req, res, method, id);
+    } else if (type === 'role-permissions') {
+      return await handleRolePermissions(req, res, method, id);
+    } else if (type === 'users') {
+      return await handleUsers(req, res, method, id);
     }
 
     // Legacy path-based routing for backward compatibility
@@ -131,7 +139,119 @@ async function handleMilestones(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-async function handleUsers(req, res, method) {
+async function handleRoles(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [role] = await db.select().from(roles).where(eq(roles.id, id));
+      if (!role) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
+      return res.status(200).json(role);
+    } else {
+      const allRoles = await db.select().from(roles);
+      return res.status(200).json(allRoles);
+    }
+  }
+
+  if (method === 'POST') {
+    const [newRole] = await db.insert(roles).values({
+      ...req.body,
+      createdBy: req.session?.userId
+    }).returning();
+    
+    // If permissionIds are provided, create role-permission relationships
+    if (req.body.permissionIds && req.body.permissionIds.length > 0) {
+      const rolePermissionData = req.body.permissionIds.map(permissionId => ({
+        roleId: newRole.id,
+        permissionId
+      }));
+      await db.insert(rolePermissions).values(rolePermissionData);
+    }
+    
+    return res.status(201).json(newRole);
+  }
+
+  if (method === 'PATCH' && id) {
+    const { permissionIds, ...roleData } = req.body;
+    
+    const [updatedRole] = await db.update(roles)
+      .set(roleData)
+      .where(eq(roles.id, id))
+      .returning();
+    
+    if (!updatedRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+
+    // Update role permissions if provided
+    if (permissionIds !== undefined) {
+      // Delete existing permissions
+      await db.delete(rolePermissions).where(eq(rolePermissions.roleId, id));
+      
+      // Add new permissions
+      if (permissionIds.length > 0) {
+        const rolePermissionData = permissionIds.map(permissionId => ({
+          roleId: id,
+          permissionId
+        }));
+        await db.insert(rolePermissions).values(rolePermissionData);
+      }
+    }
+    
+    return res.status(200).json(updatedRole);
+  }
+
+  if (method === 'DELETE' && id) {
+    const [deletedRole] = await db.delete(roles)
+      .where(eq(roles.id, id))
+      .returning();
+    if (!deletedRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    return res.status(200).json({ message: 'Role deleted successfully' });
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handlePermissions(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [permission] = await db.select().from(permissions).where(eq(permissions.id, id));
+      if (!permission) {
+        return res.status(404).json({ message: 'Permission not found' });
+      }
+      return res.status(200).json(permission);
+    } else {
+      const allPermissions = await db.select().from(permissions);
+      return res.status(200).json(allPermissions);
+    }
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handleRolePermissions(req, res, method, id) {
+  if (method === 'GET' && id) {
+    // Get permissions for a specific role
+    const rolePermissionsList = await db
+      .select({
+        id: permissions.id,
+        name: permissions.name,
+        description: permissions.description,
+        category: permissions.category
+      })
+      .from(rolePermissions)
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .where(eq(rolePermissions.roleId, id));
+    
+    return res.status(200).json(rolePermissionsList);
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+async function handleUsers(req, res, method, id) {
   if (method === 'GET') {
     const allUsers = await db.select().from(users);
     const usersWithoutPasswords = allUsers.map(({ password: _, ...user }) => user);
