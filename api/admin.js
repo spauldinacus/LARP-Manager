@@ -143,17 +143,31 @@ async function handleMilestones(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Cultures handler (original implementation kept as is, as it was not part of the changes)
+// Cultures handler
 async function handleCultures(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [culture] = await db.select().from(cultures).where(eq(cultures.id, id));
+      const [culture] = await db.select({
+        id: cultures.id,
+        name: cultures.name,
+        description: cultures.description,
+        heritageId: cultures.heritageId,
+        heritageName: sql`(SELECT ${heritages.name} FROM ${heritages} WHERE ${heritages.id} = ${cultures.heritageId})`.as('heritageName'),
+        secondarySkills: sql`'[]'`.as('secondarySkills')
+      }).from(cultures).where(eq(cultures.id, id));
       if (!culture) {
         return res.status(404).json({ message: 'Culture not found' });
       }
       return res.status(200).json(culture);
     } else {
-      const allCultures = await db.select().from(cultures).orderBy(cultures.name);
+      const allCultures = await db.select({
+        id: cultures.id,
+        name: cultures.name,
+        description: cultures.description,
+        heritageId: cultures.heritageId,
+        heritageName: sql`(SELECT ${heritages.name} FROM ${heritages} WHERE ${heritages.id} = ${cultures.heritageId})`.as('heritageName'),
+        secondarySkills: sql`'[]'`.as('secondarySkills')
+      }).from(cultures).orderBy(cultures.name);
       return res.status(200).json(allCultures);
     }
   }
@@ -179,17 +193,29 @@ async function handleCultures(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Archetypes handler (original implementation kept as is, as it was not part of the changes)
+// Archetypes handler
 async function handleArchetypes(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [archetype] = await db.select().from(archetypes).where(eq(archetypes.id, id));
+      const [archetype] = await db.select({
+        id: archetypes.id,
+        name: archetypes.name,
+        description: archetypes.description,
+        primarySkills: sql`'[]'`.as('primarySkills'),
+        secondarySkills: sql`'[]'`.as('secondarySkills')
+      }).from(archetypes).where(eq(archetypes.id, id));
       if (!archetype) {
         return res.status(404).json({ message: 'Archetype not found' });
       }
       return res.status(200).json(archetype);
     } else {
-      const allArchetypes = await db.select().from(archetypes).orderBy(archetypes.name);
+      const allArchetypes = await db.select({
+        id: archetypes.id,
+        name: archetypes.name,
+        description: archetypes.description,
+        primarySkills: sql`'[]'`.as('primarySkills'),
+        secondarySkills: sql`'[]'`.as('secondarySkills')
+      }).from(archetypes).orderBy(archetypes.name);
       return res.status(200).json(allArchetypes);
     }
   }
@@ -215,17 +241,29 @@ async function handleArchetypes(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Skills handler (original implementation kept as is, as it was not part of the changes)
+// Skills handler
 async function handleSkills(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [skill] = await db.select().from(skills).where(eq(skills.id, id));
+      const [skill] = await db.select({
+        id: skills.id,
+        name: skills.name,
+        description: skills.description,
+        prerequisiteSkillId: skills.prerequisiteSkillId,
+        prerequisiteSkillName: sql`(SELECT ${skills.name} FROM ${skills} s2 WHERE s2.id = ${skills.prerequisiteSkillId})`.as('prerequisiteSkillName')
+      }).from(skills).where(eq(skills.id, id));
       if (!skill) {
         return res.status(404).json({ message: 'Skill not found' });
       }
       return res.status(200).json(skill);
     } else {
-      const allSkills = await db.select().from(skills).orderBy(skills.name);
+      const allSkills = await db.select({
+        id: skills.id,
+        name: skills.name,
+        description: skills.description,
+        prerequisiteSkillId: skills.prerequisiteSkillId,
+        prerequisiteSkillName: sql`(SELECT ${skills.name} FROM ${skills} s2 WHERE s2.id = ${skills.prerequisiteSkillId})`.as('prerequisiteSkillName')
+      }).from(skills).orderBy(skills.name);
       return res.status(200).json(allSkills);
     }
   }
@@ -597,13 +635,35 @@ async function handleEvents(req, res, method, id) {
 async function handleHeritages(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [heritage] = await db.select().from(heritages).where(eq(heritages.id, id));
+      const [heritage] = await db.select({
+        id: heritages.id,
+        name: heritages.name,
+        body: heritages.body,
+        stamina: heritages.stamina,
+        icon: heritages.icon,
+        description: heritages.description,
+        costumeRequirements: heritages.costumeRequirements,
+        benefit: heritages.benefit,
+        weakness: heritages.weakness,
+        secondarySkills: sql`'[]'`.as('secondarySkills')
+      }).from(heritages).where(eq(heritages.id, id));
       if (!heritage) {
         return res.status(404).json({ message: 'Heritage not found' });
       }
       return res.status(200).json(heritage);
     }
-    const allHeritages = await db.select().from(heritages).orderBy(heritages.name);
+    const allHeritages = await db.select({
+      id: heritages.id,
+      name: heritages.name,
+      body: heritages.body,
+      stamina: heritages.stamina,
+      icon: heritages.icon,
+      description: heritages.description,
+      costumeRequirements: heritages.costumeRequirements,
+      benefit: heritages.benefit,
+      weakness: heritages.weakness,
+      secondarySkills: sql`'[]'`.as('secondarySkills')
+    }).from(heritages).orderBy(heritages.name);
     return res.status(200).json(allHeritages);
   }
 
