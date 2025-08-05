@@ -1,5 +1,5 @@
 // Combined admin endpoints for Vercel
-import { db, users, characters, heritages, archetypes, skills, cultures, achievements, milestones } from '../lib/db.js';
+import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc } from 'drizzle-orm';
 
@@ -47,26 +47,26 @@ export default async function handler(req, res) {
 async function handleAchievements(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [achievement] = await db.select().from(achievements).where(eq(achievements.id, id));
+      const [achievement] = await db.select().from(customAchievements).where(eq(customAchievements.id, id));
       if (!achievement) {
         return res.status(404).json({ message: 'Achievement not found' });
       }
       return res.status(200).json(achievement);
     } else {
-      const allAchievements = await db.select().from(achievements);
+      const allAchievements = await db.select().from(customAchievements);
       return res.status(200).json(allAchievements);
     }
   }
 
   if (method === 'POST') {
-    const [newAchievement] = await db.insert(achievements).values(req.body).returning();
+    const [newAchievement] = await db.insert(customAchievements).values(req.body).returning();
     return res.status(201).json(newAchievement);
   }
 
   if (method === 'PUT' && id) {
-    const [updatedAchievement] = await db.update(achievements)
+    const [updatedAchievement] = await db.update(customAchievements)
       .set(req.body)
-      .where(eq(achievements.id, id))
+      .where(eq(customAchievements.id, id))
       .returning();
     if (!updatedAchievement) {
       return res.status(404).json({ message: 'Achievement not found' });
@@ -75,8 +75,8 @@ async function handleAchievements(req, res, method, id) {
   }
 
   if (method === 'DELETE' && id) {
-    const [deletedAchievement] = await db.delete(achievements)
-      .where(eq(achievements.id, id))
+    const [deletedAchievement] = await db.delete(customAchievements)
+      .where(eq(customAchievements.id, id))
       .returning();
     if (!deletedAchievement) {
       return res.status(404).json({ message: 'Achievement not found' });
@@ -91,26 +91,26 @@ async function handleAchievements(req, res, method, id) {
 async function handleMilestones(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [milestone] = await db.select().from(milestones).where(eq(milestones.id, id));
+      const [milestone] = await db.select().from(customMilestones).where(eq(customMilestones.id, id));
       if (!milestone) {
         return res.status(404).json({ message: 'Milestone not found' });
       }
       return res.status(200).json(milestone);
     } else {
-      const allMilestones = await db.select().from(milestones);
+      const allMilestones = await db.select().from(customMilestones);
       return res.status(200).json(allMilestones);
     }
   }
 
   if (method === 'POST') {
-    const [newMilestone] = await db.insert(milestones).values(req.body).returning();
+    const [newMilestone] = await db.insert(customMilestones).values(req.body).returning();
     return res.status(201).json(newMilestone);
   }
 
   if (method === 'PUT' && id) {
-    const [updatedMilestone] = await db.update(milestones)
+    const [updatedMilestone] = await db.update(customMilestones)
       .set(req.body)
-      .where(eq(milestones.id, id))
+      .where(eq(customMilestones.id, id))
       .returning();
     if (!updatedMilestone) {
       return res.status(404).json({ message: 'Milestone not found' });
@@ -119,8 +119,8 @@ async function handleMilestones(req, res, method, id) {
   }
 
   if (method === 'DELETE' && id) {
-    const [deletedMilestone] = await db.delete(milestones)
-      .where(eq(milestones.id, id))
+    const [deletedMilestone] = await db.delete(customMilestones)
+      .where(eq(customMilestones.id, id))
       .returning();
     if (!deletedMilestone) {
       return res.status(404).json({ message: 'Milestone not found' });

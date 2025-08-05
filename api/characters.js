@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Characters API error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Failed to process characters request',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -45,7 +45,8 @@ async function handleCharactersList(req, res, method) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const secondaryArchetypes = archetypes.as('secondaryArchetypes');
+    const { alias } = await import('drizzle-orm');
+    const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
 
     const allCharacters = await db
       .select({
@@ -99,7 +100,8 @@ async function handleSingleCharacter(req, res, method, characterId) {
     const session = await requireAuth(req, res);
     if (!session) return;
 
-    const secondaryArchetypes = archetypes.as('secondaryArchetypes');
+    const { alias } = await import('drizzle-orm');
+    const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
 
     const [character] = await db
       .select({
