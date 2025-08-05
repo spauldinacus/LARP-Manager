@@ -142,11 +142,11 @@ export default function RolesPage() {
 
   const openEditModal = async (role: Role) => {
     setEditingRole(role);
-    
+
     // Fetch role permissions
     const response = await fetch(`/api/admin?type=role-permissions&id=${role.id}`);
     const rolePermissions = await response.json();
-    
+
     form.reset({
       name: role.name,
       description: role.description || "",
@@ -301,7 +301,7 @@ export default function RolesPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -406,7 +406,7 @@ export default function RolesPage() {
                 <CardDescription>{role.description}</CardDescription>
               )}
             </CardHeader>
-            
+
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
@@ -473,7 +473,7 @@ export default function RolesPage() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="description"

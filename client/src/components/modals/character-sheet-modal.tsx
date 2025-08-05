@@ -162,7 +162,7 @@ export default function CharacterSheetModal({
 
   // Fetch all events for admin event addition
   const { data: allEvents } = useQuery({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/admin?type=events"],
     enabled: user?.isAdmin && !!characterId,
   });
 

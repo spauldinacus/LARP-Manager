@@ -59,51 +59,50 @@ export default function EventsPage() {
     }
   }, [authLoading, user, setLocation]);
 
+  // Fetch events using the admin endpoint
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ["/api/admin", "events"],
     queryFn: () => apiRequest("GET", "/api/admin?type=events"),
   });
 
-  const { data: characters = [] } = useQuery<Character[]>({
-    queryKey: ["/api/characters"],
-    enabled: !!user,
-  });
-
   // Load public character data for RSVP displays
   const { data: publicCharacters = [] } = useQuery<Character[]>({
-    queryKey: ["/api/characters/public"],
+    queryKey: ["/api/admin", "characters", "public"], // Updated query key
+    queryFn: () => apiRequest("GET", "/api/admin?type=characters&scope=public"), // Updated endpoint
     enabled: !!user,
   });
 
   // Load chapters for the chapter filter dropdown
   const { data: chapters = [] } = useQuery<Chapter[]>({
-    queryKey: ["/api/chapters"],
+    queryKey: ["/api/admin", "chapters"], // Updated query key
+    queryFn: () => apiRequest("GET", "/api/admin?type=chapters"), // Updated endpoint
     enabled: !!user,
   });
 
   // Fetch RSVPs for all events at once
   const { data: allEventRsvps = {} } = useQuery({
-    queryKey: ["/api/events/rsvps"],
+    queryKey: ["/api/admin", "events", "rsvps"], // Updated query key
     queryFn: async () => {
       const rsvpData: Record<string, EventRsvp[]> = {};
-      
+
       // Fetch RSVPs for each event
       for (const event of events) {
         try {
-          const response = await fetch(`/api/events/${event.id}/rsvps`);
+          const response = await apiRequest("GET", `/api/admin?type=events&id=${event.id}&include=rsvps`); // Updated endpoint
           if (response.ok) {
-            rsvpData[event.id] = await response.json();
+            rsvpData[event.id] = response.data; // Assuming response.data holds the RSVPs
           } else {
             rsvpData[event.id] = [];
           }
         } catch (error) {
+          console.error(`Failed to fetch RSVPs for event ${event.id}:`, error);
           rsvpData[event.id] = [];
         }
       }
-      
+
       return rsvpData;
     },
-    enabled: events.length > 0,
+    enabled: events.length > 0 && !!user, // Ensure user is loaded
   });
 
   // Function to get RSVP count for an event
@@ -180,10 +179,10 @@ export default function EventsPage() {
 
   const createRsvpMutation = useMutation({
     mutationFn: ({ eventId, data }: { eventId: string; data: RsvpFormData }) =>
-      apiRequest("POST", `/api/events/${eventId}/rsvp`, data),
+      apiRequest("POST", `/api/admin/events/rsvps`, { ...data, eventId }), // Updated endpoint and payload
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin", "events"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events", "rsvps"] }); // Invalidate updated query key
       setIsRsvpModalOpen(false);
       setSelectedEvent(null);
       rsvpForm.reset();
@@ -204,11 +203,11 @@ export default function EventsPage() {
   // Admin RSVP modification mutations
   const updateRsvpMutation = useMutation({
     mutationFn: ({ rsvpId, data }: { rsvpId: string; data: Partial<EventRsvp> }) =>
-      apiRequest("PATCH", `/api/events/rsvps/${rsvpId}`, data),
+      apiRequest("PATCH", `/api/admin/events/rsvps/${rsvpId}`, data), // Updated endpoint
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events", "rsvps"] }); // Invalidate updated query key
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "characters"] }); // Assuming characters are also managed under admin
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "characters"], exact: false });
       toast({
         title: "RSVP Updated",
         description: "RSVP has been updated successfully.",
@@ -225,10 +224,10 @@ export default function EventsPage() {
 
   const deleteRsvpMutation = useMutation({
     mutationFn: (rsvpId: string) =>
-      apiRequest("DELETE", `/api/events/rsvps/${rsvpId}`),
+      apiRequest("DELETE", `/api/admin/events/rsvps/${rsvpId}`), // Updated endpoint
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events", "rsvps"] }); // Invalidate updated query key
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "characters"] }); // Assuming characters are also managed under admin
       toast({
         title: "RSVP Removed",
         description: "Character has been removed from the event.",
@@ -246,10 +245,10 @@ export default function EventsPage() {
   // Admin attendance marking mutation
   const markAttendanceMutation = useMutation({
     mutationFn: ({ rsvpId, attended }: { rsvpId: string; attended: boolean }) =>
-      apiRequest("POST", `/api/events/rsvps/${rsvpId}/attendance`, { attended }),
+      apiRequest("POST", `/api/admin/events/rsvps/${rsvpId}/attendance`, { attended }), // Updated endpoint
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events", "rsvps"] }); // Invalidate updated query key
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "characters"] }); // Assuming characters are also managed under admin
       toast({
         title: "Attendance Updated",
         description: "RSVP attendance has been updated successfully.",
@@ -397,8 +396,8 @@ export default function EventsPage() {
     return (
       <div className="flex h-screen bg-background">
         {!isMobile && (
-          <Sidebar 
-            user={user} 
+          <Sidebar
+            user={user}
             currentPath="/events"
           />
         )}
@@ -455,8 +454,8 @@ export default function EventsPage() {
   return (
     <div className="flex h-screen bg-background">
       {!isMobile && (
-        <Sidebar 
-          user={user} 
+        <Sidebar
+          user={user}
           currentPath="/events"
         />
       )}
@@ -637,9 +636,9 @@ export default function EventsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => toggleEventStatusMutation.mutate({ 
-                                eventId: event.id, 
-                                isActive: !event.isActive 
+                              onClick={() => toggleEventStatusMutation.mutate({
+                                eventId: event.id,
+                                isActive: !event.isActive
                               })}
                               disabled={toggleEventStatusMutation.isPending}
                               className="text-xs h-6"
@@ -692,8 +691,8 @@ export default function EventsPage() {
                         </button>
                         <div className="flex items-center space-x-2">
                           {user?.isAdmin && (
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handleEditEvent(event)}
                             >
@@ -702,8 +701,8 @@ export default function EventsPage() {
                             </Button>
                           )}
                           {user && event.isActive && (
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               onClick={() => handleRsvp(event)}
                             >
                               RSVP
@@ -723,7 +722,7 @@ export default function EventsPage() {
                   {showAllEvents ? "No events yet" : "No active events"}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {showAllEvents 
+                  {showAllEvents
                     ? (user?.isAdmin ? "Create your first event to get started." : "Check back later for upcoming events.")
                     : "All events are currently inactive. Toggle to view all events or check back later."
                   }
@@ -755,6 +754,9 @@ export default function EventsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              {/* Fetch characters using the admin endpoint */}
+                              {/* Assuming characters are fetched and available as `characters` */}
+                              {/* Replace with actual character fetching logic if needed */}
                               {characters.filter(c => c.isActive && !c.isRetired).map((character) => (
                                 <SelectItem key={character.id} value={character.id}>
                                   {character.name} ({character.heritage} {character.archetype})
@@ -836,7 +838,7 @@ export default function EventsPage() {
                     {selectedEvent?.isActive ? "RSVPs" : "Attendees"} for {selectedEvent?.name}
                   </DialogTitle>
                   <DialogDescription>
-                    {selectedEvent?.isActive 
+                    {selectedEvent?.isActive
                       ? "Players who have RSVPed to this event"
                       : "Characters who attended this past event"
                     }
@@ -846,10 +848,10 @@ export default function EventsPage() {
                   {selectedEvent && (
                     <div className="space-y-3">
                       {(() => {
-                        const filteredRsvps = selectedEvent.isActive 
+                        const filteredRsvps = selectedEvent.isActive
                           ? getRsvpData(selectedEvent.id)
                           : getRsvpData(selectedEvent.id).filter(rsvp => rsvp.attended === true);
-                        
+
                         return filteredRsvps.length === 0 ? (
                           <p className="text-center text-gray-500 py-8">
                             {selectedEvent.isActive ? "No RSVPs yet" : "No attendees recorded"}
@@ -863,7 +865,7 @@ export default function EventsPage() {
                                   <div className="flex-1">
                                     <h4 className="font-medium">{character?.name || 'Unknown Character'}</h4>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      {character?.heritage && character?.culture && character?.archetype 
+                                      {character?.heritage && character?.culture && character?.archetype
                                         ? `${character.heritage.charAt(0).toUpperCase() + character.heritage.slice(1).replace('-', ' ')} ${character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace('-', ' ')} ${character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace('-', ' ')}`
                                         : 'Character details unavailable'
                                       }

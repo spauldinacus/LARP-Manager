@@ -92,19 +92,19 @@ export default function GameDataPage() {
   }
 
   // Fetch data
-  const { data: heritages = [], isLoading: heritagesLoading } = useQuery({
+  const { data: heritages, isLoading: heritagesLoading } = useQuery({
     queryKey: ["/api/admin?type=heritages"],
   });
 
-  const { data: cultures = [], isLoading: culturesLoading } = useQuery({
+  const { data: cultures, isLoading: culturesLoading } = useQuery({
     queryKey: ["/api/admin?type=cultures"],
   });
 
-  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
+  const { data: archetypes, isLoading: archetypesLoading } = useQuery({
     queryKey: ["/api/admin?type=archetypes"],
   });
 
-  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+  const { data: skills, isLoading: skillsLoading } = useQuery({
     queryKey: ["/api/admin?type=skills"],
   });
 

@@ -285,7 +285,7 @@ export default function UserManagementModal({ userId, onClose }: UserManagementM
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSave}
                     disabled={updateUserMutation.isPending}
                   >

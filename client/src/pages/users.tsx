@@ -49,10 +49,10 @@ export default function UsersPage() {
       const playerName = (userData.playerName || "").toLowerCase();
 
       const playerNumber = (userData.playerNumber || "").toLowerCase();
-      
+
       // Search in character names too
       const characterNames = userData.characters?.map((char: any) => char.name.toLowerCase()).join(" ") || "";
-      
+
       return playerName.includes(searchLower) ||
              playerNumber.includes(searchLower) ||
              characterNames.includes(searchLower);
@@ -60,7 +60,7 @@ export default function UsersPage() {
 
     return filtered.sort((a: any, b: any) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case "playerName":
           aValue = (a.playerName || "").toLowerCase();
@@ -83,7 +83,7 @@ export default function UsersPage() {
       if (sortBy === "characterCount") {
         return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
       }
-      
+
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
@@ -317,15 +317,15 @@ export default function UsersPage() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="text-sm text-muted-foreground">
                           {userData.email}
                         </div>
-                        
+
                         <div className="text-xs text-muted-foreground">
                           Joined: {new Date(userData.createdAt).toLocaleDateString()}
                         </div>
-                        
+
                         <div className="text-xs text-muted-foreground mt-1">
                           Player Number: {editingPlayerNumber === userData.id ? (
                             <div className="flex items-center space-x-2 mt-1">
@@ -380,7 +380,7 @@ export default function UsersPage() {
                             </span>
                           )}
                         </div>
-                        
+
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center space-x-4">
                             <div className="text-sm">
@@ -396,7 +396,7 @@ export default function UsersPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col space-y-2">
                         <div className="flex space-x-2">
                           <Button
@@ -418,7 +418,7 @@ export default function UsersPage() {
                             <Settings className="h-4 w-4 mr-1" />
                             Manage User
                           </Button>
-                          
+
                           <Button
                             size="sm"
                             variant="outline"

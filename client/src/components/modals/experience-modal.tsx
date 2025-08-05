@@ -59,9 +59,9 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
     refetchOnMount: true,
   });
 
-  // Fetch events
+  // Fetch events for event selection
   const { data: events, isLoading: eventsLoading } = useQuery({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/admin?type=events"],
     enabled: isOpen,
     refetchOnMount: true,
   });
