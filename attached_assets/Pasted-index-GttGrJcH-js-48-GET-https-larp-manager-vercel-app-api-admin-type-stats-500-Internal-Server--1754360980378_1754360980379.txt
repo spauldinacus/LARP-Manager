@@ -1,0 +1,93 @@
+index-GttGrJcH.js:48  GET https://larp-manager.vercel.app/api/admin?type=stats 500 (Internal Server Error)
+(anonymous) @ index-GttGrJcH.js:48
+a @ index-GttGrJcH.js:48
+w @ index-GttGrJcH.js:48
+start @ index-GttGrJcH.js:48
+fetch @ index-GttGrJcH.js:48
+nl @ index-GttGrJcH.js:48
+onSubscribe @ index-GttGrJcH.js:48
+subscribe @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+BN @ index-GttGrJcH.js:38
+Cu @ index-GttGrJcH.js:40
+Ua @ index-GttGrJcH.js:40
+cR @ index-GttGrJcH.js:40
+Ai @ index-GttGrJcH.js:40
+Zg @ index-GttGrJcH.js:40
+Pi @ index-GttGrJcH.js:38
+(anonymous) @ index-GttGrJcH.js:40Understand this error
+index-GttGrJcH.js:48  GET https://larp-manager.vercel.app/api/characters 500 (Internal Server Error)
+(anonymous) @ index-GttGrJcH.js:48
+a @ index-GttGrJcH.js:48
+w @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+Promise.then
+(anonymous) @ index-GttGrJcH.js:48
+Promise.catch
+w @ index-GttGrJcH.js:48
+start @ index-GttGrJcH.js:48
+fetch @ index-GttGrJcH.js:48
+nl @ index-GttGrJcH.js:48
+onSubscribe @ index-GttGrJcH.js:48
+subscribe @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+BN @ index-GttGrJcH.js:38
+Cu @ index-GttGrJcH.js:40
+Ua @ index-GttGrJcH.js:40
+cR @ index-GttGrJcH.js:40
+Ai @ index-GttGrJcH.js:40
+Zg @ index-GttGrJcH.js:40
+Pi @ index-GttGrJcH.js:38
+(anonymous) @ index-GttGrJcH.js:40Understand this error
+index-GttGrJcH.js:48  GET https://larp-manager.vercel.app/api/admin?type=stats 500 (Internal Server Error)
+(anonymous) @ index-GttGrJcH.js:48
+a @ index-GttGrJcH.js:48
+w @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+Promise.then
+(anonymous) @ index-GttGrJcH.js:48
+Promise.catch
+w @ index-GttGrJcH.js:48
+start @ index-GttGrJcH.js:48
+fetch @ index-GttGrJcH.js:48
+nl @ index-GttGrJcH.js:48
+onSubscribe @ index-GttGrJcH.js:48
+subscribe @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+BN @ index-GttGrJcH.js:38
+Cu @ index-GttGrJcH.js:40
+Ua @ index-GttGrJcH.js:40
+cR @ index-GttGrJcH.js:40
+Ai @ index-GttGrJcH.js:40
+Zg @ index-GttGrJcH.js:40
+Pi @ index-GttGrJcH.js:38
+(anonymous) @ index-GttGrJcH.js:40Understand this error
+index-GttGrJcH.js:48  GET https://larp-manager.vercel.app/api/characters 500 (Internal Server Error)
+(anonymous) @ index-GttGrJcH.js:48
+a @ index-GttGrJcH.js:48
+w @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+Promise.then
+(anonymous) @ index-GttGrJcH.js:48
+Promise.catch
+w @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+Promise.then
+(anonymous) @ index-GttGrJcH.js:48
+Promise.catch
+w @ index-GttGrJcH.js:48
+start @ index-GttGrJcH.js:48
+fetch @ index-GttGrJcH.js:48
+nl @ index-GttGrJcH.js:48
+onSubscribe @ index-GttGrJcH.js:48
+subscribe @ index-GttGrJcH.js:48
+(anonymous) @ index-GttGrJcH.js:48
+BN @ index-GttGrJcH.js:38
+Cu @ index-GttGrJcH.js:40
+Ua @ index-GttGrJcH.js:40
+cR @ index-GttGrJcH.js:40
+Ai @ index-GttGrJcH.js:40
+Zg @ index-GttGrJcH.js:40
+Pi @ index-GttGrJcH.js:38
+(anonymous) @ index-GttGrJcH.js:40Understand this error
+index-GttGrJcH.js:48  GET https://larp-manager.vercel.app/api/admin?type=stats 500 (Internal Server Error)
