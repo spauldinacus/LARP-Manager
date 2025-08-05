@@ -60,7 +60,8 @@ export default function EventsPage() {
   }, [authLoading, user, setLocation]);
 
   const { data: events = [], isLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/admin", "events"],
+    queryFn: () => apiRequest("GET", "/api/admin?type=events"),
   });
 
   const { data: characters = [] } = useQuery<Character[]>({
@@ -118,9 +119,9 @@ export default function EventsPage() {
   // Mutations
   const createEventMutation = useMutation({
     mutationFn: (data: EventFormData) =>
-      apiRequest("POST", "/api/events", data),
+      apiRequest("POST", "/api/admin?type=events", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events"] });
       setIsCreateModalOpen(false);
       createForm.reset();
       toast({
@@ -139,9 +140,9 @@ export default function EventsPage() {
 
   const updateEventMutation = useMutation({
     mutationFn: ({ eventId, data }: { eventId: string; data: Partial<Event> }) =>
-      apiRequest("PATCH", `/api/events/${eventId}`, data),
+      apiRequest("PUT", `/api/admin?type=events&id=${eventId}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events"] });
       setIsEditEventModalOpen(false);
       setSelectedEvent(null);
       toast({
@@ -160,9 +161,9 @@ export default function EventsPage() {
 
   const toggleEventStatusMutation = useMutation({
     mutationFn: ({ eventId, isActive }: { eventId: string; isActive: boolean }) =>
-      apiRequest("PATCH", `/api/events/${eventId}/status`, { isActive }),
+      apiRequest("PUT", `/api/admin?type=events&id=${eventId}`, { isActive }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events"] });
       toast({
         title: "Event status updated",
         description: "The event status has been updated successfully.",
@@ -181,7 +182,7 @@ export default function EventsPage() {
     mutationFn: ({ eventId, data }: { eventId: string; data: RsvpFormData }) =>
       apiRequest("POST", `/api/events/${eventId}/rsvp`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", "events"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events/rsvps"] });
       setIsRsvpModalOpen(false);
       setSelectedEvent(null);

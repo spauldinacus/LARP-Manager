@@ -412,12 +412,14 @@ async function handleEvents(req, res, method, id) {
     if (id) {
       const [event] = await db.select({
         id: events.id,
+        name: events.title,
         title: events.title,
         description: events.description,
         eventDate: events.eventDate,
         location: events.location,
         maxAttendees: events.maxAttendees,
         registrationOpen: events.registrationOpen,
+        isActive: events.registrationOpen,
         chapterId: events.chapterId,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
@@ -444,12 +446,14 @@ async function handleEvents(req, res, method, id) {
     } else {
       const allEvents = await db.select({
         id: events.id,
+        name: events.title,
         title: events.title,
         description: events.description,
         eventDate: events.eventDate,
         location: events.location,
         maxAttendees: events.maxAttendees,
         registrationOpen: events.registrationOpen,
+        isActive: events.registrationOpen,
         chapterId: events.chapterId,
         createdBy: events.createdBy,
         createdAt: events.createdAt,
@@ -474,19 +478,30 @@ async function handleEvents(req, res, method, id) {
   }
 
   if (method === 'POST') {
-    const [newEvent] = await db.insert(events).values(req.body).returning();
-    return res.status(201).json(newEvent);
+    const eventData = { ...req.body };
+    if (eventData.name && !eventData.title) {
+      eventData.title = eventData.name;
+    }
+    const [newEvent] = await db.insert(events).values(eventData).returning();
+    return res.status(201).json({ ...newEvent, name: newEvent.title, isActive: newEvent.registrationOpen });
   }
 
   if (method === 'PUT' && id) {
+    const eventData = { ...req.body };
+    if (eventData.name && !eventData.title) {
+      eventData.title = eventData.name;
+    }
+    if (eventData.isActive !== undefined) {
+      eventData.registrationOpen = eventData.isActive;
+    }
     const [updatedEvent] = await db.update(events)
-      .set(req.body)
+      .set(eventData)
       .where(eq(events.id, id))
       .returning();
     if (!updatedEvent) {
       return res.status(404).json({ message: 'Event not found' });
     }
-    return res.status(200).json(updatedEvent);
+    return res.status(200).json({ ...updatedEvent, name: updatedEvent.title, isActive: updatedEvent.registrationOpen });
   }
 
   if (method === 'DELETE' && id) {
