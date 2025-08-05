@@ -1,5 +1,6 @@
 // Events API endpoint for Vercel
-import { db, events } from '../lib/db.js';
+import { db } from '../lib/db.js';
+import { events } from '../shared/schema.js';
 import { getSessionData, requireAdmin } from '../lib/session.js';
 import { desc } from 'drizzle-orm';
 

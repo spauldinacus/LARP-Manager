@@ -1,5 +1,6 @@
 // Combined characters endpoints for Vercel
-import { db, characters, experienceEntries, users, heritages, cultures, archetypes } from '../lib/db.js';
+import { db } from '../lib/db.js';
+import { characters, experienceEntries, users, heritages, cultures, archetypes } from '../shared/schema.js';
 import { getSessionData, requireAuth, requireAdmin } from '../lib/session.js';
 import { eq, desc } from 'drizzle-orm';
 

@@ -171,12 +171,12 @@ async function handleCultures(req, res, method, id) {
           heritageId: cultures.heritageId,
           heritageName: sql`(SELECT ${heritages.name} FROM ${heritages} WHERE ${heritages.id} = ${cultures.heritageId})`.as('heritageName')
         }).from(cultures).orderBy(cultures.name);
-        
+
         const culturesWithSkills = allCultures.map(culture => ({
           ...culture,
           secondarySkills: []
         }));
-        
+
         console.log('Cultures fetched:', culturesWithSkills.length);
         return res.status(200).json(culturesWithSkills);
       }
@@ -231,13 +231,13 @@ async function handleArchetypes(req, res, method, id) {
           name: archetypes.name,
           description: archetypes.description
         }).from(archetypes).orderBy(archetypes.name);
-        
+
         const archetypesWithSkills = allArchetypes.map(archetype => ({
           ...archetype,
           primarySkills: [],
           secondarySkills: []
         }));
-        
+
         console.log('Archetypes fetched:', archetypesWithSkills.length);
         return res.status(200).json(archetypesWithSkills);
       }
@@ -341,7 +341,7 @@ async function handleUsers(req, res, method, id) {
         .from(users)
         .leftJoin(roles, eq(users.roleId, roles.id))
         .where(eq(users.id, id));
-        
+
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -370,7 +370,7 @@ async function handleUsers(req, res, method, id) {
         });
       } else {
         console.log('📋 Fetching all users for players page...');
-        
+
         const allUsers = await db.select({
           id: users.id,
           username: users.username,
@@ -787,12 +787,12 @@ async function handleHeritages(req, res, method, id) {
         benefit: heritages.benefit,
         weakness: heritages.weakness
       }).from(heritages).orderBy(heritages.name);
-      
+
       const heritagesWithSkills = allHeritages.map(heritage => ({
         ...heritage,
         secondarySkills: []
       }));
-      
+
       console.log('Heritages fetched:', heritagesWithSkills.length);
       return res.status(200).json(heritagesWithSkills);
     } catch (error) {

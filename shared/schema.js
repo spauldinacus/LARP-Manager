@@ -632,6 +632,7 @@ const experienceEntries = pgTable("experience_entries", {
   reason: text("reason").notNull(),
   eventId: uuid("event_id").references(() => events.id),
   rsvpId: uuid("rsvp_id").references(() => eventRsvps.id),
+  awardedBy: uuid("awarded_by").references(() => users.id),
   skillPurchased: text("skill_purchased"),
   attributeIncreased: text("attribute_increased"),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
