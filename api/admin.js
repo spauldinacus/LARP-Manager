@@ -336,10 +336,7 @@ async function handleUsers(req, res, method, id) {
           chapterId: users.chapterId,
           title: users.title,
           roleId: users.roleId,
-          role: {
-            id: roles.id,
-            name: roles.name,
-          }
+          roleName: roles.name,
         })
         .from(users)
         .leftJoin(roles, eq(users.roleId, roles.id))
@@ -368,6 +365,7 @@ async function handleUsers(req, res, method, id) {
 
         return res.status(200).json({
           ...user,
+          role: user.roleName ? { name: user.roleName } : null,
           characters: userCharacters || []
         });
       } else {
@@ -382,10 +380,7 @@ async function handleUsers(req, res, method, id) {
           chapterId: users.chapterId,
           title: users.title,
           roleId: users.roleId,
-          role: {
-            id: roles.id,
-            name: roles.name,
-          }
+          roleName: roles.name,
         })
         .from(users)
         .leftJoin(roles, eq(users.roleId, roles.id));
@@ -411,10 +406,19 @@ async function handleUsers(req, res, method, id) {
 
         console.log('Characters fetched:', allCharacters.length);
 
-        // Group characters by user
+        // Group characters by user and format properly
         const usersWithCharacters = allUsers.map(user => ({
-          ...user,
-          characters: allCharacters.filter(char => char.userId === user.id) || []
+          id: user.id,
+          username: user.username,
+          playerName: user.playerName,
+          email: user.email,
+          playerNumber: user.playerNumber,
+          chapterId: user.chapterId,
+          title: user.title,
+          roleId: user.roleId,
+          role: user.roleName ? { name: user.roleName } : null,
+          characters: allCharacters.filter(char => char.userId === user.id) || [],
+          characterCount: allCharacters.filter(char => char.userId === user.id).length
         }));
 
         console.log('📋 Returning users with characters:', usersWithCharacters.length);
@@ -422,7 +426,11 @@ async function handleUsers(req, res, method, id) {
       }
     } catch (error) {
       console.error('Users GET error:', error);
-      return res.status(500).json({ message: 'Failed to fetch users' });
+      console.error('Full error details:', error.stack);
+      return res.status(500).json({ 
+        message: 'Failed to fetch users',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
     }
   }
 
