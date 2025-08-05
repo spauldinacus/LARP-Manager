@@ -2,13 +2,15 @@ import { apiRequest } from "./queryClient";
 
 export interface AuthUser {
   id: string;
-  playerName?: string;
+  playerName: string;
   email: string;
   playerNumber?: string;
   chapterId?: string;
   isAdmin: boolean;
   role: string;
   candles: number;
+  username: string;
+  createdAt?: string;
 }
 
 export interface LoginCredentials {

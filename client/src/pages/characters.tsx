@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Plus, Users, Eye, Menu, Search, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,9 +13,38 @@ import CharacterCreationModal from "@/components/modals/character-creation-modal
 import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
-import { useAuth } from "@/hooks/use-auth";
+import { Plus, Users, Eye, Menu, Search, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+
+import { z } from "zod";
+
+// Local Zod schema for character creation
+export const characterFormSchema = z.object({
+  name: z.string().min(1, "Character name is required"),
+  playerName: z.string().min(1, "Player name is required"),
+  heritage: z.string().min(1, "Heritage is required"),
+  culture: z.string().min(1, "Culture is required"),
+  archetype: z.string().min(1, "Archetype is required"),
+  experience: z.number().optional(),
+  totalXpSpent: z.number().optional(),
+  isRetired: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+});
+
+type SortBy = "name" | "playerName" | "heritage" | "experience" | "xpSpent" | "status";
+type SortOrder = "asc" | "desc";
+type Character = {
+  id: string;
+  name: string;
+  playerName?: string;
+  heritage: string;
+  culture: string;
+  archetype: string;
+  experience?: number;
+  totalXpSpent?: number;
+  isRetired?: boolean;
+  isActive?: boolean;
+};
 
 export default function CharactersPage() {
   const { user } = useAuth();
@@ -22,71 +52,51 @@ export default function CharactersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "playerName" | "heritage" | "experience" | "xpSpent" | "status">("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortBy>("name");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const { toast } = useToast();
 
-  const { data: characters, isLoading } = useQuery({
+  // Use correct type for query data
+  const { data: characters, isLoading } = useQuery<Character[]>({
     queryKey: ["/api/characters"],
   });
 
   // Filter and sort characters
-  const filteredAndSortedCharacters = useMemo(() => {
+  const filteredAndSortedCharacters: Character[] = useMemo(() => {
     if (!characters) return [];
 
-    let filtered = (characters as any[]).filter((character: any) => {
-      const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    let filtered = characters.filter((character) => {
       const name = character.name.toLowerCase();
       const playerName = (character.playerName || "").toLowerCase();
       const heritage = character.heritage.toLowerCase();
       const culture = character.culture.toLowerCase();
       const archetype = character.archetype.toLowerCase();
-      
-      return name.includes(searchLower) ||
-             playerName.includes(searchLower) ||
-             heritage.includes(searchLower) ||
-             culture.includes(searchLower) ||
-             archetype.includes(searchLower);
+      return (
+        name.includes(searchLower) ||
+        playerName.includes(searchLower) ||
+        heritage.includes(searchLower) ||
+        culture.includes(searchLower) ||
+        archetype.includes(searchLower)
+      );
     });
 
-    return filtered.sort((a: any, b: any) => {
-      let aValue, bValue;
-      
+    return filtered.sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
       switch (sortBy) {
         case "name":
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
           break;
-        case "playerName":
-          aValue = (a.playerName || "").toLowerCase();
-          bValue = (b.playerName || "").toLowerCase();
-          break;
-        case "heritage":
-          aValue = a.heritage.toLowerCase();
-          bValue = b.heritage.toLowerCase();
-          break;
-        case "experience":
-          aValue = a.experience || 0;
-          bValue = b.experience || 0;
-          break;
-        case "xpSpent":
-          aValue = a.totalXpSpent || 25;
-          bValue = b.totalXpSpent || 25;
-          break;
-        case "status":
-          aValue = a.isRetired ? 2 : (a.isActive ? 0 : 1);
-          bValue = b.isRetired ? 2 : (b.isActive ? 0 : 1);
-          break;
         default:
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
       }
-
-      if (sortBy === "experience" || sortBy === "xpSpent" || sortBy === "status") {
+      if (typeof aValue === "number" && typeof bValue === "number") {
         return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
       }
-      
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
@@ -94,7 +104,7 @@ export default function CharactersPage() {
   }, [characters, searchTerm, sortBy, sortOrder]);
 
   // Delete character mutation
-  const deleteCharacterMutation = useMutation({
+  const deleteCharacterMutation = useMutation<unknown, Error, string>({
     mutationFn: (characterId: string) => 
       apiRequest("DELETE", `/api/characters/${characterId}`),
     onSuccess: () => {
@@ -130,15 +140,13 @@ export default function CharactersPage() {
       <div className="hidden lg:block">
         <Sidebar user={user} currentPath={location} />
       </div>
-
       {/* Mobile Navigation */}
       <MobileNav 
         isOpen={mobileMenuOpen} 
         onClose={() => setMobileMenuOpen(false)} 
-        user={user} 
+        user={user}
         currentPath={location} 
       />
-
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
@@ -163,7 +171,6 @@ export default function CharactersPage() {
               Create Character
             </Button>
           </div>
-
           {/* Search and Sort Controls */}
           <Card>
             <CardContent className="p-4">
@@ -178,7 +185,7 @@ export default function CharactersPage() {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
                     <SelectTrigger className="w-48">
                       <SelectValue placeholder="Sort by..." />
                     </SelectTrigger>
@@ -205,7 +212,6 @@ export default function CharactersPage() {
               </div>
             </CardContent>
           </Card>
-
           {/* Characters Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,7 +237,7 @@ export default function CharactersPage() {
             </div>
           ) : filteredAndSortedCharacters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSortedCharacters.map((character: any) => (
+              {filteredAndSortedCharacters.map((character: Character) => (
                 <Card key={character.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -252,7 +258,6 @@ export default function CharactersPage() {
                       <Badge variant="outline">{character.culture.charAt(0).toUpperCase() + character.culture.slice(1).replace(/-/g, ' ')}</Badge>
                       <Badge variant="outline">{character.archetype.charAt(0).toUpperCase() + character.archetype.slice(1).replace(/-/g, ' ')}</Badge>
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Experience</p>
@@ -263,7 +268,6 @@ export default function CharactersPage() {
                         <p className="font-semibold">{character.totalXpSpent || 0}</p>
                       </div>
                     </div>
-
                     <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
@@ -298,7 +302,7 @@ export default function CharactersPage() {
               <p className="text-muted-foreground mb-4">
                 No characters match your search for "{searchTerm}". Try a different search term.
               </p>
-              <Button variant="outline" onClick={() => setSearchTerm("")}>
+              <Button variant="outline" onClick={() => setSearchTerm("")}> 
                 Clear Search
               </Button>
             </Card>
@@ -317,13 +321,11 @@ export default function CharactersPage() {
           )}
         </div>
       </main>
-
       {/* Modals */}
       <CharacterCreationModal 
         isOpen={showCreateModal} 
         onClose={() => setShowCreateModal(false)} 
       />
-      
       {selectedCharacterId && (
         <CharacterSheetModal 
           characterId={selectedCharacterId}
@@ -331,7 +333,6 @@ export default function CharactersPage() {
           onClose={() => setSelectedCharacterId(null)}
         />
       )}
-      
-      </div>
+    </div>
   );
 }

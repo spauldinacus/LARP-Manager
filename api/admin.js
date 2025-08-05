@@ -223,6 +223,7 @@ async function handleSkills(req, res, method, id) {
       }
       return res.status(200).json(skill);
     } else {
+      // Only select columns that exist in the skills table
       const allSkills = await db.select().from(skills).orderBy(skills.name);
       return res.status(200).json(allSkills);
     }
@@ -253,60 +254,31 @@ async function handleSkills(req, res, method, id) {
 async function handleUsers(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
-      const [user] = await db.select({
-        id: users.id,
-        playerName: users.playerName,
-        email: users.email,
-        playerNumber: users.playerNumber,
-        chapterId: users.chapterId,
-        title: users.title,
-        isAdmin: users.isAdmin,
-        roleId: users.roleId,
-        candles: users.candles,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        characterCount: count(characters.id),
-        role: {
-          id: roles.id,
-          name: roles.name,
-          color: roles.color,
-        }
-      })
-      .from(users)
-      .leftJoin(characters, eq(users.id, characters.userId))
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(eq(users.id, id))
-      .groupBy(users.id, roles.id, roles.name, roles.color);
+      const [user] = await db.query.users.findMany({
+        where: eq(users.id, id),
+        with: {
+          characters: true,
+          role: true,
+        },
+      });
 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
       return res.status(200).json(user);
     } else {
-      const allUsers = await db.select({
-        id: users.id,
-        playerName: users.playerName,
-        email: users.email,
-        playerNumber: users.playerNumber,
-        chapterId: users.chapterId,
-        title: users.title,
-        isAdmin: users.isAdmin,
-        roleId: users.roleId,
-        candles: users.candles,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        characterCount: count(characters.id),
-        role: {
-          id: roles.id,
-          name: roles.name,
-          color: roles.color,
-        }
-      })
-      .from(users)
-      .leftJoin(characters, eq(users.id, characters.userId))
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .groupBy(users.id, roles.id, roles.name, roles.color)
-      .orderBy(users.playerName);
+      const allUsers = await db.query.users.findMany({
+        with: {
+          characters: {
+            with: {
+              heritage: true,
+              archetype: true,
+            },
+          },
+          role: true,
+        },
+        orderBy: [users.playerName],
+      });
 
       return res.status(200).json(allUsers);
     }
@@ -448,7 +420,7 @@ async function handleStats(req, res, method) {
 
       // Get next event
       const [nextEventResult] = await db.select({
-        name: events.title,
+        name: events.name,
         eventDate: events.eventDate
       })
       .from(events)
@@ -492,8 +464,8 @@ async function handleEvents(req, res, method, id) {
     if (id) {
       const [event] = await db.select({
         id: events.id,
-        name: events.title,
-        title: events.title,
+        name: events.name,
+        title: events.name,
         description: events.description,
         eventDate: events.eventDate,
         location: events.location,
@@ -526,8 +498,8 @@ async function handleEvents(req, res, method, id) {
     } else {
       const allEvents = await db.select({
         id: events.id,
-        name: events.title,
-        title: events.title,
+        name: events.name,
+        title: events.name,
         description: events.description,
         eventDate: events.eventDate,
         location: events.location,

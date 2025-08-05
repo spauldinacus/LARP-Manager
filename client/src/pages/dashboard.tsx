@@ -1,4 +1,18 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+// Type definitions for dashboard stats and user
+interface DashboardStats {
+  totalCharacters: number;
+  totalCharactersLastMonth: number;
+  activePlayers: number;
+  activePlayersLastWeek: number;
+  upcomingEvents: number;
+  nextEvent?: {
+    name: string;
+    daysUntil: number;
+  };
+}
+
+import type { AuthUser } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,11 +26,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import CharacterCreationModal from "@/components/modals/character-creation-modal";
 import CandleManagementModal from "@/components/modals/candle-management-modal";
 import { Users, UserCheck, Star, Calendar, Menu, UserPlus, Plus, Flame, History } from "lucide-react";
-import { useState } from "react";
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth() as { user: AuthUser | null, isLoading: boolean };
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCharacterModalOpen, setIsCharacterModalOpen] = useState(false);
@@ -30,7 +43,7 @@ export default function DashboardPage() {
   }, [authLoading, user, setLocation]);
 
   // Fetch dashboard stats (admin only)
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/admin?type=stats"],
     enabled: !!user?.isAdmin,
   });
@@ -56,7 +69,19 @@ export default function DashboardPage() {
 
 
   // Fetch recent characters
-  const { data: characters, isLoading: charactersLoading } = useQuery({
+  interface Character {
+    id: string;
+    name: string;
+    heritage: string;
+    culture: string;
+    archetype: string;
+    isRetired?: boolean;
+    isActive?: boolean;
+    playerName?: string;
+    playerTitle?: string;
+  }
+
+  const { data: characters, isLoading: charactersLoading } = useQuery<Character[]>({
     queryKey: ["/api/characters"],
     enabled: !!user,
   });
@@ -72,16 +97,16 @@ export default function DashboardPage() {
     );
   }
 
-  const recentCharacters = (characters as any[])?.slice(0, 3) || [];
+  const recentCharacters = characters?.slice(0, 3) || [];
 
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <Sidebar 
-          user={user} 
-          currentPath="/dashboard"
-        />
+      <Sidebar 
+        user={user as AuthUser} 
+        currentPath="/dashboard"
+      />
       )}
 
       {/* Mobile Navigation */}
@@ -89,7 +114,7 @@ export default function DashboardPage() {
         <MobileNav
           isOpen={isMobileNavOpen}
           onClose={() => setIsMobileNavOpen(false)}
-          user={user}
+          user={user as AuthUser}
           currentPath="/dashboard"
         />
       )}
@@ -183,7 +208,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{(stats as any)?.totalCharacters || 0}</p>
+                        <p className="text-2xl font-bold">{stats?.totalCharacters ?? 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -206,7 +231,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{(stats as any)?.activePlayers || 0}</p>
+                        <p className="text-2xl font-bold">{stats?.activePlayers ?? 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
@@ -231,7 +256,7 @@ export default function DashboardPage() {
                       {statsLoading ? (
                         <Skeleton className="h-8 w-16 mt-2" />
                       ) : (
-                        <p className="text-2xl font-bold">{(stats as any)?.upcomingEvents || 0}</p>
+                        <p className="text-2xl font-bold">{stats?.upcomingEvents ?? 0}</p>
                       )}
                     </div>
                     <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -379,7 +404,7 @@ export default function DashboardPage() {
       {/* Candle History Modal */}
       {isCandleHistoryOpen && (
         <CandleManagementModal
-          user={user}
+          user={user as AuthUser}
           onClose={() => setIsCandleHistoryOpen(false)}
           showAdminControls={false}
         />

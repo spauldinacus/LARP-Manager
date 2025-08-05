@@ -95,17 +95,21 @@ export default function SettingsPage() {
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <Sidebar user={user} currentPath={location} />
-      </div>
+      {user && (
+        <div className="hidden lg:block">
+          <Sidebar user={user} currentPath={location} />
+        </div>
+      )}
 
       {/* Mobile Navigation */}
-      <MobileNav 
-        isOpen={mobileMenuOpen} 
-        onClose={() => setMobileMenuOpen(false)} 
-        user={user} 
-        currentPath={location} 
-      />
+      {user && (
+        <MobileNav 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)} 
+          user={user} 
+          currentPath={location} 
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -261,7 +265,7 @@ export default function SettingsPage() {
                   <div>
                     <p className="text-muted-foreground">Member Since</p>
                     <p className="font-medium">
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}
+                      {"createdAt" in (user || {}) && user?.createdAt ? new Date((user as any).createdAt).toLocaleDateString() : "Unknown"}
                     </p>
                   </div>
                 </div>

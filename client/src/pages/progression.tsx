@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Menu, TrendingUp, Trophy, Target, Star, Users, Plus, Edit, Trash2, Calendar } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import type { Character } from "@shared/schema";
 
 export default function ProgressionPage() {
   const [, setLocation] = useLocation();
@@ -38,16 +37,19 @@ export default function ProgressionPage() {
     }
   }, [authLoading, user, setLocation]);
 
-  const { data: characters = [], isLoading: charactersLoading } = useQuery<Character[]>({
+  const { data: charactersRaw = [], isLoading: charactersLoading } = useQuery({
     queryKey: ["/api/characters"],
     enabled: !!user,
   });
+  const characters = charactersRaw as any[];
+  // All character types are now dynamic (any)
 
   // Fetch experience history for selected character
   const { data: experienceHistory = [] } = useQuery({
     queryKey: ["/api/characters", selectedCharacterId, "experience"],
     enabled: !!selectedCharacterId,
   });
+  const xpHistory = experienceHistory as any[];
 
 
 
@@ -107,18 +109,18 @@ export default function ProgressionPage() {
   // Auto-select first active character
   useEffect(() => {
     if (characters.length > 0 && !selectedCharacterId) {
-      const activeCharacter = characters.find(char => char.isActive) || characters[0];
+      const activeCharacter = characters.find((char: any) => char.isActive) || characters[0];
       setSelectedCharacterId(activeCharacter.id);
     }
   }, [characters, selectedCharacterId]);
 
-  const selectedCharacter = characters.find(char => char.id === selectedCharacterId);
+  const selectedCharacter = characters.find((char: any) => char.id === selectedCharacterId);
 
   if (authLoading || charactersLoading) {
     return (
       <div className="flex h-screen bg-background">
         <div className="hidden lg:block">
-          <Sidebar user={user} currentPath="/progression" />
+          {user && <Sidebar user={user} currentPath="/progression" />}
         </div>
         <main className="flex-1 overflow-auto p-6">
           <div className="space-y-6">
@@ -181,7 +183,7 @@ export default function ProgressionPage() {
           </div>
 
           {/* Character Selection */}
-          {characters.length > 0 && (
+          {(characters.length > 0) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -198,7 +200,7 @@ export default function ProgressionPage() {
                         <SelectValue placeholder="Select a character" />
                       </SelectTrigger>
                       <SelectContent>
-                        {characters.map((character) => (
+                        {characters.map((character: any) => (
                           <SelectItem key={character.id} value={character.id}>
                             <div className="flex items-center space-x-2">
                               <span>{character.name}</span>
@@ -228,7 +230,7 @@ export default function ProgressionPage() {
           )}
 
           {/* No Characters State */}
-          {characters.length === 0 && (
+          {(characters.length === 0) && (
             <Card className="p-12 text-center">
               <Trophy className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Characters Found</h3>

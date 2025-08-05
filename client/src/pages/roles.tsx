@@ -18,7 +18,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
-import type { Role, Permission } from "@shared/schema";
 
 const roleFormSchema = z.object({
   name: z.string().min(1, "Role name is required"),
@@ -35,8 +34,8 @@ export default function RolesPage() {
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<any>(null);
 
   // Fetch roles and permissions
   const { data: roles = [], isLoading: rolesLoading } = useQuery({
@@ -48,7 +47,7 @@ export default function RolesPage() {
   });
 
   // Group permissions by category
-  const permissionsByCategory = permissions.reduce((acc: Record<string, Permission[]>, permission: Permission) => {
+  const permissionsByCategory = (permissions as any[]).reduce((acc: Record<string, any[]>, permission: any) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
@@ -140,7 +139,7 @@ export default function RolesPage() {
     }
   };
 
-  const openEditModal = async (role: Role) => {
+  const openEditModal = async (role: any) => {
     setEditingRole(role);
 
     // Fetch role permissions
@@ -151,7 +150,7 @@ export default function RolesPage() {
       name: role.name,
       description: role.description || "",
       color: role.color,
-      permissionIds: rolePermissions.map((p: Permission) => p.id),
+      permissionIds: rolePermissions.map((p: any) => p.id),
     });
   };
 
@@ -385,7 +384,7 @@ export default function RolesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {roles.map((role: Role) => (
+        {(roles as any[]).map((role: any) => (
           <Card key={role.id} className="relative">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -505,7 +504,7 @@ export default function RolesPage() {
                             {category}
                           </div>
                           <div className="grid grid-cols-1 gap-2 ml-6">
-                            {categoryPermissions.map((permission) => (
+                            {(categoryPermissions as any[]).map((permission: any) => (
                               <div key={permission.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`edit-${permission.id}`}

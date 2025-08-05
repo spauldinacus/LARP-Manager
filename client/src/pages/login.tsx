@@ -216,7 +216,7 @@ export default function LoginPage() {
                       <SelectValue placeholder={chaptersLoading ? "Loading chapters..." : "Select your chapter"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {chapters?.map((chapter: any) => (
+                      {(Array.isArray(chapters) ? chapters : []).map((chapter: any) => (
                         <SelectItem key={chapter.id} value={chapter.id}>
                           {chapter.name} ({chapter.code})
                         </SelectItem>

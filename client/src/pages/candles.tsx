@@ -70,9 +70,15 @@ export default function CandlesPage() {
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<CandleTransaction[]>({
     queryKey: ["/api/admin?type=candle-transactions", selectedUser?.id],
-    queryFn: () => apiRequest("GET", `/api/admin?type=candle-transactions&userId=${selectedUser?.id}`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/admin?type=candle-transactions&userId=${selectedUser?.id}`);
+      return response.json();
+    },
     enabled: !!selectedUser?.id,
   });
+
+  // Ensure transactions is always an array
+  const safeTransactions: CandleTransaction[] = Array.isArray(transactions) ? transactions : [];
 
   const candleTransactionMutation = useMutation({
     mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
@@ -122,14 +128,14 @@ export default function CandlesPage() {
   if (authLoading || playersLoading) {
     return (
       <div className="flex h-screen bg-background">
-        {!isMobile && (
+        {!isMobile && user && (
           <Sidebar 
             user={user} 
             currentPath="/candles"
           />
         )}
 
-        {isMobile && (
+        {isMobile && user && (
           <MobileNav
             isOpen={isMobileNavOpen}
             onClose={() => setIsMobileNavOpen(false)}
@@ -193,14 +199,14 @@ export default function CandlesPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      {!isMobile && (
+      {!isMobile && user && (
         <Sidebar 
           user={user} 
           currentPath="/candles"
         />
       )}
 
-      {isMobile && (
+      {isMobile && user && (
         <MobileNav
           isOpen={isMobileNavOpen}
           onClose={() => setIsMobileNavOpen(false)}
@@ -333,7 +339,7 @@ export default function CandlesPage() {
                     </div>
                   ))}
                 </div>
-              ) : transactions.length === 0 ? (
+              ) : safeTransactions.length === 0 ? (
                 <div className="text-center py-8">
                   <History className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
@@ -342,7 +348,7 @@ export default function CandlesPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {transactions.map((transaction) => (
+                  {safeTransactions.map((transaction: CandleTransaction) => (
                     <div key={transaction.id} className="flex items-center justify-between p-3 border rounded">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">

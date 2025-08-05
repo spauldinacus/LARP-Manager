@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,25 +20,69 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar, Users, Plus, MapPin, Clock, Menu, Eye, Edit } from "lucide-react";
-import { insertEventSchema, insertEventRsvpSchema, type Event, type Character, type EventRsvp, type Chapter } from "@shared/schema";
+
+
+
+type Event = {
+  id: string;
+  name: string;
+  description?: string;
+  eventDate: string;
+  chapterId: string;
+  createdBy: string;
+  isActive: boolean;
+};
+
+type Character = {
+  id: string;
+  name: string;
+  heritage: string;
+  culture: string;
+  archetype: string;
+  isActive?: boolean;
+  isRetired?: boolean;
+  userId?: string;
+};
+
+type EventRsvp = {
+  id: string;
+  eventId: string;
+  characterId: string;
+  attended?: boolean;
+  xpPurchases: number;
+  xpCandlePurchases: number;
+  createdAt: string;
+};
+
+type Chapter = {
+  id: string;
+  name: string;
+};
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { AuthUser } from "@/lib/auth";
+
 
 const eventFormSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1, "Event name is required"),
   description: z.string().optional(),
   eventDate: z.string(),
-  chapterId: z.string().min(1),
-  createdBy: z.string().min(1),
+  chapterId: z.string().min(1, "Chapter is required"),
+  createdBy: z.string().min(1, "Creator is required"),
 });
-const rsvpFormSchema = insertEventRsvpSchema.omit({ eventId: true, userId: true });
+
+const rsvpFormSchema = z.object({
+  characterId: z.string().min(1, "Character is required"),
+  xpPurchases: z.number().min(0).max(2),
+  xpCandlePurchases: z.number().min(0).max(2),
+});
 
 type EventFormData = z.infer<typeof eventFormSchema>;
 type RsvpFormData = z.infer<typeof rsvpFormSchema>;
 
 export default function EventsPage() {
   const [, setLocation] = useLocation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth() as { user: AuthUser | null, isLoading: boolean };
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -62,20 +106,40 @@ export default function EventsPage() {
   // Fetch events using the admin endpoint
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ["/api/admin", "events"],
-    queryFn: () => apiRequest("GET", "/api/admin?type=events"),
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin?type=events");
+      // If apiRequest returns a Response object, parse JSON
+      if (response && typeof response.json === "function") {
+        return response.json();
+      }
+      // If apiRequest returns data directly
+      return response;
+    },
   });
 
   // Load public character data for RSVP displays
   const { data: publicCharacters = [] } = useQuery<Character[]>({
-    queryKey: ["/api/admin", "characters", "public"], // Updated query key
-    queryFn: () => apiRequest("GET", "/api/admin?type=characters&scope=public"), // Updated endpoint
+    queryKey: ["/api/admin", "characters", "public"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin?type=characters&scope=public");
+      if (response && typeof response.json === "function") {
+        return response.json();
+      }
+      return response;
+    },
     enabled: !!user,
   });
 
   // Load chapters for the chapter filter dropdown
   const { data: chapters = [] } = useQuery<Chapter[]>({
-    queryKey: ["/api/admin", "chapters"], // Updated query key
-    queryFn: () => apiRequest("GET", "/api/admin?type=chapters"), // Updated endpoint
+    queryKey: ["/api/admin", "chapters"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin?type=chapters");
+      if (response && typeof response.json === "function") {
+        return response.json();
+      }
+      return response;
+    },
     enabled: !!user,
   });
 
@@ -88,18 +152,19 @@ export default function EventsPage() {
       // Fetch RSVPs for each event
       for (const event of events) {
         try {
-          const response = await apiRequest("GET", `/api/admin?type=events&id=${event.id}&include=rsvps`); // Updated endpoint
-          if (response.ok) {
-            rsvpData[event.id] = response.data; // Assuming response.data holds the RSVPs
-          } else {
-            rsvpData[event.id] = [];
+          const response = await apiRequest("GET", `/api/admin?type=events&id=${event.id}&include=rsvps`);
+          let rsvps: EventRsvp[] = [];
+          if (response && typeof response.json === "function") {
+            rsvps = await response.json();
+          } else if (Array.isArray(response)) {
+            rsvps = response;
           }
+          rsvpData[event.id] = rsvps;
         } catch (error) {
           console.error(`Failed to fetch RSVPs for event ${event.id}:`, error);
           rsvpData[event.id] = [];
         }
       }
-
       return rsvpData;
     },
     enabled: events.length > 0 && !!user, // Ensure user is loaded
@@ -345,7 +410,7 @@ export default function EventsPage() {
   };
 
   const handleDeleteRsvp = (rsvp: EventRsvp) => {
-    if (window.confirm(`Remove ${publicCharacters.find(c => c.id === rsvp.characterId)?.name || 'this character'} from the event?`)) {
+    if (window.confirm(`Remove ${(publicCharacters as Character[]).find((c: Character) => c.id === rsvp.characterId)?.name || 'this character'} from the event?`)) {
       deleteRsvpMutation.mutate(rsvp.id);
     }
   };
@@ -504,7 +569,7 @@ export default function EventsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Chapters</SelectItem>
-                      {chapters.map((chapter) => (
+                      {(chapters as Chapter[]).map((chapter: Chapter) => (
                         <SelectItem key={chapter.id} value={chapter.id}>
                           {chapter.name}
                         </SelectItem>
@@ -591,11 +656,11 @@ export default function EventsPage() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    {chapters.map((chapter) => (
-                                      <SelectItem key={chapter.id} value={chapter.id}>
-                                        {chapter.name}
-                                      </SelectItem>
-                                    ))}
+                          {(chapters as Chapter[]).map((chapter: Chapter) => (
+                            <SelectItem key={chapter.id} value={chapter.id}>
+                              {chapter.name}
+                            </SelectItem>
+                          ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -668,7 +733,7 @@ export default function EventsPage() {
                       {event.chapterId && (
                         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {chapters.find(c => c.id === event.chapterId)?.name || 'Unknown Chapter'}
+                          {(chapters as Chapter[]).find((c: Chapter) => c.id === event.chapterId)?.name || 'Unknown Chapter'}
                         </div>
                       )}
                       <div className="flex justify-between items-center pt-4">
@@ -757,7 +822,7 @@ export default function EventsPage() {
                               {/* Fetch characters using the admin endpoint */}
                               {/* Assuming characters are fetched and available as `characters` */}
                               {/* Replace with actual character fetching logic if needed */}
-                              {characters.filter(c => c.isActive && !c.isRetired).map((character) => (
+                              {(publicCharacters as Character[]).filter((c: Character) => c.isActive && !c.isRetired).map((character: Character) => (
                                 <SelectItem key={character.id} value={character.id}>
                                   {character.name} ({character.heritage} {character.archetype})
                                 </SelectItem>
@@ -858,7 +923,7 @@ export default function EventsPage() {
                           </p>
                         ) : (
                           filteredRsvps.map((rsvp) => {
-                            const character = publicCharacters.find(c => c.id === rsvp.characterId);
+                            const character = (publicCharacters as Character[]).find((c: Character) => c.id === rsvp.characterId);
                             return (
                               <div key={rsvp.id} className="border rounded-lg p-4 space-y-2">
                                 <div className="flex justify-between items-start">
@@ -1072,7 +1137,7 @@ export default function EventsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {chapters.map((chapter) => (
+                              {(chapters as Chapter[]).map((chapter: Chapter) => (
                                 <SelectItem key={chapter.id} value={chapter.id}>
                                   {chapter.name}
                                 </SelectItem>

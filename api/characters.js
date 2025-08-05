@@ -2,6 +2,7 @@
 import { db, characters, experienceEntries, users, heritages, cultures, archetypes } from '../lib/db.js';
 import { getSessionData, requireAuth, requireAdmin } from '../lib/session.js';
 import { eq, desc } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -45,7 +46,7 @@ async function handleCharactersList(req, res, method) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const { alias } = await import('drizzle-orm');
+    
     const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
 
     const allCharacters = await db
@@ -101,7 +102,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
     const session = await requireAuth(req, res);
     if (!session) return;
 
-    const { alias } = await import('drizzle-orm');
+    
     const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
 
     const [character] = await db

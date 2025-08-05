@@ -1,6 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Plus, Edit, Trash2, Users, Hash, Menu, Eye } from "lucide-react";
+
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "@/components/layout/sidebar";
@@ -14,13 +20,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertChapterSchema, type Chapter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Users, Hash, Menu, Eye } from "lucide-react";
-import { z } from "zod";
+// import { insertChapterSchema } from "@shared/schema";
+// import type { Chapter } from "@shared/schema";
+
+type Member = any;
 
 const chapterFormSchema = z.object({
   name: z.string().min(1),
@@ -37,7 +42,7 @@ export default function ChaptersPage() {
   const isMobile = useIsMobile();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
+  const [editingChapter, setEditingChapter] = useState<any>(null);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedChapterForMembers, setSelectedChapterForMembers] = useState<any>(null);
   const { toast } = useToast();
@@ -51,20 +56,34 @@ export default function ChaptersPage() {
 
   // No need to redirect non-admin users - chapters are viewable by all
 
-  const { data: chapters = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/chapters?type=chapters"],
-    enabled: !!user?.isAdmin,
-  });
 
-  const { data: users = [] } = useQuery<any[]>({
-    queryKey: ["/api/chapters?type=users"],
-    enabled: !!user?.isAdmin,
-  });
+const { data: chapters = [], isLoading } = useQuery({
+  queryKey: ["/api/chapters?type=chapters"],
+  queryFn: async () => {
+    const res = await apiRequest("GET", "/api/chapters?type=chapters");
+    return Array.isArray(res) ? res : [];
+  },
+  enabled: !!user?.isAdmin,
+});
 
-  const { data: chapterMembers = [], isLoading: membersLoading } = useQuery<any[]>({
-    queryKey: ["/api/chapters", selectedChapterForMembers?.id, "members"],
-    enabled: !!selectedChapterForMembers?.id && showMembersModal,
-  });
+const { data: users = [] } = useQuery<any[]>({
+  queryKey: ["/api/chapters?type=users"],
+  queryFn: async () => {
+    const res = await apiRequest("GET", "/api/chapters?type=users");
+    return Array.isArray(res) ? res : [];
+  },
+  enabled: !!user?.isAdmin,
+});
+
+const { data: chapterMembers = [], isLoading: membersLoading } = useQuery<Member[]>({
+  queryKey: ["/api/chapters", selectedChapterForMembers?.id, "members"],
+  queryFn: async () => {
+    if (!selectedChapterForMembers?.id) return [];
+    const res = await apiRequest("GET", `/api/chapters?id=${selectedChapterForMembers.id}&type=members`);
+    return Array.isArray(res) ? res as Member[] : [];
+  },
+  enabled: !!selectedChapterForMembers?.id && showMembersModal,
+});
 
   const createChapterMutation = useMutation({
     mutationFn: (data: ChapterFormData) =>
@@ -174,7 +193,7 @@ export default function ChaptersPage() {
     }
   };
 
-  const handleEdit = (chapter: Chapter) => {
+  const handleEdit = (chapter: any) => {
     setEditingChapter(chapter);
     editForm.reset({
       name: chapter.name,
@@ -207,7 +226,7 @@ export default function ChaptersPage() {
     setShowMembersModal(true);
   };
 
-  if (isLoading) {
+  if (isLoading || authLoading || !user) {
     return (
       <div className="flex h-screen bg-background">
         {/* Desktop Sidebar */}
@@ -555,7 +574,7 @@ export default function ChaptersPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {chapterMembers.map((member: any) => (
+                {chapterMembers.map((member: Member) => (
                   <div key={member.id} className="flex items-center justify-between p-3 border rounded">
                     <div>
                       <div className="flex items-center gap-2">

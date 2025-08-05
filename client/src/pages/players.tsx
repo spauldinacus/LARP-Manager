@@ -29,7 +29,8 @@ import CharacterSheetModal from "@/components/modals/character-sheet-modal";
 import { Users, Menu, Edit, Plus, Trash2, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SKILLS } from "@shared/schema";
+
+// @ts-ignore
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 
@@ -45,19 +46,14 @@ interface Player {
     id: string;
     name: string;
   };
-  characters: Array<{
-    id: string;
-    name: string;
-    heritage: string;
-    culture: string;
-    archetype: string;
-    skills: string[];
-    isActive: boolean;
-    isRetired: boolean;
-  }>;
+  characters: any[];
 }
 
 export default function PlayersPage() {
+  // Fetch skills dynamically from API
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+    queryKey: ["/api/admin?type=skills"],
+  });
   const { user } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -401,9 +397,9 @@ export default function PlayersPage() {
                     <SelectValue placeholder="Select a skill to add" />
                   </SelectTrigger>
                   <SelectContent>
-                    {SKILLS.filter(skill => !selectedCharacter?.skills?.includes(skill)).map((skill) => (
-                      <SelectItem key={skill} value={skill}>
-                        {skill}
+                    {(skills as any[]).filter((skill: any) => !selectedCharacter?.skills?.includes(skill.name)).map((skill: any) => (
+                      <SelectItem key={skill.id} value={skill.name}>
+                        {skill.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

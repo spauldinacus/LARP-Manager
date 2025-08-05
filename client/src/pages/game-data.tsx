@@ -21,6 +21,7 @@ import MobileNav from "@/components/layout/mobile-nav";
 import { useLocation } from "wouter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
+// @ts-ignore
 
 // Form schemas
 const skillSchema = z.object({
