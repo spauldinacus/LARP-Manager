@@ -36,7 +36,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/chapters?type=users"],
     enabled: user?.isAdmin,
   });
 

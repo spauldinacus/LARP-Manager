@@ -120,7 +120,7 @@ export default function GameDataPage() {
 
   const updateSkillMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof skillSchema> }) =>
-      apiRequest("PUT", `/api/admin/skills/${id}`, data),
+      apiRequest("PUT", `/api/admin?type=skills&id=${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=skills"] });
       setSelectedItem(null);
@@ -128,7 +128,7 @@ export default function GameDataPage() {
   });
 
   const deleteSkillMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/skills/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin?type=skills&id=${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=skills"] });
     },
@@ -145,7 +145,7 @@ export default function GameDataPage() {
 
   const updateHeritageMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof heritageSchema> }) =>
-      apiRequest("PUT", `/api/admin/heritages/${id}`, data),
+      apiRequest("PUT", `/api/admin?type=heritages&id=${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=heritages"] });
       setSelectedItem(null);
@@ -153,7 +153,7 @@ export default function GameDataPage() {
   });
 
   const deleteHeritageMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/heritages/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin?type=heritages&id=${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=heritages"] });
     },
@@ -170,7 +170,7 @@ export default function GameDataPage() {
 
   const updateCultureMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof cultureSchema> }) =>
-      apiRequest("PUT", `/api/admin/cultures/${id}`, data),
+      apiRequest("PUT", `/api/admin?type=cultures&id=${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=cultures"] });
       setSelectedItem(null);
@@ -178,7 +178,7 @@ export default function GameDataPage() {
   });
 
   const deleteCultureMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/cultures/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin?type=cultures&id=${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=cultures"] });
     },
@@ -195,7 +195,7 @@ export default function GameDataPage() {
 
   const updateArchetypeMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: z.infer<typeof archetypeSchema> }) =>
-      apiRequest("PUT", `/api/admin/archetypes/${id}`, data),
+      apiRequest("PUT", `/api/admin?type=archetypes&id=${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=archetypes"] });
       setSelectedItem(null);
@@ -203,7 +203,7 @@ export default function GameDataPage() {
   });
 
   const deleteArchetypeMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/archetypes/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin?type=archetypes&id=${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin?type=archetypes"] });
     },

@@ -355,7 +355,7 @@ export default function CharacterSheetModal({
   // Admin skill management mutations
   const adminAddSkillMutation = useMutation({
     mutationFn: async (data: { skill: string; cost: number }) => {
-      const response = await apiRequest("POST", `/api/admin/characters/${characterId}/add-skill`, data);
+      const response = await apiRequest("POST", `/api/characters/${characterId}/admin/add-skill`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -378,7 +378,7 @@ export default function CharacterSheetModal({
 
   const adminRemoveSkillMutation = useMutation({
     mutationFn: async (data: { skill: string; cost: number }) => {
-      const response = await apiRequest("POST", `/api/admin/characters/${characterId}/remove-skill`, data);
+      const response = await apiRequest("POST", `/api/characters/${characterId}/admin/remove-skill`, data);
       return response.json();
     },
     onSuccess: () => {
