@@ -82,7 +82,7 @@ export default function ExperienceModal({ isOpen, onClose }: ExperienceModalProp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
       toast({
         title: "Experience awarded!",
         description: "Experience has been successfully awarded to selected characters.",
