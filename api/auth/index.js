@@ -8,14 +8,25 @@ import { hashPassword, comparePassword, getUserByEmail, createUser } from '../..
 export default async function handler(req, res) {
   const { method } = req;
   
-  // For Vercel, the URL path after /api/auth/ will be in req.url
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Extract action from URL path or query parameter
   let action = req.query.action;
   
   if (!action && req.url) {
-    // Remove leading slash and get the action
-    const pathParts = req.url.split('/').filter(Boolean);
-    action = pathParts[0]; // This should be the action (login, register, etc.)
+    // Parse URL to get action
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    // For /api/auth/login, pathParts would be ['api', 'auth', 'login']
+    action = pathParts[pathParts.length - 1];
   }
 
   try {
@@ -51,34 +62,39 @@ async function handleLogin(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isValid = await comparePassword(password, user.password);
+    if (!isValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Create session
+    const sessionData = {
+      userId: user.id,
+      isAdmin: user.isAdmin,
+      role: user.role
+    };
+    
+    await setSessionData(res, sessionData);
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(200).json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({ message: 'Login failed' });
   }
-
-  const user = await getUserByEmail(email);
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  const isValid = await comparePassword(password, user.password);
-  if (!isValid) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  // Create session
-  const sessionData = {
-    userId: user.id,
-    isAdmin: user.isAdmin,
-    role: user.role
-  };
-  
-  await setSessionData(res, sessionData);
-
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = user;
-  return res.status(200).json({ user: userWithoutPassword });
 }
 
 async function handleRegister(req, res, method) {
@@ -86,42 +102,47 @@ async function handleRegister(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { playerName, email, password, chapterId } = req.body;
+  try {
+    const { playerName, email, password, chapterId } = req.body;
 
-  if (!playerName || !email || !password) {
-    return res.status(400).json({ message: 'Player name, email, and password are required' });
+    if (!playerName || !email || !password) {
+      return res.status(400).json({ message: 'Player name, email, and password are required' });
+    }
+
+    // Check if user exists
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ message: 'User already exists' });
+    }
+
+    // Hash password and create user
+    const hashedPassword = await hashPassword(password);
+    const newUser = await createUser({
+      playerName,
+      email,
+      password: hashedPassword,
+      chapterId: chapterId || null,
+      isAdmin: false,
+      role: 'player',
+      candles: 0
+    });
+
+    // Create session
+    const sessionData = {
+      userId: newUser.id,
+      isAdmin: newUser.isAdmin,
+      role: newUser.role
+    };
+    
+    await setSessionData(res, sessionData);
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = newUser;
+    return res.status(201).json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Register error:', error);
+    return res.status(500).json({ message: 'Registration failed' });
   }
-
-  // Check if user exists
-  const existingUser = await getUserByEmail(email);
-  if (existingUser) {
-    return res.status(409).json({ message: 'User already exists' });
-  }
-
-  // Hash password and create user
-  const hashedPassword = await hashPassword(password);
-  const newUser = await createUser({
-    playerName,
-    email,
-    password: hashedPassword,
-    chapterId: chapterId || null,
-    isAdmin: false,
-    role: 'player',
-    candles: 0
-  });
-
-  // Create session
-  const sessionData = {
-    userId: newUser.id,
-    isAdmin: newUser.isAdmin,
-    role: newUser.role
-  };
-  
-  await setSessionData(res, sessionData);
-
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = newUser;
-  return res.status(201).json({ user: userWithoutPassword });
 }
 
 async function handleLogout(req, res, method) {
@@ -129,8 +150,13 @@ async function handleLogout(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  await clearSession(res);
-  return res.status(200).json({ message: 'Logged out successfully' });
+  try {
+    await clearSession(res);
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    return res.status(500).json({ message: 'Logout failed' });
+  }
 }
 
 async function handleMe(req, res, method) {
@@ -138,17 +164,22 @@ async function handleMe(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const session = await getSessionData(req);
-  if (!session) {
-    return res.status(401).json({ message: 'Not authenticated' });
-  }
+  try {
+    const session = await getSessionData(req);
+    if (!session) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
 
-  const user = await db.select().from(users).where(eq(users.id, session.userId));
-  if (!user || user.length === 0) {
-    return res.status(404).json({ message: 'User not found' });
-  }
+    const user = await db.select().from(users).where(eq(users.id, session.userId));
+    if (!user || user.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = user[0];
-  return res.status(200).json({ user: userWithoutPassword });
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user[0];
+    return res.status(200).json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Get user error:', error);
+    return res.status(500).json({ message: 'Failed to get user' });
+  }
 }
