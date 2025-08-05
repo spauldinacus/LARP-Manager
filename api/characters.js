@@ -1,4 +1,3 @@
-
 // Combined characters endpoints for Vercel
 import { db, characters, experienceEntries, users, heritages, cultures, archetypes } from '../lib/db.js';
 import { getSessionData, requireAuth, requireAdmin } from '../lib/session.js';
@@ -46,6 +45,8 @@ async function handleCharactersList(req, res, method) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
+    const secondaryArchetypes = archetypes.as('secondaryArchetypes');
+
     const allCharacters = await db
       .select({
         id: characters.id,
@@ -75,10 +76,10 @@ async function handleCharactersList(req, res, method) {
       .leftJoin(heritages, eq(characters.heritageId, heritages.id))
       .leftJoin(cultures, eq(characters.cultureId, cultures.id))
       .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
-      .leftJoin(archetypes.as('secondaryArchetypes'), eq(characters.secondaryArchetypeId, archetypes.id));
+      .leftJoin(secondaryArchetypes, eq(characters.secondaryArchetypeId, secondaryArchetypes.id));
     return res.status(200).json(allCharacters);
   }
-  
+
   if (method === 'POST') {
     const session = await requireAuth(req, res);
     if (!session) return;
@@ -86,10 +87,10 @@ async function handleCharactersList(req, res, method) {
     const [newCharacter] = await db.insert(characters)
       .values({ ...req.body, userId: session.userId })
       .returning();
-    
+
     return res.status(201).json(newCharacter);
   }
-  
+
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
@@ -97,6 +98,8 @@ async function handleSingleCharacter(req, res, method, characterId) {
   if (method === 'GET') {
     const session = await requireAuth(req, res);
     if (!session) return;
+
+    const secondaryArchetypes = archetypes.as('secondaryArchetypes');
 
     const [character] = await db
       .select({
@@ -127,7 +130,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
       .leftJoin(heritages, eq(characters.heritageId, heritages.id))
       .leftJoin(cultures, eq(characters.cultureId, cultures.id))
       .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
-      .leftJoin(archetypes.as('secondaryArchetypes'), eq(characters.secondaryArchetypeId, archetypes.id))
+      .leftJoin(secondaryArchetypes, eq(characters.secondaryArchetypeId, secondaryArchetypes.id))
       .where(eq(characters.id, characterId));
 
     if (!character) {
@@ -136,7 +139,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
 
     return res.status(200).json(character);
   }
-  
+
   if (method === 'PUT') {
     const session = await requireAuth(req, res);
     if (!session) return;
@@ -149,7 +152,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
 
     return res.status(200).json(updatedCharacter);
   }
-  
+
   if (method === 'DELETE') {
     const session = await requireAdmin(req, res);
     if (!session) return;
@@ -157,7 +160,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
     await db.delete(characters).where(eq(characters.id, characterId));
     return res.status(200).json({ message: 'Character deleted successfully' });
   }
-  
+
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
@@ -174,7 +177,7 @@ async function handleCharacterExperience(req, res, method, characterId) {
 
     return res.status(200).json(experience);
   }
-  
+
   if (method === 'POST') {
     const session = await requireAdmin(req, res);
     if (!session) return;
@@ -189,7 +192,7 @@ async function handleCharacterExperience(req, res, method, characterId) {
 
     return res.status(201).json(newEntry);
   }
-  
+
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
@@ -210,6 +213,6 @@ async function handleAttendanceXp(req, res, method, characterId) {
 
     return res.status(201).json(newEntry);
   }
-  
+
   return res.status(405).json({ message: 'Method not allowed' });
 }
