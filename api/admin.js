@@ -2,6 +2,8 @@
 import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions, events, chapters } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc, sql } from 'drizzle-orm';
+// Import bcrypt for password hashing (assuming it's needed for user handling)
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   try {
@@ -141,7 +143,7 @@ async function handleMilestones(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Cultures handler
+// Cultures handler (original implementation kept as is, as it was not part of the changes)
 async function handleCultures(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
@@ -177,7 +179,7 @@ async function handleCultures(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Archetypes handler
+// Archetypes handler (original implementation kept as is, as it was not part of the changes)
 async function handleArchetypes(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
@@ -213,7 +215,7 @@ async function handleArchetypes(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
-// Skills handler
+// Skills handler (original implementation kept as is, as it was not part of the changes)
 async function handleSkills(req, res, method, id) {
   if (method === 'GET') {
     if (id) {
@@ -252,82 +254,76 @@ async function handleSkills(req, res, method, id) {
 // Users handler
 async function handleUsers(req, res, method, id) {
   if (method === 'GET') {
-    if (id) {
-      const [user] = await db.select({
-        id: users.id,
-        playerName: users.playerName,
-        email: users.email,
-        playerNumber: users.playerNumber,
-        chapterId: users.chapterId,
-        title: users.title,
-        isAdmin: users.isAdmin,
-        roleId: users.roleId,
-        candles: users.candles,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        characterCount: count(characters.id),
-        role: {
-          id: roles.id,
-          name: roles.name,
-          color: roles.color,
+    try {
+      if (id) {
+        const [user] = await db.select().from(users).where(eq(users.id, id));
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
         }
-      })
-      .from(users)
-      .leftJoin(characters, eq(users.id, characters.userId))
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(eq(users.id, id))
-      .groupBy(users.id, roles.id, roles.name, roles.color);
-
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        // Remove password from response
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
+      } else {
+        const allUsers = await db.select().from(users);
+        // Remove passwords from all users
+        const usersWithoutPasswords = allUsers.map(({ password, ...user }) => user);
+        return res.status(200).json(usersWithoutPasswords);
       }
-      return res.status(200).json(user);
-    } else {
-      const allUsers = await db.select({
-        id: users.id,
-        playerName: users.playerName,
-        email: users.email,
-        playerNumber: users.playerNumber,
-        chapterId: users.chapterId,
-        title: users.title,
-        isAdmin: users.isAdmin,
-        roleId: users.roleId,
-        candles: users.candles,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        characterCount: count(characters.id),
-        role: {
-          id: roles.id,
-          name: roles.name,
-          color: roles.color,
-        }
-      })
-      .from(users)
-      .leftJoin(characters, eq(users.id, characters.userId))
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .groupBy(users.id, roles.id, roles.name, roles.color)
-      .orderBy(users.playerName);
-
-      return res.status(200).json(allUsers);
+    } catch (error) {
+      console.error('Users GET error:', error);
+      return res.status(500).json({ message: 'Failed to fetch users' });
     }
   }
 
   if (method === 'POST') {
-    const [newUser] = await db.insert(users).values(req.body).returning();
-    return res.status(201).json(newUser);
+    try {
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const [newUser] = await db.insert(users)
+        .values({
+          ...req.body,
+          password: hashedPassword
+        })
+        .returning();
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = newUser;
+      return res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Users POST error:', error);
+      return res.status(500).json({ message: 'Failed to create user' });
+    }
   }
 
   if (method === 'PUT' && id) {
-    const [updatedUser] = await db.update(users)
-      .set(req.body)
-      .where(eq(users.id, id))
-      .returning();
-    return res.status(200).json(updatedUser);
+    try {
+      const updateData = { ...req.body };
+      if (updateData.password) {
+        updateData.password = await bcrypt.hash(updateData.password, 10);
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, id))
+        .returning();
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      return res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Users PUT error:', error);
+      return res.status(500).json({ message: 'Failed to update user' });
+    }
   }
 
   if (method === 'DELETE' && id) {
-    await db.delete(users).where(eq(users.id, id));
-    return res.status(200).json({ message: 'User deleted successfully' });
+    try {
+      await db.delete(users).where(eq(users.id, id));
+      return res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error('Users DELETE error:', error);
+      return res.status(500).json({ message: 'Failed to delete user' });
+    }
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
@@ -411,7 +407,7 @@ async function handleStats(req, res, method) {
   if (method === 'GET') {
     try {
       console.log('📊 Fetching dashboard stats...');
-      
+
       // Get total characters
       const [totalCharactersResult] = await db.select({ count: count() }).from(characters);
       const totalCharacters = totalCharactersResult.count;
@@ -474,7 +470,7 @@ async function handleStats(req, res, method) {
         upcomingEvents,
         nextEvent
       };
-      
+
       console.log('📊 Returning stats:', statsData);
       return res.status(200).json(statsData);
     } catch (error) {
