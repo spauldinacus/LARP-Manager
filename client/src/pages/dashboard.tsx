@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   // Fetch dashboard stats (admin only)
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/admin/stats"],
+    queryKey: ["/api/admin?type=stats"],
     enabled: !!user?.isAdmin,
   });
 

@@ -36,7 +36,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["/api/chapters?type=users"],
+    queryKey: ["/api/admin?type=users"],
     enabled: user?.isAdmin,
   });
 
@@ -97,7 +97,7 @@ export default function UsersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       setEditingPlayerNumber(null);
       setNewPlayerNumber("");
       toast({
@@ -125,7 +125,7 @@ export default function UsersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       toast({
         title: "User deleted",
         description: "The user and all their characters have been deleted.",
