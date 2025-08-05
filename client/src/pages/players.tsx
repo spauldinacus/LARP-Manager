@@ -73,7 +73,7 @@ export default function PlayersPage() {
 
   // Fetch all players with their characters
   const { data: players, isLoading } = useQuery({
-    queryKey: ["/api/chapters?type=users"],
+    queryKey: ["/api/admin?type=users"],
     enabled: !!user?.isAdmin,
   });
 
@@ -84,7 +84,7 @@ export default function PlayersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       setIsPlayerModalOpen(false);
       setSelectedPlayer(null);
       setNewPlayerNumber("");
@@ -109,7 +109,7 @@ export default function PlayersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       setNewSkill("");
       toast({
         title: "Skill added",
@@ -132,7 +132,7 @@ export default function PlayersPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chapters?type=users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?type=users"] });
       toast({
         title: "Skill removed",
         description: "The skill has been removed from the character.",
