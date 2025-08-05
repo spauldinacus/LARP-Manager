@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, sql } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 // Database schema objects matching actual columns
 export const archetype_primary_skills = {
