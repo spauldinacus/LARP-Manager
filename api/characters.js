@@ -1,6 +1,6 @@
 
 // Combined characters endpoints for Vercel
-import { db, characters, experienceEntries } from '../lib/db.js';
+import { db, characters, experienceEntries, users, heritages, cultures, archetypes } from '../lib/db.js';
 import { getSessionData, requireAuth, requireAdmin } from '../lib/session.js';
 import { eq, desc } from 'drizzle-orm';
 
@@ -46,21 +46,36 @@ async function handleCharactersList(req, res, method) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const allCharacters = await db.query.characters.findMany({
-      with: {
-        heritage: true,
-        culture: true,
-        archetype: true,
-        secondaryArchetype: true,
-        user: {
-          columns: {
-            id: true,
-            playerName: true,
-            email: true
-          }
-        }
-      }
-    });
+    const allCharacters = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        userId: characters.userId,
+        heritageId: characters.heritageId,
+        cultureId: characters.cultureId,
+        archetypeId: characters.archetypeId,
+        secondaryArchetypeId: characters.secondaryArchetypeId,
+        body: characters.body,
+        mind: characters.mind,
+        spirit: characters.spirit,
+        purchasedSkills: characters.purchasedSkills,
+        totalXpSpent: characters.totalXpSpent,
+        isActive: characters.isActive,
+        createdAt: characters.createdAt,
+        updatedAt: characters.updatedAt,
+        playerName: users.playerName,
+        email: users.email,
+        heritageName: heritages.name,
+        cultureName: cultures.name,
+        archetypeName: archetypes.name,
+        secondaryArchetypeName: secondaryArchetypes.name,
+      })
+      .from(characters)
+      .leftJoin(users, eq(characters.userId, users.id))
+      .leftJoin(heritages, eq(characters.heritageId, heritages.id))
+      .leftJoin(cultures, eq(characters.cultureId, cultures.id))
+      .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
+      .leftJoin(archetypes.as('secondaryArchetypes'), eq(characters.secondaryArchetypeId, archetypes.id));
     return res.status(200).json(allCharacters);
   }
   
@@ -83,22 +98,37 @@ async function handleSingleCharacter(req, res, method, characterId) {
     const session = await requireAuth(req, res);
     if (!session) return;
 
-    const character = await db.query.characters.findFirst({
-      where: eq(characters.id, characterId),
-      with: {
-        heritage: true,
-        culture: true,
-        archetype: true,
-        secondaryArchetype: true,
-        user: {
-          columns: {
-            id: true,
-            playerName: true,
-            email: true
-          }
-        }
-      }
-    });
+    const [character] = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        userId: characters.userId,
+        heritageId: characters.heritageId,
+        cultureId: characters.cultureId,
+        archetypeId: characters.archetypeId,
+        secondaryArchetypeId: characters.secondaryArchetypeId,
+        body: characters.body,
+        mind: characters.mind,
+        spirit: characters.spirit,
+        purchasedSkills: characters.purchasedSkills,
+        totalXpSpent: characters.totalXpSpent,
+        isActive: characters.isActive,
+        createdAt: characters.createdAt,
+        updatedAt: characters.updatedAt,
+        playerName: users.playerName,
+        email: users.email,
+        heritageName: heritages.name,
+        cultureName: cultures.name,
+        archetypeName: archetypes.name,
+        secondaryArchetypeName: secondaryArchetypes.name,
+      })
+      .from(characters)
+      .leftJoin(users, eq(characters.userId, users.id))
+      .leftJoin(heritages, eq(characters.heritageId, heritages.id))
+      .leftJoin(cultures, eq(characters.cultureId, cultures.id))
+      .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
+      .leftJoin(archetypes.as('secondaryArchetypes'), eq(characters.secondaryArchetypeId, archetypes.id))
+      .where(eq(characters.id, characterId));
 
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });
