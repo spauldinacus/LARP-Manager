@@ -1,5 +1,5 @@
 // Combined admin endpoints for Vercel
-import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions } from '../lib/db.js';
+import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions, events, chapters } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc } from 'drizzle-orm';
 
@@ -36,6 +36,8 @@ export default async function handler(req, res) {
       return await handleRolePermissions(req, res, method, id);
     } else if (type === 'users') {
       return await handleUsers(req, res, method, id);
+    } else if (type === 'events') {
+      return await handleEvents(req, res, method, id);
     }
 
     // Legacy path-based routing for backward compatibility
@@ -399,6 +401,102 @@ async function handleRolePermissions(req, res, method, id) {
     .where(eq(rolePermissions.roleId, id));
 
     return res.status(200).json(rolePerms);
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+// Events handler
+async function handleEvents(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [event] = await db.select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        eventDate: events.eventDate,
+        location: events.location,
+        maxAttendees: events.maxAttendees,
+        registrationOpen: events.registrationOpen,
+        chapterId: events.chapterId,
+        createdBy: events.createdBy,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        chapter: {
+          id: chapters.id,
+          name: chapters.name,
+          code: chapters.code,
+        },
+        creator: {
+          id: users.id,
+          playerName: users.playerName,
+        }
+      })
+      .from(events)
+      .leftJoin(chapters, eq(events.chapterId, chapters.id))
+      .leftJoin(users, eq(events.createdBy, users.id))
+      .where(eq(events.id, id));
+
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      return res.status(200).json(event);
+    } else {
+      const allEvents = await db.select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        eventDate: events.eventDate,
+        location: events.location,
+        maxAttendees: events.maxAttendees,
+        registrationOpen: events.registrationOpen,
+        chapterId: events.chapterId,
+        createdBy: events.createdBy,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        chapter: {
+          id: chapters.id,
+          name: chapters.name,
+          code: chapters.code,
+        },
+        creator: {
+          id: users.id,
+          playerName: users.playerName,
+        }
+      })
+      .from(events)
+      .leftJoin(chapters, eq(events.chapterId, chapters.id))
+      .leftJoin(users, eq(events.createdBy, users.id))
+      .orderBy(desc(events.eventDate));
+
+      return res.status(200).json(allEvents);
+    }
+  }
+
+  if (method === 'POST') {
+    const [newEvent] = await db.insert(events).values(req.body).returning();
+    return res.status(201).json(newEvent);
+  }
+
+  if (method === 'PUT' && id) {
+    const [updatedEvent] = await db.update(events)
+      .set(req.body)
+      .where(eq(events.id, id))
+      .returning();
+    if (!updatedEvent) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    return res.status(200).json(updatedEvent);
+  }
+
+  if (method === 'DELETE' && id) {
+    const [deletedEvent] = await db.delete(events)
+      .where(eq(events.id, id))
+      .returning();
+    if (!deletedEvent) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    return res.status(200).json({ message: 'Event deleted successfully' });
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
