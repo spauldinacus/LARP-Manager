@@ -72,16 +72,9 @@ export default function PlayersPage() {
   const queryClient = useQueryClient();
 
   // Fetch all players with their characters
-  const { data: players, isLoading, error } = useQuery({
+  const { data: players, isLoading } = useQuery({
     queryKey: ["/api/admin?type=users"],
     enabled: !!user?.isAdmin,
-    retry: 3,
-    onError: (err) => {
-      console.error('Players query failed:', err);
-    },
-    onSuccess: (data) => {
-      console.log('Players data received:', data);
-    }
   });
 
   // Update player number mutation
@@ -201,16 +194,6 @@ export default function PlayersPage() {
                 </div>
               </div>
             </div>
-
-            {/* Error Display */}
-            {error && (
-              <Card className="p-6 border-destructive">
-                <div className="text-center text-destructive">
-                  <h3 className="text-lg font-semibold mb-2">Error Loading Players</h3>
-                  <p className="text-sm">{(error as Error).message}</p>
-                </div>
-              </Card>
-            )}
 
             {/* Players Grid */}
             {isLoading ? (

@@ -2,8 +2,6 @@
 import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions, events, chapters } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc, sql } from 'drizzle-orm';
-// Import bcrypt for password hashing (assuming it's needed for user handling)
-import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   try {
@@ -146,43 +144,15 @@ async function handleMilestones(req, res, method, id) {
 // Cultures handler
 async function handleCultures(req, res, method, id) {
   if (method === 'GET') {
-    try {
-      if (id) {
-        const [culture] = await db.select({
-          id: cultures.id,
-          name: cultures.name,
-          description: cultures.description,
-          heritageId: cultures.heritageId,
-          heritageName: sql`(SELECT ${heritages.name} FROM ${heritages} WHERE ${heritages.id} = ${cultures.heritageId})`.as('heritageName'),
-          secondarySkills: sql`'[]'`.as('secondarySkills')
-        }).from(cultures).where(eq(cultures.id, id));
-        if (!culture) {
-          return res.status(404).json({ message: 'Culture not found' });
-        }
-        return res.status(200).json({
-          ...culture,
-          secondarySkills: []
-        });
-      } else {
-        const allCultures = await db.select({
-          id: cultures.id,
-          name: cultures.name,
-          description: cultures.description,
-          heritageId: cultures.heritageId,
-          heritageName: sql`(SELECT ${heritages.name} FROM ${heritages} WHERE ${heritages.id} = ${cultures.heritageId})`.as('heritageName')
-        }).from(cultures).orderBy(cultures.name);
-
-        const culturesWithSkills = allCultures.map(culture => ({
-          ...culture,
-          secondarySkills: []
-        }));
-
-        console.log('Cultures fetched:', culturesWithSkills.length);
-        return res.status(200).json(culturesWithSkills);
+    if (id) {
+      const [culture] = await db.select().from(cultures).where(eq(cultures.id, id));
+      if (!culture) {
+        return res.status(404).json({ message: 'Culture not found' });
       }
-    } catch (error) {
-      console.error('Cultures GET error:', error);
-      return res.status(500).json({ message: 'Failed to fetch cultures' });
+      return res.status(200).json(culture);
+    } else {
+      const allCultures = await db.select().from(cultures).orderBy(cultures.name);
+      return res.status(200).json(allCultures);
     }
   }
 
@@ -210,40 +180,15 @@ async function handleCultures(req, res, method, id) {
 // Archetypes handler
 async function handleArchetypes(req, res, method, id) {
   if (method === 'GET') {
-    try {
-      if (id) {
-        const [archetype] = await db.select({
-          id: archetypes.id,
-          name: archetypes.name,
-          description: archetypes.description
-        }).from(archetypes).where(eq(archetypes.id, id));
-        if (!archetype) {
-          return res.status(404).json({ message: 'Archetype not found' });
-        }
-        return res.status(200).json({
-          ...archetype,
-          primarySkills: [],
-          secondarySkills: []
-        });
-      } else {
-        const allArchetypes = await db.select({
-          id: archetypes.id,
-          name: archetypes.name,
-          description: archetypes.description
-        }).from(archetypes).orderBy(archetypes.name);
-
-        const archetypesWithSkills = allArchetypes.map(archetype => ({
-          ...archetype,
-          primarySkills: [],
-          secondarySkills: []
-        }));
-
-        console.log('Archetypes fetched:', archetypesWithSkills.length);
-        return res.status(200).json(archetypesWithSkills);
+    if (id) {
+      const [archetype] = await db.select().from(archetypes).where(eq(archetypes.id, id));
+      if (!archetype) {
+        return res.status(404).json({ message: 'Archetype not found' });
       }
-    } catch (error) {
-      console.error('Archetypes GET error:', error);
-      return res.status(500).json({ message: 'Failed to fetch archetypes' });
+      return res.status(200).json(archetype);
+    } else {
+      const allArchetypes = await db.select().from(archetypes).orderBy(archetypes.name);
+      return res.status(200).json(allArchetypes);
     }
   }
 
@@ -271,33 +216,15 @@ async function handleArchetypes(req, res, method, id) {
 // Skills handler
 async function handleSkills(req, res, method, id) {
   if (method === 'GET') {
-    try {
-      if (id) {
-        const [skill] = await db.select({
-          id: skills.id,
-          name: skills.name,
-          description: skills.description,
-          prerequisiteSkillId: skills.prerequisiteSkillId,
-          prerequisiteSkillName: sql`(SELECT ${skills.name} FROM ${skills} s2 WHERE s2.id = ${skills.prerequisiteSkillId})`.as('prerequisiteSkillName')
-        }).from(skills).where(eq(skills.id, id));
-        if (!skill) {
-          return res.status(404).json({ message: 'Skill not found' });
-        }
-        return res.status(200).json(skill);
-      } else {
-        const allSkills = await db.select({
-          id: skills.id,
-          name: skills.name,
-          description: skills.description,
-          prerequisiteSkillId: skills.prerequisiteSkillId,
-          prerequisiteSkillName: sql`(SELECT ${skills.name} FROM ${skills} s2 WHERE s2.id = ${skills.prerequisiteSkillId})`.as('prerequisiteSkillName')
-        }).from(skills).orderBy(skills.name);
-        console.log('Skills fetched:', allSkills.length);
-        return res.status(200).json(allSkills);
+    if (id) {
+      const [skill] = await db.select().from(skills).where(eq(skills.id, id));
+      if (!skill) {
+        return res.status(404).json({ message: 'Skill not found' });
       }
-    } catch (error) {
-      console.error('Skills GET error:', error);
-      return res.status(500).json({ message: 'Failed to fetch skills' });
+      return res.status(200).json(skill);
+    } else {
+      const allSkills = await db.select().from(skills).orderBy(skills.name);
+      return res.status(200).json(allSkills);
     }
   }
 
@@ -325,164 +252,82 @@ async function handleSkills(req, res, method, id) {
 // Users handler
 async function handleUsers(req, res, method, id) {
   if (method === 'GET') {
-    try {
-      if (id) {
-        const [user] = await db.select({
-          id: users.id,
-          username: users.username,
-          playerName: users.playerName,
-          email: users.email,
-          playerNumber: users.playerNumber,
-          chapterId: users.chapterId,
-          title: users.title,
-          roleId: users.roleId,
-          roleName: roles.name,
-        })
-        .from(users)
-        .leftJoin(roles, eq(users.roleId, roles.id))
-        .where(eq(users.id, id));
-
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
+    if (id) {
+      const [user] = await db.select({
+        id: users.id,
+        playerName: users.playerName,
+        email: users.email,
+        playerNumber: users.playerNumber,
+        chapterId: users.chapterId,
+        title: users.title,
+        isAdmin: users.isAdmin,
+        roleId: users.roleId,
+        candles: users.candles,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        characterCount: count(characters.id),
+        role: {
+          id: roles.id,
+          name: roles.name,
+          color: roles.color,
         }
+      })
+      .from(users)
+      .leftJoin(characters, eq(users.id, characters.userId))
+      .leftJoin(roles, eq(users.roleId, roles.id))
+      .where(eq(users.id, id))
+      .groupBy(users.id, roles.id, roles.name, roles.color);
 
-        // Get user's characters
-        const userCharacters = await db.select({
-          id: characters.id,
-          name: characters.name,
-          heritage: heritages.name,
-          culture: cultures.name,
-          archetype: archetypes.name,
-          skills: characters.skills,
-          isActive: characters.isActive,
-          isRetired: characters.isRetired,
-        })
-        .from(characters)
-        .leftJoin(heritages, eq(characters.heritageId, heritages.id))
-        .leftJoin(cultures, eq(characters.cultureId, cultures.id))
-        .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
-        .where(eq(characters.userId, id));
-
-        return res.status(200).json({
-          ...user,
-          role: user.roleName ? { name: user.roleName } : null,
-          characters: userCharacters || []
-        });
-      } else {
-        console.log('📋 Fetching all users for players page...');
-
-        const allUsers = await db.select({
-          id: users.id,
-          username: users.username,
-          playerName: users.playerName,
-          email: users.email,
-          playerNumber: users.playerNumber,
-          chapterId: users.chapterId,
-          title: users.title,
-          roleId: users.roleId,
-          roleName: roles.name,
-        })
-        .from(users)
-        .leftJoin(roles, eq(users.roleId, roles.id));
-
-        console.log('Users fetched:', allUsers.length);
-
-        // Get characters for all users
-        const allCharacters = await db.select({
-          id: characters.id,
-          name: characters.name,
-          userId: characters.userId,
-          heritage: heritages.name,
-          culture: cultures.name,
-          archetype: archetypes.name,
-          skills: characters.skills,
-          isActive: characters.isActive,
-          isRetired: characters.isRetired,
-        })
-        .from(characters)
-        .leftJoin(heritages, eq(characters.heritageId, heritages.id))
-        .leftJoin(cultures, eq(characters.cultureId, cultures.id))
-        .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id));
-
-        console.log('Characters fetched:', allCharacters.length);
-
-        // Group characters by user and format properly
-        const usersWithCharacters = allUsers.map(user => ({
-          id: user.id,
-          username: user.username,
-          playerName: user.playerName,
-          email: user.email,
-          playerNumber: user.playerNumber,
-          chapterId: user.chapterId,
-          title: user.title,
-          roleId: user.roleId,
-          role: user.roleName ? { name: user.roleName } : null,
-          characters: allCharacters.filter(char => char.userId === user.id) || [],
-          characterCount: allCharacters.filter(char => char.userId === user.id).length
-        }));
-
-        console.log('📋 Returning users with characters:', usersWithCharacters.length);
-        return res.status(200).json(usersWithCharacters);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
-    } catch (error) {
-      console.error('Users GET error:', error);
-      console.error('Full error details:', error.stack);
-      return res.status(500).json({ 
-        message: 'Failed to fetch users',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-      });
+      return res.status(200).json(user);
+    } else {
+      const allUsers = await db.select({
+        id: users.id,
+        playerName: users.playerName,
+        email: users.email,
+        playerNumber: users.playerNumber,
+        chapterId: users.chapterId,
+        title: users.title,
+        isAdmin: users.isAdmin,
+        roleId: users.roleId,
+        candles: users.candles,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        characterCount: count(characters.id),
+        role: {
+          id: roles.id,
+          name: roles.name,
+          color: roles.color,
+        }
+      })
+      .from(users)
+      .leftJoin(characters, eq(users.id, characters.userId))
+      .leftJoin(roles, eq(users.roleId, roles.id))
+      .groupBy(users.id, roles.id, roles.name, roles.color)
+      .orderBy(users.playerName);
+
+      return res.status(200).json(allUsers);
     }
   }
 
   if (method === 'POST') {
-    try {
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
-      const [newUser] = await db.insert(users)
-        .values({
-          ...req.body,
-          password: hashedPassword
-        })
-        .returning();
-
-      // Remove password from response
-      const { password, ...userWithoutPassword } = newUser;
-      return res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      console.error('Users POST error:', error);
-      return res.status(500).json({ message: 'Failed to create user' });
-    }
+    const [newUser] = await db.insert(users).values(req.body).returning();
+    return res.status(201).json(newUser);
   }
 
   if (method === 'PUT' && id) {
-    try {
-      const updateData = { ...req.body };
-      if (updateData.password) {
-        updateData.password = await bcrypt.hash(updateData.password, 10);
-      }
-
-      const [updatedUser] = await db
-        .update(users)
-        .set(updateData)
-        .where(eq(users.id, id))
-        .returning();
-
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-      return res.status(200).json(userWithoutPassword);
-    } catch (error) {
-      console.error('Users PUT error:', error);
-      return res.status(500).json({ message: 'Failed to update user' });
-    }
+    const [updatedUser] = await db.update(users)
+      .set(req.body)
+      .where(eq(users.id, id))
+      .returning();
+    return res.status(200).json(updatedUser);
   }
 
   if (method === 'DELETE' && id) {
-    try {
-      await db.delete(users).where(eq(users.id, id));
-      return res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error) {
-      console.error('Users DELETE error:', error);
-      return res.status(500).json({ message: 'Failed to delete user' });
-    }
+    await db.delete(users).where(eq(users.id, id));
+    return res.status(200).json({ message: 'User deleted successfully' });
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
@@ -566,7 +411,7 @@ async function handleStats(req, res, method) {
   if (method === 'GET') {
     try {
       console.log('📊 Fetching dashboard stats...');
-
+      
       // Get total characters
       const [totalCharactersResult] = await db.select({ count: count() }).from(characters);
       const totalCharacters = totalCharactersResult.count;
@@ -629,7 +474,7 @@ async function handleStats(req, res, method) {
         upcomingEvents,
         nextEvent
       };
-
+      
       console.log('📊 Returning stats:', statsData);
       return res.status(200).json(statsData);
     } catch (error) {
@@ -755,50 +600,15 @@ async function handleEvents(req, res, method, id) {
 // Heritages handler
 async function handleHeritages(req, res, method, id) {
   if (method === 'GET') {
-    try {
-      if (id) {
-        const [heritage] = await db.select({
-          id: heritages.id,
-          name: heritages.name,
-          body: heritages.body,
-          stamina: heritages.stamina,
-          icon: heritages.icon,
-          description: heritages.description,
-          costumeRequirements: heritages.costumeRequirements,
-          benefit: heritages.benefit,
-          weakness: heritages.weakness
-        }).from(heritages).where(eq(heritages.id, id));
-        if (!heritage) {
-          return res.status(404).json({ message: 'Heritage not found' });
-        }
-        return res.status(200).json({
-          ...heritage,
-          secondarySkills: []
-        });
+    if (id) {
+      const [heritage] = await db.select().from(heritages).where(eq(heritages.id, id));
+      if (!heritage) {
+        return res.status(404).json({ message: 'Heritage not found' });
       }
-      const allHeritages = await db.select({
-        id: heritages.id,
-        name: heritages.name,
-        body: heritages.body,
-        stamina: heritages.stamina,
-        icon: heritages.icon,
-        description: heritages.description,
-        costumeRequirements: heritages.costumeRequirements,
-        benefit: heritages.benefit,
-        weakness: heritages.weakness
-      }).from(heritages).orderBy(heritages.name);
-
-      const heritagesWithSkills = allHeritages.map(heritage => ({
-        ...heritage,
-        secondarySkills: []
-      }));
-
-      console.log('Heritages fetched:', heritagesWithSkills.length);
-      return res.status(200).json(heritagesWithSkills);
-    } catch (error) {
-      console.error('Heritages GET error:', error);
-      return res.status(500).json({ message: 'Failed to fetch heritages' });
+      return res.status(200).json(heritage);
     }
+    const allHeritages = await db.select().from(heritages).orderBy(heritages.name);
+    return res.status(200).json(allHeritages);
   }
 
   if (method === 'POST') {
