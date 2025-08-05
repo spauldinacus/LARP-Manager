@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { getSkillCost, getAttributeCost, HERITAGE_BASES, type Heritage, type Skill } from "@shared/schema";
+import { getSkillCost, getAttributeCost, type Heritage, type Skill } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -145,14 +145,10 @@ export default function CharacterCreationModal({
     },
   });
 
-  // Get heritage base values for attributes from dynamic heritage data
+  // Get heritage base values for attributes from dynamic heritage data only
   const getHeritageBaseValues = (heritageId: string) => {
     const heritage = heritages.find((h: DynamicHeritage) => h.id === heritageId);
-    if (heritage) {
-      return { body: heritage.body, stamina: heritage.stamina };
-    }
-    // Fallback to static values if heritage not found
-    return HERITAGE_BASES[heritageId as keyof typeof HERITAGE_BASES] || { body: 10, stamina: 10 };
+    return heritage ? { body: heritage.body, stamina: heritage.stamina } : { body: 10, stamina: 10 };
   };
 
   // Calculate skill cost dynamically based on selected heritage and archetype
