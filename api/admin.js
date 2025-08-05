@@ -38,8 +38,6 @@ export default async function handler(req, res) {
       return await handleUsers(req, res, method, id);
     } else if (type === 'events') {
       return await handleEvents(req, res, method, id);
-    } else if (type === 'stats') {
-      return await handleStats(req, res, method);
     }
 
     // Legacy path-based routing for backward compatibility
@@ -412,9 +410,12 @@ async function handleRolePermissions(req, res, method, id) {
 async function handleStats(req, res, method) {
   if (method === 'GET') {
     try {
+      console.log('📊 Fetching dashboard stats...');
+      
       // Get total characters
       const [totalCharactersResult] = await db.select({ count: count() }).from(characters);
       const totalCharacters = totalCharactersResult.count;
+      console.log('Total characters:', totalCharacters);
 
       // Get total characters from last month
       const lastMonth = new Date();
@@ -465,14 +466,17 @@ async function handleStats(req, res, method) {
         };
       }
 
-      return res.status(200).json({
+      const statsData = {
         totalCharacters,
         totalCharactersLastMonth,
         activePlayers,
         activePlayersLastWeek,
         upcomingEvents,
         nextEvent
-      });
+      };
+      
+      console.log('📊 Returning stats:', statsData);
+      return res.status(200).json(statsData);
     } catch (error) {
       console.error('Stats error:', error);
       return res.status(500).json({ message: 'Failed to fetch stats' });
