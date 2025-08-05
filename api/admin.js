@@ -1,7 +1,7 @@
 // Combined admin endpoints for Vercel
 import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions, events, chapters } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
-import { eq, count, desc } from 'drizzle-orm';
+import { eq, count, desc, sql } from 'drizzle-orm';
 
 export default async function handler(req, res) {
   try {
@@ -38,6 +38,8 @@ export default async function handler(req, res) {
       return await handleUsers(req, res, method, id);
     } else if (type === 'events') {
       return await handleEvents(req, res, method, id);
+    } else if (type === 'stats') {
+      return await handleStats(req, res, method);
     }
 
     // Legacy path-based routing for backward compatibility
@@ -401,6 +403,80 @@ async function handleRolePermissions(req, res, method, id) {
     .where(eq(rolePermissions.roleId, id));
 
     return res.status(200).json(rolePerms);
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+// Stats handler for dashboard
+async function handleStats(req, res, method) {
+  if (method === 'GET') {
+    try {
+      // Get total characters
+      const [totalCharactersResult] = await db.select({ count: count() }).from(characters);
+      const totalCharacters = totalCharactersResult.count;
+
+      // Get total characters from last month
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const [totalCharactersLastMonthResult] = await db.select({ count: count() })
+        .from(characters)
+        .where(sql`${characters.createdAt} < ${lastMonth.toISOString()}`);
+      const totalCharactersLastMonth = totalCharactersLastMonthResult.count;
+
+      // Get active players (users with at least one character)
+      const [activePlayersResult] = await db.select({ count: count() })
+        .from(users)
+        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.userId} = ${users.id})`);
+      const activePlayers = activePlayersResult.count;
+
+      // Get active players from last week
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      const [activePlayersLastWeekResult] = await db.select({ count: count() })
+        .from(users)
+        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.userId} = ${users.id} AND ${characters.createdAt} < ${lastWeek.toISOString()})`);
+      const activePlayersLastWeek = activePlayersLastWeekResult.count;
+
+      // Get upcoming events
+      const now = new Date();
+      const [upcomingEventsResult] = await db.select({ count: count() })
+        .from(events)
+        .where(sql`${events.eventDate} > ${now.toISOString()}`);
+      const upcomingEvents = upcomingEventsResult.count;
+
+      // Get next event
+      const [nextEventResult] = await db.select({
+        name: events.title,
+        eventDate: events.eventDate
+      })
+      .from(events)
+      .where(sql`${events.eventDate} > ${now.toISOString()}`)
+      .orderBy(events.eventDate)
+      .limit(1);
+
+      let nextEvent = null;
+      if (nextEventResult) {
+        const eventDate = new Date(nextEventResult.eventDate);
+        const daysUntil = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        nextEvent = {
+          name: nextEventResult.name,
+          daysUntil
+        };
+      }
+
+      return res.status(200).json({
+        totalCharacters,
+        totalCharactersLastMonth,
+        activePlayers,
+        activePlayersLastWeek,
+        upcomingEvents,
+        nextEvent
+      });
+    } catch (error) {
+      console.error('Stats error:', error);
+      return res.status(500).json({ message: 'Failed to fetch stats' });
+    }
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
