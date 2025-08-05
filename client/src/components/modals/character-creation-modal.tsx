@@ -6,7 +6,40 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { getSkillCost, getAttributeCost, type Heritage, type Skill } from "@shared/schema";
+// Removed static cost logic import; will use local functions for attribute cost
+// Attribute cost calculation logic (matches backend)
+function getAttributeCost(currentValue: number, points: number = 1): number {
+  let totalCost = 0;
+  for (let i = 0; i < points; i++) {
+    const valueAtThisStep = currentValue + i;
+    if (valueAtThisStep < 20) totalCost += 1;
+    else if (valueAtThisStep < 40) totalCost += 2;
+    else if (valueAtThisStep < 60) totalCost += 3;
+    else if (valueAtThisStep < 80) totalCost += 4;
+    else if (valueAtThisStep < 100) totalCost += 5;
+    else if (valueAtThisStep < 120) totalCost += 6;
+    else if (valueAtThisStep < 140) totalCost += 7;
+    else if (valueAtThisStep < 160) totalCost += 8;
+    else if (valueAtThisStep < 180) totalCost += 9;
+    else totalCost += 10;
+  }
+  return totalCost;
+}
+
+function calculateAttributePurchaseCost(baseBody: number, baseStamina: number, currentBody: number, currentStamina: number): number {
+  let totalCost = 0;
+  if (currentBody > baseBody) {
+    for (let i = baseBody; i < currentBody; i++) {
+      totalCost += getAttributeCost(i, 1);
+    }
+  }
+  if (currentStamina > baseStamina) {
+    for (let i = baseStamina; i < currentStamina; i++) {
+      totalCost += getAttributeCost(i, 1);
+    }
+  }
+  return totalCost;
+}
 import {
   Dialog,
   DialogContent,
@@ -254,9 +287,7 @@ export default function CharacterCreationModal({
   const baseStamina = heritageBaseValues.stamina;
 
   // Calculate attribute costs based on incremental cost from current values
-  const bodyCost = (additionalBody > 0 && baseBody) ? getAttributeCost(baseBody, additionalBody) : 0;
-  const staminaCost = (additionalStamina > 0 && baseStamina) ? getAttributeCost(baseStamina, additionalStamina) : 0;
-  const totalAttributeCost = (bodyCost || 0) + (staminaCost || 0);
+  const totalAttributeCost = calculateAttributePurchaseCost(baseBody, baseStamina, baseBody + additionalBody, baseStamina + additionalStamina);
 
   // Update available experience when skills, attributes, or selections change
   useEffect(() => {
