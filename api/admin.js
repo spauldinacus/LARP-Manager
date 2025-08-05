@@ -371,6 +371,8 @@ async function handleUsers(req, res, method, id) {
           characters: userCharacters || []
         });
       } else {
+        console.log('📋 Fetching all users for players page...');
+        
         const allUsers = await db.select({
           id: users.id,
           username: users.username,
@@ -387,6 +389,8 @@ async function handleUsers(req, res, method, id) {
         })
         .from(users)
         .leftJoin(roles, eq(users.roleId, roles.id));
+
+        console.log('Users fetched:', allUsers.length);
 
         // Get characters for all users
         const allCharacters = await db.select({
@@ -405,12 +409,15 @@ async function handleUsers(req, res, method, id) {
         .leftJoin(cultures, eq(characters.cultureId, cultures.id))
         .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id));
 
+        console.log('Characters fetched:', allCharacters.length);
+
         // Group characters by user
         const usersWithCharacters = allUsers.map(user => ({
           ...user,
           characters: allCharacters.filter(char => char.userId === user.id) || []
         }));
 
+        console.log('📋 Returning users with characters:', usersWithCharacters.length);
         return res.status(200).json(usersWithCharacters);
       }
     } catch (error) {
