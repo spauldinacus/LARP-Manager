@@ -325,11 +325,11 @@ const characterMilestones = pgTable("character_milestones", {
 // Relations
 const usersRelations = relations(users, ({ one, many }) => ({
   chapter: one(chapters, {
-    fields: [users.chapter_id],
+    fields: [users.chapterId],
     references: [chapters.id],
   }),
   role: one(roles, {
-    fields: [users.role_id],
+    fields: [users.roleId],
     references: [roles.id],
   }),
   characters: many(characters),
