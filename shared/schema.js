@@ -393,7 +393,7 @@ const charactersRelations = relations(characters, ({ one, many }) => ({
     references: [archetypes.id],
   }),
   secondaryArchetype: one(archetypes, {
-    fields: [characters.secondaryArchetypeId],
+    fields: [characters.secondaryArchetype],
     references: [archetypes.id],
   }),
   eventRsvps: many(eventRsvps),

@@ -143,7 +143,7 @@ export default function CharacterCreationModal({
   const [additionalStamina, setAdditionalStamina] = useState(0);
 
   // Fetch dynamic game data
-  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+  const { data: skills = [], isLoading: skillsLoading } = useQuery<DynamicSkill[]>({
     queryKey: ["/api/admin?type=skills"],
     enabled: isOpen,
   });
@@ -288,6 +288,8 @@ export default function CharacterCreationModal({
 
   // Calculate attribute costs based on incremental cost from current values
   const totalAttributeCost = calculateAttributePurchaseCost(baseBody, baseStamina, baseBody + additionalBody, baseStamina + additionalStamina);
+  const bodyCost = getAttributeCost(baseBody + additionalBody, 1);
+  const staminaCost = getAttributeCost(baseStamina + additionalStamina, 1);
 
   // Update available experience when skills, attributes, or selections change
   useEffect(() => {
@@ -397,7 +399,7 @@ export default function CharacterCreationModal({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 {heritages.map((heritage: DynamicHeritage) => {
-                const Icon = heritageIcons[heritage.icon as keyof heritageIcons] || User;
+                const Icon = heritageIcons[heritage.icon as keyof typeof heritageIcons] || User;
                 const isSelected = form.watch("heritage") === heritage.id;
 
                 return (
@@ -574,9 +576,9 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {(selectedCultureData.primarySkills || []).map((skill: string, index: number) => (
+                            {(selectedCultureData.primarySkills || []).map((skill: DynamicSkill, index: number) => (
                               <span key={index} className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
-                                {skill}
+                                {skill.name}
                               </span>
                             ))}
                           </div>
@@ -584,9 +586,9 @@ export default function CharacterCreationModal({
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
                           <div className="flex flex-wrap gap-1">
-                            {(selectedCultureData.secondarySkills || []).map((skill: string, index: number) => (
+                            {(selectedCultureData.secondarySkills || []).map((skill: DynamicSkill, index: number) => (
                               <span key={index} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-                                {skill}
+                                {skill.name}
                               </span>
                             ))}
                           </div>
