@@ -325,11 +325,11 @@ const characterMilestones = pgTable("character_milestones", {
 // Relations
 const usersRelations = relations(users, ({ one, many }) => ({
   chapter: one(chapters, {
-    fields: [users.chapterId],
+    fields: [users.chapter_id],
     references: [chapters.id],
   }),
   role: one(roles, {
-    fields: [users.roleId],
+    fields: [users.role_id],
     references: [roles.id],
   }),
   characters: many(characters),
@@ -342,7 +342,7 @@ const usersRelations = relations(users, ({ one, many }) => ({
 
 const chaptersRelations = relations(chapters, ({ one, many }) => ({
   creator: one(users, {
-    fields: [chapters.createdBy],
+    fields: [chapters.created_by],
     references: [users.id],
   }),
   members: many(users),
@@ -353,7 +353,7 @@ const chaptersRelations = relations(chapters, ({ one, many }) => ({
 
 const rolesRelations = relations(roles, ({ one, many }) => ({
   creator: one(users, {
-    fields: [roles.createdBy],
+    fields: [roles.created_by],
     references: [users.id],
   }),
   users: many(users),
@@ -366,34 +366,34 @@ const permissionsRelations = relations(permissions, ({ many }) => ({
 
 const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
   role: one(roles, {
-    fields: [rolePermissions.roleId],
+    fields: [rolePermissions.role_id],
     references: [roles.id],
   }),
   permission: one(permissions, {
-    fields: [rolePermissions.permissionId],
+    fields: [rolePermissions.permission_id],
     references: [permissions.id],
   }),
 }));
 
 const charactersRelations = relations(characters, ({ one, many }) => ({
   user: one(users, {
-    fields: [characters.userId],
+    fields: [characters.user_id],
     references: [users.id],
   }),
   heritage: one(heritages, {
-    fields: [characters.heritageId],
+    fields: [characters.heritage_id],
     references: [heritages.id],
   }),
   culture: one(cultures, {
-    fields: [characters.cultureId],
+    fields: [characters.culture_id],
     references: [cultures.id],
   }),
   archetype: one(archetypes, {
-    fields: [characters.archetypeId],
+    fields: [characters.archetype_id],
     references: [archetypes.id],
   }),
   secondaryArchetype: one(archetypes, {
-    fields: [characters.secondaryArchetype],
+    fields: [characters.secondary_archetype_id],
     references: [archetypes.id],
   }),
   eventRsvps: many(eventRsvps),
@@ -406,11 +406,11 @@ const charactersRelations = relations(characters, ({ one, many }) => ({
 
 const eventsRelations = relations(events, ({ one, many }) => ({
   chapter: one(chapters, {
-    fields: [events.chapterId],
+    fields: [events.chapter_id],
     references: [chapters.id],
   }),
   creator: one(users, {
-    fields: [events.createdBy],
+    fields: [events.created_by],
     references: [users.id],
   }),
   rsvps: many(eventRsvps),
