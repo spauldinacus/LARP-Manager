@@ -192,6 +192,7 @@ const characters = pgTable("characters", {
   heritage_id: uuid("heritage_id").references(() => heritages.id).notNull(),
   culture_id: uuid("culture_id").references(() => cultures.id).notNull(),
   archetype_id: uuid("archetype_id").references(() => archetypes.id).notNull(),
+  secondaryArchetype: uuid("secondary_archetype_id").references(() => archetypes.id),
   xp: integer("xp").default(0).notNull(),
   candles: integer("candles").default(0).notNull(),
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
