@@ -574,16 +574,6 @@ export default function CharacterCreationModal({
                       <h5 className="text-sm font-medium text-accent mb-2">Culture: {selectedCultureData.name}</h5>
                       <div className="space-y-1">
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">Primary Skills</p>
-                          <div className="flex flex-wrap gap-1">
-                            {(selectedCultureData.primarySkills || []).map((skill: DynamicSkill, index: number) => (
-                              <span key={index} className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
-                                {skill.name}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
                           <p className="text-xs font-medium text-muted-foreground">Secondary Skills</p>
                           <div className="flex flex-wrap gap-1">
                             {(selectedCultureData.secondarySkills || []).map((skill: DynamicSkill, index: number) => (
