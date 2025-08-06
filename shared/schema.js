@@ -70,18 +70,18 @@ export function calculateAttributePurchaseCost(heritage, currentBody, currentSta
 const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
-  playerName: text("player_name").notNull(),
+  player_name: text("player_name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   title: text("title"), // Custom user title/role display name
-  playerNumber: text("player_number").unique(),
-  chapterId: uuid("chapter_id"), // Will add references after chapters are defined
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  roleId: uuid("role_id"), // Will add references after roles are defined
+  player_number: text("player_number").unique(),
+  chapter_id: uuid("chapter_id"), // Will add references after chapters are defined
+  is_admin: boolean("is_admin").default(false).notNull(),
+  role_id: uuid("role_id"), // Will add references after roles are defined
   role: text("role"), // Denormalized role name for easy access
   candles: integer("candles").default(0).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 const chapters = pgTable("chapters", {
@@ -90,9 +90,9 @@ const chapters = pgTable("chapters", {
   code: text("code").notNull().unique(), // 2-letter chapter code
   description: text("description"),
   isActive: boolean("is_active").default(true).notNull(),
-  createdBy: uuid("created_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_by: uuid("created_by").references(() => users.id).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 // Role and permission tables
@@ -116,8 +116,8 @@ const permissions = pgTable("permissions", {
 
 const rolePermissions = pgTable("role_permissions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  roleId: uuid("role_id").references(() => roles.id, { onDelete: "cascade" }).notNull(),
-  permissionId: uuid("permission_id").references(() => permissions.id, { onDelete: "cascade" }).notNull(),
+  role_id: uuid("role_id").references(() => roles.id, { onDelete: "cascade" }).notNull(),
+  permission_id: uuid("permission_id").references(() => permissions.id, { onDelete: "cascade" }).notNull(),
 });
 
 // Default permissions
@@ -147,32 +147,32 @@ const heritages = pgTable("heritages", {
   stamina: integer("stamina").notNull(),
   icon: text("icon").notNull(),
   description: text("description").notNull(),
-  costumeRequirements: text("costume_requirements").notNull(),
+  costume_requirements: text("costume_requirements").notNull(),
   benefit: text("benefit").notNull(),
   weakness: text("weakness").notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 const cultures = pgTable("cultures", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
-  allowedHeritages: text("allowed_heritages").array().notNull().default([]),
+  allowed_heritages: text("allowed_heritages").array().notNull().default([]),
   benefits: text("benefits").array().notNull().default([]),
-  costumeRequirements: text("costume_requirements"),
+  costume_requirements: text("costume_requirements"),
   description: text("description"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 const archetypes = pgTable("archetypes", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description"),
-  primarySkills: text("primary_skills").array().notNull().default([]),
-  secondarySkills: text("secondary_skills").array().notNull().default([]),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  primary_skills: text("primary_skills").array().notNull().default([]),
+  secondary_skills: text("secondary_skills").array().notNull().default([]),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 const skills = pgTable("skills", {
@@ -192,7 +192,7 @@ const characters = pgTable("characters", {
   heritage_id: uuid("heritage_id").references(() => heritages.id).notNull(),
   culture_id: uuid("culture_id").references(() => cultures.id).notNull(),
   archetype_id: uuid("archetype_id").references(() => archetypes.id).notNull(),
-  secondaryArchetype: uuid("secondary_archetype_id").references(() => archetypes.id),
+  secondary_archetype_id: uuid("secondary_archetype_id").references(() => archetypes.id),
   xp: integer("xp").default(0).notNull(),
   candles: integer("candles").default(0).notNull(),
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
@@ -204,84 +204,84 @@ const events = pgTable("events", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
-  eventDate: timestamp("event_date").notNull(),
+  event_date: timestamp("event_date").notNull(),
   location: text("location"),
-  maxAttendees: integer("max_attendees"),
-  registrationOpen: boolean("registration_open").default(true).notNull(),
-  chapterId: uuid("chapter_id").references(() => chapters.id).notNull(),
-  createdBy: uuid("created_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  max_attendees: integer("max_attendees"),
+  registration_open: boolean("registration_open").default(true).notNull(),
+  chapter_id: uuid("chapter_id").references(() => chapters.id).notNull(),
+  created_by: uuid("created_by").references(() => users.id).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const eventRsvps = pgTable("event_rsvps", {
+const event_rsvps = pgTable("event_rsvps", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: uuid("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
-  rsvpStatus: boolean("rsvp_status"),
-  attendanceMarked: boolean("attendance_marked").default(false).notNull(),
+  event_id: uuid("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  rsvp_status: boolean("rsvp_status"),
+  attendance_marked: boolean("attendance_marked").default(false).notNull(),
   xp_purchases: integer("xp_purchases").default(0).notNull(),
   xp_candle_purchases: integer("xp_candle_purchases").default(0).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 // Experience tracking
-const experienceEntries = pgTable("experience_entries", {
+const experience_entries = pgTable("experience_entries", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   amount: integer("amount").notNull(),
   reason: text("reason").notNull(),
-  eventId: uuid("event_id").references(() => events.id),
-  rsvpId: uuid("rsvp_id").references(() => eventRsvps.id),
-  skillPurchased: text("skill_purchased"),
-  attributeIncreased: text("attribute_increased"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  event_id: uuid("event_id").references(() => events.id),
+  rsvp_id: uuid("rsvp_id").references(() => event_rsvps.id),
+  skill_purchased: text("skill_purchased"),
+  attribute_increased: text("attribute_increased"),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
   awarded_by: uuid("awarded_by"),
 });
 
 // System settings
-const systemSettings = pgTable("system_settings", {
+const system_settings = pgTable("system_settings", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   key: text("key").notNull().unique(),
   value: text("value").notNull(),
   description: text("description"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 // Candle transaction tracking
-const candleTransactions = pgTable("candle_transactions", {
+const candle_transactions = pgTable("candle_transactions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   user_id: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   amount: integer("amount").notNull(), // Positive for add, negative for spend
   reason: text("reason").notNull(),
   created_by: uuid("created_by").references(() => users.id).notNull(), // Admin who performed the transaction
-  eventId: uuid("event_id").references(() => events.id), // Optional event association
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  event_id: uuid("event_id").references(() => events.id), // Optional event association
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
 // Achievement and milestone overrides
-const staticMilestoneOverrides = pgTable("static_milestone_overrides", {
+const static_milestone_overrides = pgTable("static_milestone_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
-  milestoneId: text("milestone_id").notNull(),
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  milestone_id: text("milestone_id").notNull(),
+  is_completed: boolean("is_completed").default(false).notNull(),
+  completed_at: timestamp("completed_at"),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
-const staticAchievementOverrides = pgTable("static_achievement_overrides", {
+const static_achievement_overrides = pgTable("static_achievement_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
-  achievementId: text("achievement_id").notNull(),
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  achievement_id: text("achievement_id").notNull(),
+  is_completed: boolean("is_completed").default(false).notNull(),
+  completed_at: timestamp("completed_at"),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
 // Custom achievements and milestones
-const customAchievements = pgTable("custom_achievements", {
+const custom_achievements = pgTable("custom_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -290,12 +290,12 @@ const customAchievements = pgTable("custom_achievements", {
   condition_type: text("condition_type").notNull(), // e.g., "event_participation", "skill_mastery"
   condition_value: integer("condition_value").notNull(),
   is_active: boolean("is_active").default(false).notNull(),
-  createdBy: uuid("created_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_by: uuid("created_by").references(() => users.id).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const customMilestones = pgTable("custom_milestones", {
+const custom_milestones = pgTable("custom_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -303,23 +303,23 @@ const customMilestones = pgTable("custom_milestones", {
   icon_name: text("icon_name").notNull(),
   color: text("color").notNull(),
   is_active: boolean("is_active").default(true).notNull(),
-  createdBy: uuid("created_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_by: uuid("created_by").references(() => users.id).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const characterAchievements = pgTable("character_achievements", {
+const character_achievements = pgTable("character_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
-  achievementId: uuid("achievement_id").references(() => customAchievements.id, { onDelete: "cascade" }).notNull(),
-  completedAt: timestamp("completed_at").default(sql`now()`).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  achievement_id: uuid("achievement_id").references(() => custom_achievements.id, { onDelete: "cascade" }).notNull(),
+  completed_at: timestamp("completed_at").default(sql`now()`).notNull(),
 });
 
-const characterMilestones = pgTable("character_milestones", {
+const character_milestones = pgTable("character_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
-  milestoneId: uuid("milestone_id").references(() => customMilestones.id, { onDelete: "cascade" }).notNull(),
-  completedAt: timestamp("completed_at").default(sql`now()`).notNull(),
+  character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
+  milestone_id: uuid("milestone_id").references(() => custom_milestones.id, { onDelete: "cascade" }).notNull(),
+  completed_at: timestamp("completed_at").default(sql`now()`).notNull(),
 });
 
 // Relations
