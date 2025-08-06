@@ -13,13 +13,13 @@ export default async function handler(req, res) {
           code: chapters.code,
           description: chapters.description,
           isActive: chapters.isActive,
-          createdAt: chapters.createdAt,
-          updatedAt: chapters.updatedAt,
+          created_at: chapters.created_at,
+          updated_at: chapters.updated_at,
           memberCount: count(users.id),
         })
         .from(chapters)
-        .leftJoin(users, eq(chapters.id, users.chapterId))
-        .groupBy(chapters.id, chapters.name, chapters.code, chapters.description, chapters.isActive, chapters.createdAt, chapters.updatedAt)
+        .leftJoin(users, eq(chapters.id, users.chapter_id))
+        .groupBy(chapters.id, chapters.name, chapters.code, chapters.description, chapters.isActive, chapters.created_at, chapters.updated_at)
         .orderBy(chapters.name);
 
       return res.status(200).json(chaptersWithCounts);

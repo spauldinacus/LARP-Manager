@@ -370,7 +370,7 @@ async function handleRolePermissions(req, res, method, id) {
     })
     .from(rolePermissions)
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-    .where(eq(rolePermissions.roleId, id));
+    .where(eq(rolePermissions.role_id, id));
 
     return res.status(200).json(rolePerms);
   }
@@ -394,13 +394,13 @@ async function handleStats(req, res, method) {
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const [totalCharactersLastMonthResult] = await db.select({ count: count() })
         .from(characters)
-        .where(sql`${characters.createdAt} < ${lastMonth.toISOString()}`);
+        .where(sql`${characters.created_at} < ${lastMonth.toISOString()}`);
       const totalCharactersLastMonth = totalCharactersLastMonthResult.count;
 
       // Get active players (users with at least one character)
       const [activePlayersResult] = await db.select({ count: count() })
         .from(users)
-        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.userId} = ${users.id})`);
+        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.user_id} = ${users.id})`);
       const activePlayers = activePlayersResult.count;
 
       // Get active players from last week
@@ -408,7 +408,7 @@ async function handleStats(req, res, method) {
       lastWeek.setDate(lastWeek.getDate() - 7);
       const [activePlayersLastWeekResult] = await db.select({ count: count() })
         .from(users)
-        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.userId} = ${users.id} AND ${characters.createdAt} < ${lastWeek.toISOString()})`);
+        .where(sql`EXISTS (SELECT 1 FROM ${characters} WHERE ${characters.user_id} = ${users.id} AND ${characters.created_at} < ${lastWeek.toISOString()})`);
       const activePlayersLastWeek = activePlayersLastWeekResult.count;
 
       // Get upcoming events
@@ -472,10 +472,10 @@ async function handleEvents(req, res, method, id) {
         maxAttendees: events.maxAttendees,
         registrationOpen: events.registrationOpen,
         isActive: events.registrationOpen,
-        chapterId: events.chapterId,
-        createdBy: events.createdBy,
-        createdAt: events.createdAt,
-        updatedAt: events.updatedAt,
+        chapter_id: events.chapter_id,
+        created_by: events.created_by,
+        created_at: events.created_at,
+        updated_at: events.updated_at,
         chapter: {
           id: chapters.id,
           name: chapters.name,
@@ -487,8 +487,8 @@ async function handleEvents(req, res, method, id) {
         }
       })
       .from(events)
-      .leftJoin(chapters, eq(events.chapterId, chapters.id))
-      .leftJoin(users, eq(events.createdBy, users.id))
+      .leftJoin(chapters, eq(events.chapter_id, chapters.id))
+      .leftJoin(users, eq(events.created_by, users.id))
       .where(eq(events.id, id));
 
       if (!event) {
@@ -506,10 +506,10 @@ async function handleEvents(req, res, method, id) {
         maxAttendees: events.maxAttendees,
         registrationOpen: events.registrationOpen,
         isActive: events.registrationOpen,
-        chapterId: events.chapterId,
-        createdBy: events.createdBy,
-        createdAt: events.createdAt,
-        updatedAt: events.updatedAt,
+        chapter_id: events.chapter_id,
+        created_by: events.created_by,
+        created_at: events.created_at,
+        updated_at: events.updated_at,
         chapter: {
           id: chapters.id,
           name: chapters.name,
@@ -521,8 +521,8 @@ async function handleEvents(req, res, method, id) {
         }
       })
       .from(events)
-      .leftJoin(chapters, eq(events.chapterId, chapters.id))
-      .leftJoin(users, eq(events.createdBy, users.id))
+      .leftJoin(chapters, eq(events.chapter_id, chapters.id))
+      .leftJoin(users, eq(events.created_by, users.id))
       .orderBy(desc(events.eventDate));
 
       return res.status(200).json(allEvents);

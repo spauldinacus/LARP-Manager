@@ -53,11 +53,11 @@ async function handleCharactersList(req, res, method) {
       .select({
         id: characters.id,
         name: characters.name,
-        userId: characters.userId,
-        heritageId: characters.heritageId,
-        cultureId: characters.cultureId,
-        archetypeId: characters.archetypeId,
-        secondaryArchetypeId: characters.secondaryArchetypeId,
+        user_id: characters.user_id,
+        heritage_id: characters.heritage_id,
+        culture_id: characters.culture_id,
+        archetype_id: characters.archetype_id,
+        secondary_archetype_id: characters.secondary_archetype_id,
         body: characters.body,
         mind: characters.mind,
         spirit: characters.spirit,
@@ -65,8 +65,8 @@ async function handleCharactersList(req, res, method) {
         totalXpSpent: characters.totalXpSpent,
         experience: characters.experience,
         isActive: characters.isActive,
-        createdAt: characters.createdAt,
-        updatedAt: characters.updatedAt,
+        created_at: characters.created_at,
+        updated_at: characters.updated_at,
         playerName: users.playerName,
         email: users.email,
         heritageName: heritages.name,
@@ -75,11 +75,11 @@ async function handleCharactersList(req, res, method) {
         secondaryArchetypeName: secondaryArchetypes.name,
       })
       .from(characters)
-      .leftJoin(users, eq(characters.userId, users.id))
-      .leftJoin(heritages, eq(characters.heritageId, heritages.id))
-      .leftJoin(cultures, eq(characters.cultureId, cultures.id))
-      .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
-      .leftJoin(secondaryArchetypes, eq(characters.secondaryArchetypeId, secondaryArchetypes.id));
+      .leftJoin(users, eq(characters.user_id, users.id))
+      .leftJoin(heritages, eq(characters.heritage_id, heritages.id))
+      .leftJoin(cultures, eq(characters.culture_id, cultures.id))
+      .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id))
+      .leftJoin(secondaryArchetypes, eq(characters.secondary_archetype_id, secondaryArchetypes.id));
     return res.status(200).json(allCharacters);
   }
 
@@ -88,7 +88,7 @@ async function handleCharactersList(req, res, method) {
     if (!session) return;
 
     const [newCharacter] = await db.insert(characters)
-      .values({ ...req.body, userId: session.userId })
+      .values({ ...req.body, user_id: session.user_id })
       .returning();
 
     return res.status(201).json(newCharacter);
@@ -109,11 +109,11 @@ async function handleSingleCharacter(req, res, method, characterId) {
       .select({
         id: characters.id,
         name: characters.name,
-        userId: characters.userId,
-        heritageId: characters.heritageId,
-        cultureId: characters.cultureId,
-        archetypeId: characters.archetypeId,
-        secondaryArchetypeId: characters.secondaryArchetypeId,
+        user_id: characters.user_id,
+        heritage_id: characters.heritage_id,
+        culture_id: characters.culture_id,
+        archetype_id: characters.archetype_id,
+        secondary_archetype_id: characters.secondary_archetype_id,
         body: characters.body,
         mind: characters.mind,
         spirit: characters.spirit,
@@ -121,8 +121,8 @@ async function handleSingleCharacter(req, res, method, characterId) {
         totalXpSpent: characters.totalXpSpent,
         experience: characters.experience,
         isActive: characters.isActive,
-        createdAt: characters.createdAt,
-        updatedAt: characters.updatedAt,
+        created_at: characters.created_at,
+        updated_at: characters.updated_at,
         playerName: users.playerName,
         email: users.email,
         heritageName: heritages.name,
@@ -131,11 +131,11 @@ async function handleSingleCharacter(req, res, method, characterId) {
         secondaryArchetypeName: secondaryArchetypes.name,
       })
       .from(characters)
-      .leftJoin(users, eq(characters.userId, users.id))
-      .leftJoin(heritages, eq(characters.heritageId, heritages.id))
-      .leftJoin(cultures, eq(characters.cultureId, cultures.id))
-      .leftJoin(archetypes, eq(characters.archetypeId, archetypes.id))
-      .leftJoin(secondaryArchetypes, eq(characters.secondaryArchetypeId, secondaryArchetypes.id))
+      .leftJoin(users, eq(characters.user_id, users.id))
+      .leftJoin(heritages, eq(characters.heritage_id, heritages.id))
+      .leftJoin(cultures, eq(characters.culture_id, cultures.id))
+      .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id))
+      .leftJoin(secondaryArchetypes, eq(characters.secondary_archetype_id, secondaryArchetypes.id))
       .where(eq(characters.id, characterId));
 
     if (!character) {
@@ -177,8 +177,8 @@ async function handleCharacterExperience(req, res, method, characterId) {
     const experience = await db
       .select()
       .from(experienceEntries)
-      .where(eq(experienceEntries.characterId, characterId))
-      .orderBy(desc(experienceEntries.createdAt));
+      .where(eq(experienceEntries.character_id, characterId))
+      .orderBy(desc(experienceEntries.created_at));
 
     return res.status(200).json(experience);
   }
@@ -190,8 +190,8 @@ async function handleCharacterExperience(req, res, method, characterId) {
     const [newEntry] = await db.insert(experienceEntries)
       .values({
         ...req.body,
-        characterId,
-        awardedBy: session.userId
+        character_id: characterId,
+        awarded_by: session.user_id
       })
       .returning();
 
@@ -208,11 +208,11 @@ async function handleAttendanceXp(req, res, method, characterId) {
 
     const [newEntry] = await db.insert(experienceEntries)
       .values({
-        characterId,
+        character_id: characterId,
         amount: req.body.amount,
         reason: `Attendance XP: ${req.body.eventName}`,
-        eventId: req.body.eventId,
-        awardedBy: session.userId
+        event_id: req.body.eventId,
+        awarded_by: session.user_id
       })
       .returning();
 

@@ -447,12 +447,12 @@ const experienceEntriesRelations = relations(experienceEntries, ({ one }) => ({
 
 const candleTransactionsRelations = relations(candleTransactions, ({ one }) => ({
   user: one(users, {
-    fields: [candleTransactions.userId],
+    fields: [candleTransactions.user_id],
     references: [users.id],
     relationName: "userTransactions",
   }),
   performedBy: one(users, {
-    fields: [candleTransactions.performedBy],
+    fields: [candleTransactions.created_by],
     references: [users.id],
     relationName: "performedTransactions",
   }),

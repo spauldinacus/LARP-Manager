@@ -69,7 +69,7 @@ async function handleLogin(req, res, method) {
 
   // Create session
   const sessionData = {
-    userId: user.id,
+    user_id: user.id,
     isAdmin: user.isAdmin,
     role: user.role
   };
@@ -86,7 +86,7 @@ async function handleRegister(req, res, method) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { playerName, email, password, chapterId } = req.body;
+  const { playerName, email, password, chapter_id } = req.body;
 
   if (!playerName || !email || !password) {
     return res.status(400).json({ message: 'Player name, email, and password are required' });
@@ -104,7 +104,7 @@ async function handleRegister(req, res, method) {
     playerName,
     email,
     password: hashedPassword,
-    chapterId: chapterId || null,
+    chapter_id: chapter_id || null,
     isAdmin: false,
     role: 'player',
     candles: 0
@@ -112,7 +112,7 @@ async function handleRegister(req, res, method) {
 
   // Create session
   const sessionData = {
-    userId: newUser.id,
+    user_id: newUser.id,
     isAdmin: newUser.isAdmin,
     role: newUser.role
   };
@@ -143,7 +143,7 @@ async function handleMe(req, res, method) {
     return res.status(401).json({ message: 'Not authenticated' });
   }
 
-  const user = await db.select().from(users).where(eq(users.id, session.userId));
+  const user = await db.select().from(users).where(eq(users.id, session.user_id));
   if (!user || user.length === 0) {
     return res.status(404).json({ message: 'User not found' });
   }
