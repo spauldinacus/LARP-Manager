@@ -195,7 +195,7 @@ export const characters = pgTable("characters", {
   name: text("name").notNull(),
   heritage: uuid("heritage").references(() => heritages.id).notNull(),
   culture: uuid("culture").references(() => cultures.id).notNull(),
-  archetype_id: uuid("archetype_id").references(() => archetypes.id).notNull(),
+  archetype: uuid("archetype").references(() => archetypes.id).notNull(),
   secondary_archetype_id: uuid("secondary_archetype_id").references(() => archetypes.id),
   // Added fields to match API usage
   body: integer("body"),
@@ -417,7 +417,7 @@ const charactersRelations = relations(characters, ({ one, many }) => ({
     references: [cultures.id],
   }),
   archetype: one(archetypes, {
-    fields: [characters.archetype_id],
+    fields: [characters.archetype],
     references: [archetypes.id],
   }),
   secondaryArchetype: one(archetypes, {
