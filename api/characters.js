@@ -75,7 +75,7 @@ async function handleCharactersList(req, res, method) {
           user_id: characters.user_id,
           heritage: characters.heritage,
           culture: characters.culture,
-          archetype_id: characters.archetype_id,
+          archetype: characters.archetype,
           xp: characters.xp,
           candles: characters.candles,
           created_at: characters.created_at,
@@ -90,7 +90,7 @@ async function handleCharactersList(req, res, method) {
         .leftJoin(users, eq(characters.user_id, users.id))
         .leftJoin(heritages, eq(characters.heritage, heritages.id))
         .leftJoin(cultures, eq(characters.culture, cultures.id))
-        .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id));
+        .leftJoin(archetypes, eq(characters.archetype, archetypes.id));
     } catch (err) {
       console.error('Characters API select error:', err);
       res.status(500).json({ message: 'Failed to load characters', error: err.message });
@@ -133,7 +133,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
           user_id: characters.user_id,
           heritage: characters.heritage,
           culture: characters.culture,
-          archetype_id: characters.archetype_id,
+          archetype: characters.archetype,
           xp: characters.xp,
           candles: characters.candles,
           created_at: characters.created_at,
@@ -148,7 +148,7 @@ async function handleSingleCharacter(req, res, method, characterId) {
         .leftJoin(users, eq(characters.user_id, users.id))
         .leftJoin(heritages, eq(characters.heritage, heritages.id))
         .leftJoin(cultures, eq(characters.culture, cultures.id))
-        .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id))
+        .leftJoin(archetypes, eq(characters.archetype, archetypes.id))
         .where(eq(characters.id, characterId));
     } catch (err) {
       console.error('Single Character API select error:', err);
