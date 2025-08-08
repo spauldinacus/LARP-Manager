@@ -155,7 +155,8 @@ async function handleMe(req, res, method) {
     return res.status(401).json({ message: 'Not authenticated' });
   }
 
-  const user = await db.select().from(users).where(eq(users.id, session.user_id));
+  // Use camelCase userId for session property
+  const user = await db.select().from(users).where(eq(users.id, session.userId));
   if (!user || user.length === 0) {
     return res.status(404).json({ message: 'User not found' });
   }
