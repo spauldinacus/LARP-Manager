@@ -27,9 +27,9 @@ export default async function handler(req, res) {
   let action = req.query.action;
 
   if (!action && req.url) {
-    // Remove leading slash and get the action
+    // Remove leading slash and get the LAST part as the action
     const pathParts = req.url.split('/').filter(Boolean);
-    action = pathParts[0]; // This should be the action (login, register, etc.)
+    action = pathParts[pathParts.length - 1];
   }
 
   try {
