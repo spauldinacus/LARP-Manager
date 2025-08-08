@@ -569,8 +569,7 @@ export {
   custom_achievements,
   custom_milestones,
   character_achievements,
-  character_milestones,
-  skills
+  character_milestones
 };
 
 export {
