@@ -73,6 +73,7 @@ async function handleCharacterAchievements(req, res, method, characterId) {
 async function handleCharactersList(req, res, method) {
   if (method === 'GET') {
     const session = await getSessionData(req);
+    console.log('Session debug:', session);
     if (!session) {
       return res.status(401).json({ message: 'Authentication required' });
     }
