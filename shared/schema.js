@@ -559,17 +559,7 @@ export {
   chapters,
   roles,
   permissions,
-  events,
-  event_rsvps,
-  experience_entries,
-  system_settings,
-  candle_transactions,
-  static_milestone_overrides,
-  static_achievement_overrides,
-  custom_achievements,
-  custom_milestones,
-  character_achievements,
-  character_milestones
+  events
 };
 
 export {
