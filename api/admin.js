@@ -73,18 +73,18 @@ async function handleAchievements(req, res, method, id) {
     if (id) {
       const [achievement] = await db.select().from(customAchievements).where(eq(customAchievements.id, id));
       if (!achievement) {
-        return res.status(404).json({ message: 'Achievement not found' });
+        res.status(404).json({ message: 'Achievement not found' }); return;
       }
-      return res.status(200).json(achievement);
+      res.status(200).json(achievement); return;
     } else {
       const allAchievements = await db.select().from(customAchievements);
-      return res.status(200).json(allAchievements);
+      res.status(200).json(allAchievements); return;
     }
   }
 
   if (method === 'POST') {
     const [newAchievement] = await db.insert(customAchievements).values(req.body).returning();
-    return res.status(201).json(newAchievement);
+    res.status(201).json(newAchievement); return;
   }
 
   if (method === 'PUT' && id) {
@@ -93,9 +93,9 @@ async function handleAchievements(req, res, method, id) {
       .where(eq(customAchievements.id, id))
       .returning();
     if (!updatedAchievement) {
-      return res.status(404).json({ message: 'Achievement not found' });
+      res.status(404).json({ message: 'Achievement not found' }); return;
     }
-    return res.status(200).json(updatedAchievement);
+    res.status(200).json(updatedAchievement); return;
   }
 
   if (method === 'DELETE' && id) {
@@ -103,12 +103,12 @@ async function handleAchievements(req, res, method, id) {
       .where(eq(customAchievements.id, id))
       .returning();
     if (!deletedAchievement) {
-      return res.status(404).json({ message: 'Achievement not found' });
+      res.status(404).json({ message: 'Achievement not found' }); return;
     }
-    return res.status(200).json({ message: 'Achievement deleted successfully' });
+    res.status(200).json({ message: 'Achievement deleted successfully' }); return;
   }
 
-  return res.status(405).json({ message: 'Method not allowed' });
+  res.status(405).json({ message: 'Method not allowed' }); return;
 }
 
 // Milestones handlers
