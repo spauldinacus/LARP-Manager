@@ -46,10 +46,21 @@ export default async function handler(req, res) {
       case 'attendance-xp':
         await handleAttendanceXp(req, res, method, characterId);
         return;
+      case 'achievements':
+        await handleCharacterAchievements(req, res, method, characterId);
+        return;
       default:
         res.status(404).json({ message: 'Character endpoint not found' });
         return;
     }
+// Handler for character achievements (stub, returns empty array for GET)
+async function handleCharacterAchievements(req, res, method, characterId) {
+  if (method === 'GET') {
+    // TODO: Implement actual achievement lookup if needed
+    res.status(200).json([]); return;
+  }
+  res.status(405).json({ message: 'Method not allowed' }); return;
+}
   } catch (error) {
     console.error('Characters API error:', error);
     return res.status(500).json({
@@ -231,6 +242,10 @@ async function handleCharacterExperience(req, res, method, characterId) {
 }
 
 async function handleAttendanceXp(req, res, method, characterId) {
+  if (method === 'GET') {
+    // Optionally, return a stub or real data if you want to support GET
+    res.status(200).json([]); return;
+  }
   if (method === 'POST') {
     const session = await requireAdmin(req, res);
     if (!session) return;
@@ -245,10 +260,7 @@ async function handleAttendanceXp(req, res, method, characterId) {
       })
       .returning();
 
-    res.status(201).json(newEntry);
-    return;
+    res.status(201).json(newEntry); return;
   }
-
-    res.status(405).json({ message: 'Method not allowed' });
-    return;
+  res.status(405).json({ message: 'Method not allowed' }); return;
 }
