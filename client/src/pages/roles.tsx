@@ -143,7 +143,9 @@ export default function RolesPage() {
     setEditingRole(role);
 
     // Fetch role permissions
-    const response = await fetch(`/api/admin?type=role-permissions&id=${role.id}`);
+    const response = await fetch(`/api/admin?type=role-permissions&id=${role.id}`, {
+      credentials: "include",
+    });
     const rolePermissions = await response.json();
 
     form.reset({
