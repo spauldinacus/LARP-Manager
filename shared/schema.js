@@ -86,7 +86,7 @@ export const users = pgTable("users", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const chapters = pgTable("chapters", {
+export const chapters = pgTable("chapters", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   code: text("code").notNull().unique(), // 2-letter chapter code
@@ -98,7 +98,7 @@ const chapters = pgTable("chapters", {
 });
 
 // Role and permission tables
-const roles = pgTable("roles", {
+export const roles = pgTable("roles", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description"),
@@ -109,14 +109,14 @@ const roles = pgTable("roles", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const permissions = pgTable("permissions", {
+export const permissions = pgTable("permissions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description").notNull(),
   category: text("category").notNull(), // e.g., "users", "characters", "events", "system"
 });
 
-const role_permissions = pgTable("role_permissions", {
+export const role_permissions = pgTable("role_permissions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   role_id: uuid("role_id").references(() => roles.id, { onDelete: "cascade" }).notNull(),
   permission_id: uuid("permission_id").references(() => permissions.id, { onDelete: "cascade" }).notNull(),
@@ -179,7 +179,7 @@ export const archetypes = pgTable("archetypes", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const skills = pgTable("skills", {
+export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description"),
@@ -212,7 +212,7 @@ export const characters = pgTable("characters", {
 });
 
 // Events and RSVP system
-const events = pgTable("events", {
+export const events = pgTable("events", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
@@ -226,7 +226,7 @@ const events = pgTable("events", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const event_rsvps = pgTable("event_rsvps", {
+export const event_rsvps = pgTable("event_rsvps", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   event_id: uuid("event_id").references(() => events.id, { onDelete: "cascade" }).notNull(),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
@@ -239,7 +239,7 @@ const event_rsvps = pgTable("event_rsvps", {
 });
 
 // Experience tracking
-const experience_entries = pgTable("experience_entries", {
+export const experience_entries = pgTable("experience_entries", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   amount: integer("amount").notNull(),
@@ -255,7 +255,7 @@ const experience_entries = pgTable("experience_entries", {
 export const experienceEntries = experience_entries;
 
 // System settings
-const system_settings = pgTable("system_settings", {
+export const system_settings = pgTable("system_settings", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   key: text("key").notNull().unique(),
   value: text("value").notNull(),
@@ -265,7 +265,7 @@ const system_settings = pgTable("system_settings", {
 });
 
 // Candle transaction tracking
-const candle_transactions = pgTable("candle_transactions", {
+export const candle_transactions = pgTable("candle_transactions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   user_id: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   amount: integer("amount").notNull(), // Positive for add, negative for spend
@@ -278,7 +278,7 @@ const candle_transactions = pgTable("candle_transactions", {
 export const candleTransactions = candle_transactions;
 
 // Achievement and milestone overrides
-const static_milestone_overrides = pgTable("static_milestone_overrides", {
+export const static_milestone_overrides = pgTable("static_milestone_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   milestone_id: text("milestone_id").notNull(),
@@ -289,7 +289,7 @@ const static_milestone_overrides = pgTable("static_milestone_overrides", {
 
 export const staticMilestoneOverrides = static_milestone_overrides;
 
-const static_achievement_overrides = pgTable("static_achievement_overrides", {
+export const static_achievement_overrides = pgTable("static_achievement_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   achievement_id: text("achievement_id").notNull(),
@@ -301,7 +301,7 @@ const static_achievement_overrides = pgTable("static_achievement_overrides", {
 export const staticAchievementOverrides = static_achievement_overrides;
 
 // Custom achievements and milestones
-const custom_achievements = pgTable("custom_achievements", {
+export const custom_achievements = pgTable("custom_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -317,7 +317,7 @@ const custom_achievements = pgTable("custom_achievements", {
 
 export const customAchievements = custom_achievements;
 
-const custom_milestones = pgTable("custom_milestones", {
+export const custom_milestones = pgTable("custom_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -332,7 +332,7 @@ const custom_milestones = pgTable("custom_milestones", {
 
 export const customMilestones = custom_milestones;
 
-const character_achievements = pgTable("character_achievements", {
+export const character_achievements = pgTable("character_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   achievement_id: uuid("achievement_id").references(() => custom_achievements.id, { onDelete: "cascade" }).notNull(),
@@ -341,7 +341,7 @@ const character_achievements = pgTable("character_achievements", {
 
 export const characterAchievements = character_achievements;
 
-const character_milestones = pgTable("character_milestones", {
+export const character_milestones = pgTable("character_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   milestone_id: uuid("milestone_id").references(() => custom_milestones.id, { onDelete: "cascade" }).notNull(),
