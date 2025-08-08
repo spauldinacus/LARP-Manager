@@ -5,7 +5,21 @@ import { eq, desc } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 export default async function handler(req, res) {
-  const { method } = req;
+  // Ensure req.body is parsed for POST, PUT, PATCH requests (Vercel/Node.js serverless)
+  const method = req.method || req?.method;
+  if ((method === "POST" || method === "PUT" || method === "PATCH") && typeof req.body === "undefined") {
+    try {
+      req.body = JSON.parse(await new Promise((resolve, reject) => {
+        let data = "";
+        req.on("data", chunk => (data += chunk));
+        req.on("end", () => resolve(data || "{}"));
+        req.on("error", reject);
+      }));
+    } catch {
+      req.body = {};
+    }
+  }
+
   const pathParts = req.url?.split('/').filter(Boolean) || [];
   const characterId = pathParts[1]; // characters/[id]
   const action = pathParts[2]; // characters/[id]/[action]

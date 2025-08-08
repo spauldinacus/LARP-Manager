@@ -4,11 +4,25 @@ import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc, sql } from 'drizzle-orm';
 
 export default async function handler(req, res) {
+  // Ensure req.body is parsed for POST, PUT, PATCH requests (Vercel/Node.js serverless)
+  const method = req.method || req?.method;
+  if ((method === "POST" || method === "PUT" || method === "PATCH") && typeof req.body === "undefined") {
+    try {
+      req.body = JSON.parse(await new Promise((resolve, reject) => {
+        let data = "";
+        req.on("data", chunk => (data += chunk));
+        req.on("end", () => resolve(data || "{}"));
+        req.on("error", reject);
+      }));
+    } catch {
+      req.body = {};
+    }
+  }
+
   try {
     const session = await requireAdmin(req, res);
     if (!session) return;
 
-    const { method } = req;
     const url = new URL(req.url, `http://${req.headers.host}`);
     const type = url.searchParams.get('type');
     const id = url.searchParams.get('id');

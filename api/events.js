@@ -4,6 +4,21 @@ import { getSessionData, requireAdmin } from '../lib/session.js';
 import { desc } from 'drizzle-orm';
 
 export default async function handler(req, res) {
+  // Ensure req.body is parsed for POST, PUT, PATCH requests (Vercel/Node.js serverless)
+  const method = req.method || req?.method;
+  if ((method === "POST" || method === "PUT" || method === "PATCH") && typeof req.body === "undefined") {
+    try {
+      req.body = JSON.parse(await new Promise((resolve, reject) => {
+        let data = "";
+        req.on("data", chunk => (data += chunk));
+        req.on("end", () => resolve(data || "{}"));
+        req.on("error", reject);
+      }));
+    } catch {
+      req.body = {};
+    }
+  }
+
   try {
     if (req.method === 'GET') {
       // Get all events - accessible to authenticated users
@@ -19,23 +34,23 @@ export default async function handler(req, res) {
 
       return res.status(200).json(allEvents);
     }
-    
+
     if (req.method === 'POST') {
       // Create new event - admin only
       const session = await requireAdmin(req, res);
       if (!session) return; // requireAdmin already sent error response
-      
+
       const [newEvent] = await db.insert(events)
         .values(req.body)
         .returning();
-      
+
       return res.status(201).json(newEvent);
     }
-    
+
     return res.status(405).json({ message: 'Method not allowed' });
   } catch (error) {
     console.error('Events API error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Failed to process events request',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });

@@ -7,11 +7,25 @@ import { hashPassword, comparePassword, getUserByEmail, createUser } from '../..
 
 export default async function handler(req, res) {
   const { method } = req;
-  
+
+  // Ensure req.body is parsed for POST requests (Vercel/Node.js serverless)
+  if (method === "POST" && typeof req.body === "undefined") {
+    try {
+      req.body = JSON.parse(await new Promise((resolve, reject) => {
+        let data = "";
+        req.on("data", chunk => (data += chunk));
+        req.on("end", () => resolve(data || "{}"));
+        req.on("error", reject);
+      }));
+    } catch {
+      req.body = {};
+    }
+  }
+
   // For Vercel, the URL path after /api/auth/ will be in req.url
   // Extract action from URL path or query parameter
   let action = req.query.action;
-  
+
   if (!action && req.url) {
     // Remove leading slash and get the action
     const pathParts = req.url.split('/').filter(Boolean);
