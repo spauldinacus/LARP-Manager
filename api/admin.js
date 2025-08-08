@@ -73,18 +73,18 @@ async function handleAchievements(req, res, method, id) {
     if (id) {
       const [achievement] = await db.select().from(customAchievements).where(eq(customAchievements.id, id));
       if (!achievement) {
-        res.status(404).json({ message: 'Achievement not found' }); return;
+        return res.status(404).json({ message: 'Achievement not found' });
       }
-      res.status(200).json(achievement); return;
+      return res.status(200).json(achievement);
     } else {
       const allAchievements = await db.select().from(customAchievements);
-      res.status(200).json(allAchievements); return;
+      return res.status(200).json(allAchievements);
     }
   }
 
   if (method === 'POST') {
     const [newAchievement] = await db.insert(customAchievements).values(req.body).returning();
-    res.status(201).json(newAchievement); return;
+    return res.status(201).json(newAchievement);
   }
 
   if (method === 'PUT' && id) {
@@ -93,9 +93,9 @@ async function handleAchievements(req, res, method, id) {
       .where(eq(customAchievements.id, id))
       .returning();
     if (!updatedAchievement) {
-      res.status(404).json({ message: 'Achievement not found' }); return;
+      return res.status(404).json({ message: 'Achievement not found' });
     }
-    res.status(200).json(updatedAchievement); return;
+    return res.status(200).json(updatedAchievement);
   }
 
   if (method === 'DELETE' && id) {
@@ -103,12 +103,12 @@ async function handleAchievements(req, res, method, id) {
       .where(eq(customAchievements.id, id))
       .returning();
     if (!deletedAchievement) {
-      res.status(404).json({ message: 'Achievement not found' }); return;
+      return res.status(404).json({ message: 'Achievement not found' });
     }
-    res.status(200).json({ message: 'Achievement deleted successfully' }); return;
+    return res.status(200).json({ message: 'Achievement deleted successfully' });
   }
 
-  res.status(405).json({ message: 'Method not allowed' }); return;
+  return res.status(405).json({ message: 'Method not allowed' });
 }
 
 // Milestones handlers
