@@ -184,8 +184,8 @@ export const skills = pgTable("skills", {
   name: text("name").notNull().unique(),
   description: text("description"),
   prerequisite_skill_id: uuid("prerequisite_skill_id"),
-  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+  created_at: timestamp("created_at").default(sql`now()`).notNull(),
+  updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 // Character management tables
