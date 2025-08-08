@@ -83,11 +83,10 @@ async function handleLogin(req, res, method) {
 
   // Create session
   const sessionData = {
-    user_id: user.id,
+    userId: user.id,
     isAdmin: user.isAdmin,
     role: user.role
   };
-  
   await setSessionData(res, sessionData);
 
   // Return user without password
@@ -126,11 +125,10 @@ async function handleRegister(req, res, method) {
 
   // Create session
   const sessionData = {
-    user_id: newUser.id,
+    userId: newUser.id,
     isAdmin: newUser.isAdmin,
     role: newUser.role
   };
-  
   await setSessionData(res, sessionData);
 
   // Return user without password
