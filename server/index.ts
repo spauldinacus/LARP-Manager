@@ -1,5 +1,6 @@
 import express from "express";
-import { ViteDevServer } from "vite";
+
+import 'dotenv/config';
 
 async function createServer() {
   const app = express();
@@ -8,7 +9,7 @@ async function createServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-  let vite: ViteDevServer | undefined;
+  let vite: any;
 
   if (process.env.NODE_ENV === "development") {
     // Create Vite server in middleware mode
@@ -27,8 +28,10 @@ async function createServer() {
   }
 
   // API Routes will be imported here when they exist
-  const { setupApiRoutes } = await import("./routes").catch(() => ({ setupApiRoutes: () => {} }));
+  console.log("Before setupApiRoutes");
+  const { setupApiRoutes } = await import("./routes.ts");
   await setupApiRoutes(app);
+  console.log("After setupApiRoutes");
 
   // Serve index.html for client-side routing
   app.get("*", async (req, res, next) => {

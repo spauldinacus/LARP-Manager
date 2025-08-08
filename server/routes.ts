@@ -1,6 +1,7 @@
-import { Express } from "express";
+import express from "express";
 
-export async function setupApiRoutes(app: Express) {
+export async function setupApiRoutes(app: express.Express) {
+  console.log("setupApiRoutes called");
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -53,5 +54,6 @@ export async function setupApiRoutes(app: Express) {
     console.log("✅ API routes loaded successfully");
   } catch (error) {
     console.warn("⚠️ Some API routes failed to load:", error);
+    console.error(error);
   }
 }

@@ -1,3 +1,5 @@
+// Aliases for compatibility with camelCase imports in other files
+// ...existing code...
 import { pgTable, uuid, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { sql, relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -261,6 +263,8 @@ const candle_transactions = pgTable("candle_transactions", {
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+export const candleTransactions = candle_transactions;
+
 // Achievement and milestone overrides
 const static_milestone_overrides = pgTable("static_milestone_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -396,12 +400,12 @@ const charactersRelations = relations(characters, ({ one, many }) => ({
     fields: [characters.secondary_archetype_id],
     references: [archetypes.id],
   }),
-  eventRsvps: many(eventRsvps),
-  experienceEntries: many(experienceEntries),
-  staticMilestoneOverrides: many(staticMilestoneOverrides),
-  staticAchievementOverrides: many(staticAchievementOverrides),
-  achievements: many(characterAchievements),
-  milestones: many(characterMilestones),
+  eventRsvps: many(event_rsvps),
+  experienceEntries: many(experience_entries),
+  staticMilestoneOverrides: many(static_milestone_overrides),
+  staticAchievementOverrides: many(static_achievement_overrides),
+  achievements: many(character_achievements),
+  milestones: many(character_milestones),
 }));
 
 const eventsRelations = relations(events, ({ one, many }) => ({
@@ -413,110 +417,104 @@ const eventsRelations = relations(events, ({ one, many }) => ({
     fields: [events.created_by],
     references: [users.id],
   }),
-  rsvps: many(eventRsvps),
-  experienceEntries: many(experienceEntries),
-  candleTransactions: many(candleTransactions),
+  rsvps: many(event_rsvps),
+  experienceEntries: many(experience_entries),
+  candleTransactions: many(candle_transactions),
 }));
 
-const eventRsvpsRelations = relations(eventRsvps, ({ one, many }) => ({
+const eventRsvpsRelations = relations(event_rsvps, ({ one, many }) => ({
   event: one(events, {
-    fields: [eventRsvps.eventId],
+    fields: [event_rsvps.eventId],
     references: [events.id],
   }),
   character: one(characters, {
-    fields: [eventRsvps.characterId],
+    fields: [event_rsvps.characterId],
     references: [characters.id],
   }),
-  experienceEntries: many(experienceEntries),
+  experienceEntries: many(experience_entries),
 }));
 
-const experienceEntriesRelations = relations(experienceEntries, ({ one }) => ({
+const experienceEntriesRelations = relations(experience_entries, ({ one }) => ({
   character: one(characters, {
-    fields: [experienceEntries.characterId],
+    fields: [experience_entries.characterId],
     references: [characters.id],
   }),
   event: one(events, {
-    fields: [experienceEntries.eventId],
+    fields: [experience_entries.eventId],
     references: [events.id],
   }),
-  rsvp: one(eventRsvps, {
-    fields: [experienceEntries.rsvpId],
-    references: [eventRsvps.id],
+  rsvp: one(event_rsvps, {
+    fields: [experience_entries.rsvpId],
+    references: [event_rsvps.id],
   }),
 }));
 
-const candleTransactionsRelations = relations(candleTransactions, ({ one }) => ({
+const candleTransactionsRelations = relations(candle_transactions, ({ one }) => ({
   user: one(users, {
-    fields: [candleTransactions.user_id],
+    fields: [candle_transactions.user_id],
     references: [users.id],
     relationName: "userTransactions",
   }),
   performedBy: one(users, {
-    fields: [candleTransactions.created_by],
+    fields: [candle_transactions.created_by],
     references: [users.id],
     relationName: "performedTransactions",
   }),
   event: one(events, {
-    fields: [candleTransactions.eventId],
+    fields: [candle_transactions.eventId],
     references: [events.id],
   }),
 }));
 
 // Insert Schemas
-const insertChapterSchema = createInsertSchema(chapters).omit({
+const insertEventRsvpSchema = createInsertSchema(event_rsvps).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-const insertUserSchema = createInsertSchema(users).omit({
+const insertExperienceEntrySchema = createInsertSchema(experience_entries).omit({
+  id: true,
+  createdAt: true,
+});
+
+const insertSystemSettingSchema = createInsertSchema(system_settings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-const insertCharacterSchema = createInsertSchema(characters).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertEventSchema = createInsertSchema(events).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertEventRsvpSchema = createInsertSchema(eventRsvps).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertExperienceEntrySchema = createInsertSchema(experienceEntries).omit({
+const insertCandleTransactionSchema = createInsertSchema(candle_transactions).omit({
   id: true,
   createdAt: true,
 });
 
-const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertCandleTransactionSchema = createInsertSchema(candleTransactions).omit({
+const insertStaticMilestoneOverrideSchema = createInsertSchema(static_milestone_overrides).omit({
   id: true,
   createdAt: true,
 });
 
-const insertStaticMilestoneOverrideSchema = createInsertSchema(staticMilestoneOverrides).omit({
+const insertStaticAchievementOverrideSchema = createInsertSchema(static_achievement_overrides).omit({
   id: true,
   createdAt: true,
 });
 
-const insertStaticAchievementOverrideSchema = createInsertSchema(staticAchievementOverrides).omit({
+const insertCustomAchievementSchema = createInsertSchema(custom_achievements).omit({
   id: true,
   createdAt: true,
+});
+
+const insertCustomMilestoneSchema = createInsertSchema(custom_milestones).omit({
+  id: true,
+  createdAt: true,
+});
+
+const insertCharacterAchievementSchema = createInsertSchema(character_achievements).omit({
+  id: true,
+});
+
+const insertCharacterMilestoneSchema = createInsertSchema(character_milestones).omit({
+  id: true,
 });
 
 const insertRoleSchema = createInsertSchema(roles).omit({
@@ -533,49 +531,6 @@ const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
   id: true,
 });
 
-const insertCustomAchievementSchema = createInsertSchema(customAchievements).omit({
-  id: true,
-  createdAt: true,
-});
-
-const insertCustomMilestoneSchema = createInsertSchema(customMilestones).omit({
-  id: true,
-  createdAt: true,
-});
-
-const insertCharacterAchievementSchema = createInsertSchema(characterAchievements).omit({
-  id: true,
-});
-
-const insertCharacterMilestoneSchema = createInsertSchema(characterMilestones).omit({
-  id: true,
-});
-
-const insertHeritageSchema = createInsertSchema(heritages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertCultureSchema = createInsertSchema(cultures).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertArchetypeSchema = createInsertSchema(archetypes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-const insertSkillSchema = createInsertSchema(skills).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Export all tables
 export {
   users,
   chapters,
@@ -584,60 +539,40 @@ export {
   rolePermissions,
   characters,
   events,
-  eventRsvps,
-  experienceEntries,
-  systemSettings,
-  candleTransactions,
-  staticMilestoneOverrides,
-  staticAchievementOverrides,
-  customAchievements,
-  customMilestones,
-  characterAchievements,
-  characterMilestones,
+  event_rsvps,
+  experience_entries,
+  system_settings,
+  candle_transactions,
+  static_milestone_overrides,
+  static_achievement_overrides,
+  custom_achievements,
+  custom_milestones,
+  character_achievements,
+  character_milestones,
   heritages,
   cultures,
   archetypes,
   skills
 };
 
-// Export relations
 export {
-  usersRelations,
-  chaptersRelations,
-  rolesRelations,
-  permissionsRelations,
-  rolePermissionsRelations,
-  charactersRelations,
-  eventsRelations,
-  eventRsvpsRelations,
-  experienceEntriesRelations,
-  candleTransactionsRelations
-};
-
-// Export insert schemas
-export {
-  insertChapterSchema,
-  insertUserSchema,
-  insertCharacterSchema,
-  insertEventSchema,
   insertEventRsvpSchema,
   insertExperienceEntrySchema,
   insertSystemSettingSchema,
   insertCandleTransactionSchema,
   insertStaticMilestoneOverrideSchema,
   insertStaticAchievementOverrideSchema,
-  insertRoleSchema,
-  insertPermissionSchema,
-  insertRolePermissionSchema,
   insertCustomAchievementSchema,
   insertCustomMilestoneSchema,
   insertCharacterAchievementSchema,
   insertCharacterMilestoneSchema,
-  insertHeritageSchema,
-  insertCultureSchema,
-  insertArchetypeSchema,
-  insertSkillSchema
+  insertRoleSchema,
+  insertPermissionSchema,
+  insertRolePermissionSchema
 };
 
-// Export constants
 export { defaultPermissions };
+
+// ...existing code...
+// Aliases for compatibility with camelCase imports in other files
+export const eventRsvps = event_rsvps;
