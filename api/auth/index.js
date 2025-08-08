@@ -89,9 +89,9 @@ async function handleLogin(req, res, method) {
   };
   await setSessionData(res, sessionData);
 
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = user;
-  return res.status(200).json({ user: userWithoutPassword });
+  // Return user without password, mapping player_name to playerName
+  const { password: _, player_name, ...userWithoutPassword } = user;
+  return res.status(200).json({ user: { ...userWithoutPassword, playerName: player_name } });
 }
 
 async function handleRegister(req, res, method) {
@@ -131,9 +131,9 @@ async function handleRegister(req, res, method) {
   };
   await setSessionData(res, sessionData);
 
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = newUser;
-  return res.status(201).json({ user: userWithoutPassword });
+  // Return user without password, mapping player_name to playerName
+  const { password: _, player_name, ...userWithoutPassword } = newUser;
+  return res.status(201).json({ user: { ...userWithoutPassword, playerName: player_name } });
 }
 
 async function handleLogout(req, res, method) {
@@ -161,7 +161,7 @@ async function handleMe(req, res, method) {
     return res.status(404).json({ message: 'User not found' });
   }
 
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = user[0];
-  return res.status(200).json({ user: userWithoutPassword });
+  // Return user without password, mapping player_name to playerName
+  const { password: _, player_name, ...userWithoutPassword } = user[0];
+  return res.status(200).json({ user: { ...userWithoutPassword, playerName: player_name } });
 }
