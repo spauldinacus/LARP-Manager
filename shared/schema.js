@@ -555,11 +555,6 @@ const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
   id: true,
 });
 
-export {
-  chapters,
-  roles,
-  permissions
-};
 
 export {
   insertEventRsvpSchema,
