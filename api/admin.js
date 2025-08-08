@@ -415,22 +415,23 @@ async function handleStats(req, res, method) {
       const now = new Date();
       const [upcomingEventsResult] = await db.select({ count: count() })
         .from(events)
-        .where(sql`${events.eventDate} > ${now.toISOString()}`);
+        .where(sql`${events.event_date} > ${now.toISOString()}`);
       const upcomingEvents = upcomingEventsResult.count;
 
       // Get next event
+
       const [nextEventResult] = await db.select({
         name: events.name,
-        eventDate: events.eventDate
+        event_date: events.event_date
       })
       .from(events)
-      .where(sql`${events.eventDate} > ${now.toISOString()}`)
-      .orderBy(events.eventDate)
+      .where(sql`${events.event_date} > ${now.toISOString()}`)
+      .orderBy(events.event_date)
       .limit(1);
 
       let nextEvent = null;
       if (nextEventResult) {
-        const eventDate = new Date(nextEventResult.eventDate);
+        const eventDate = new Date(nextEventResult.event_date);
         const daysUntil = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         nextEvent = {
           name: nextEventResult.name,
@@ -467,11 +468,11 @@ async function handleEvents(req, res, method, id) {
         name: events.name,
         title: events.name,
         description: events.description,
-        eventDate: events.eventDate,
+        event_date: events.event_date,
         location: events.location,
-        maxAttendees: events.maxAttendees,
-        registrationOpen: events.registrationOpen,
-        isActive: events.registrationOpen,
+        max_attendees: events.max_attendees,
+        registration_open: events.registration_open,
+        is_active: events.is_active,
         chapter_id: events.chapter_id,
         created_by: events.created_by,
         created_at: events.created_at,
@@ -483,7 +484,7 @@ async function handleEvents(req, res, method, id) {
         },
         creator: {
           id: users.id,
-          playerName: users.playerName,
+          player_name: users.player_name,
         }
       })
       .from(events)
@@ -501,11 +502,11 @@ async function handleEvents(req, res, method, id) {
         name: events.name,
         title: events.name,
         description: events.description,
-        eventDate: events.eventDate,
+        event_date: events.event_date,
         location: events.location,
-        maxAttendees: events.maxAttendees,
-        registrationOpen: events.registrationOpen,
-        isActive: events.registrationOpen,
+        max_attendees: events.max_attendees,
+        registration_open: events.registration_open,
+        is_active: events.is_active,
         chapter_id: events.chapter_id,
         created_by: events.created_by,
         created_at: events.created_at,
@@ -517,13 +518,13 @@ async function handleEvents(req, res, method, id) {
         },
         creator: {
           id: users.id,
-          playerName: users.playerName,
+          player_name: users.player_name,
         }
       })
       .from(events)
       .leftJoin(chapters, eq(events.chapter_id, chapters.id))
       .leftJoin(users, eq(events.created_by, users.id))
-      .orderBy(desc(events.eventDate));
+      .orderBy(desc(events.event_date));
 
       return res.status(200).json(allEvents);
     }

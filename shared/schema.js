@@ -69,7 +69,7 @@ export function calculateAttributePurchaseCost(heritage, currentBody, currentSta
 // ...existing code...
 
 // Define users table first to avoid circular references
-const users = pgTable("users", {
+export const users = pgTable("users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   player_name: text("player_name").notNull(),
@@ -116,11 +116,13 @@ const permissions = pgTable("permissions", {
   category: text("category").notNull(), // e.g., "users", "characters", "events", "system"
 });
 
-const rolePermissions = pgTable("role_permissions", {
+const role_permissions = pgTable("role_permissions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   role_id: uuid("role_id").references(() => roles.id, { onDelete: "cascade" }).notNull(),
   permission_id: uuid("permission_id").references(() => permissions.id, { onDelete: "cascade" }).notNull(),
 });
+
+export const rolePermissions = role_permissions;
 
 // Default permissions
 const defaultPermissions = [
@@ -142,7 +144,7 @@ const defaultPermissions = [
 ];
 
 // Dynamic game data tables
-const heritages = pgTable("heritages", {
+export const heritages = pgTable("heritages", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   body: integer("body").notNull(),
@@ -156,7 +158,7 @@ const heritages = pgTable("heritages", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const cultures = pgTable("cultures", {
+export const cultures = pgTable("cultures", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   allowed_heritages: text("allowed_heritages").array().notNull().default([]),
@@ -167,7 +169,7 @@ const cultures = pgTable("cultures", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
-const archetypes = pgTable("archetypes", {
+export const archetypes = pgTable("archetypes", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   description: text("description"),
@@ -187,14 +189,22 @@ const skills = pgTable("skills", {
 });
 
 // Character management tables
-const characters = pgTable("characters", {
+export const characters = pgTable("characters", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   user_id: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   name: text("name").notNull(),
-  heritage_id: uuid("heritage_id").references(() => heritages.id).notNull(),
-  culture_id: uuid("culture_id").references(() => cultures.id).notNull(),
+  heritage: uuid("heritage").references(() => heritages.id).notNull(),
+  culture: uuid("culture").references(() => cultures.id).notNull(),
   archetype_id: uuid("archetype_id").references(() => archetypes.id).notNull(),
   secondary_archetype_id: uuid("secondary_archetype_id").references(() => archetypes.id),
+  // Added fields to match API usage
+  body: integer("body"),
+  mind: integer("mind"),
+  spirit: integer("spirit"),
+  purchased_skills: text("purchased_skills").array().default([]),
+  total_xp_spent: integer("total_xp_spent").default(0),
+  experience: integer("experience").default(0),
+  is_active: boolean("is_active").default(true),
   xp: integer("xp").default(0).notNull(),
   candles: integer("candles").default(0).notNull(),
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
@@ -242,6 +252,8 @@ const experience_entries = pgTable("experience_entries", {
   awarded_by: uuid("awarded_by"),
 });
 
+export const experienceEntries = experience_entries;
+
 // System settings
 const system_settings = pgTable("system_settings", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -275,6 +287,8 @@ const static_milestone_overrides = pgTable("static_milestone_overrides", {
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+export const staticMilestoneOverrides = static_milestone_overrides;
+
 const static_achievement_overrides = pgTable("static_achievement_overrides", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
@@ -283,6 +297,8 @@ const static_achievement_overrides = pgTable("static_achievement_overrides", {
   completed_at: timestamp("completed_at"),
   created_at: timestamp("created_at").default(sql`now()`).notNull(),
 });
+
+export const staticAchievementOverrides = static_achievement_overrides;
 
 // Custom achievements and milestones
 const custom_achievements = pgTable("custom_achievements", {
@@ -299,6 +315,8 @@ const custom_achievements = pgTable("custom_achievements", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+export const customAchievements = custom_achievements;
+
 const custom_milestones = pgTable("custom_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -312,12 +330,16 @@ const custom_milestones = pgTable("custom_milestones", {
   updated_at: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+export const customMilestones = custom_milestones;
+
 const character_achievements = pgTable("character_achievements", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   character_id: uuid("character_id").references(() => characters.id, { onDelete: "cascade" }).notNull(),
   achievement_id: uuid("achievement_id").references(() => custom_achievements.id, { onDelete: "cascade" }).notNull(),
   completed_at: timestamp("completed_at").default(sql`now()`).notNull(),
 });
+
+export const characterAchievements = character_achievements;
 
 const character_milestones = pgTable("character_milestones", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -326,14 +348,16 @@ const character_milestones = pgTable("character_milestones", {
   completed_at: timestamp("completed_at").default(sql`now()`).notNull(),
 });
 
+export const characterMilestones = character_milestones;
+
 // Relations
 const usersRelations = relations(users, ({ one, many }) => ({
   chapter: one(chapters, {
-    fields: [users.chapterId],
+    fields: [users.chapter_id],
     references: [chapters.id],
   }),
   role: one(roles, {
-    fields: [users.roleId],
+    fields: [users.role_id],
     references: [roles.id],
   }),
   characters: many(characters),
@@ -385,11 +409,11 @@ const charactersRelations = relations(characters, ({ one, many }) => ({
     references: [users.id],
   }),
   heritage: one(heritages, {
-    fields: [characters.heritage_id],
+    fields: [characters.heritage],
     references: [heritages.id],
   }),
   culture: one(cultures, {
-    fields: [characters.culture_id],
+    fields: [characters.culture],
     references: [cultures.id],
   }),
   archetype: one(archetypes, {
@@ -424,11 +448,11 @@ const eventsRelations = relations(events, ({ one, many }) => ({
 
 const eventRsvpsRelations = relations(event_rsvps, ({ one, many }) => ({
   event: one(events, {
-    fields: [event_rsvps.eventId],
+    fields: [event_rsvps.event_id],
     references: [events.id],
   }),
   character: one(characters, {
-    fields: [event_rsvps.characterId],
+    fields: [event_rsvps.character_id],
     references: [characters.id],
   }),
   experienceEntries: many(experience_entries),
@@ -436,15 +460,15 @@ const eventRsvpsRelations = relations(event_rsvps, ({ one, many }) => ({
 
 const experienceEntriesRelations = relations(experience_entries, ({ one }) => ({
   character: one(characters, {
-    fields: [experience_entries.characterId],
+    fields: [experience_entries.character_id],
     references: [characters.id],
   }),
   event: one(events, {
-    fields: [experience_entries.eventId],
+    fields: [experience_entries.event_id],
     references: [events.id],
   }),
   rsvp: one(event_rsvps, {
-    fields: [experience_entries.rsvpId],
+    fields: [experience_entries.rsvp_id],
     references: [event_rsvps.id],
   }),
 }));
@@ -461,7 +485,7 @@ const candleTransactionsRelations = relations(candle_transactions, ({ one }) => 
     relationName: "performedTransactions",
   }),
   event: one(events, {
-    fields: [candle_transactions.eventId],
+    fields: [candle_transactions.event_id],
     references: [events.id],
   }),
 }));
@@ -532,12 +556,9 @@ const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
 });
 
 export {
-  users,
   chapters,
   roles,
   permissions,
-  rolePermissions,
-  characters,
   events,
   event_rsvps,
   experience_entries,
@@ -549,9 +570,6 @@ export {
   custom_milestones,
   character_achievements,
   character_milestones,
-  heritages,
-  cultures,
-  archetypes,
   skills
 };
 

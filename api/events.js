@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       const allEvents = await db
         .select()
         .from(events)
-        .orderBy(desc(events.eventDate));
+        .orderBy(desc(events.event_date));
 
       return res.status(200).json(allEvents);
     }

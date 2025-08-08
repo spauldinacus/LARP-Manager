@@ -52,7 +52,6 @@ async function handleCharactersList(req, res, method) {
     }
 
     
-    const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
     let allCharacters = [];
     try {
       allCharacters = await db
@@ -60,32 +59,24 @@ async function handleCharactersList(req, res, method) {
           id: characters.id,
           name: characters.name,
           user_id: characters.user_id,
-          heritage_id: characters.heritage_id,
-          culture_id: characters.culture_id,
+          heritage: characters.heritage,
+          culture: characters.culture,
           archetype_id: characters.archetype_id,
-          secondary_archetype_id: characters.secondary_archetype_id,
-          body: characters.body,
-          mind: characters.mind,
-          spirit: characters.spirit,
-          purchasedSkills: characters.purchased_skills,
-          totalXpSpent: characters.total_xp_spent,
-          experience: characters.experience,
-          isActive: characters.is_active,
+          xp: characters.xp,
+          candles: characters.candles,
           created_at: characters.created_at,
           updated_at: characters.updated_at,
-          playerName: users.player_name,
+          player_name: users.player_name,
           email: users.email,
-          heritageName: heritages.name,
-          cultureName: cultures.name,
-          archetypeName: archetypes.name,
-          secondaryArchetypeName: secondaryArchetypes.name,
+          heritage_name: heritages.name,
+          culture_name: cultures.name,
+          archetype_name: archetypes.name,
         })
         .from(characters)
         .leftJoin(users, eq(characters.user_id, users.id))
-        .leftJoin(heritages, eq(characters.heritage_id, heritages.id))
-        .leftJoin(cultures, eq(characters.culture_id, cultures.id))
-        .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id))
-        .leftJoin(secondaryArchetypes, eq(characters.secondary_archetype_id, secondaryArchetypes.id));
+        .leftJoin(heritages, eq(characters.heritage, heritages.id))
+        .leftJoin(cultures, eq(characters.culture, cultures.id))
+        .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id));
     } catch (err) {
       console.error('Characters API select error:', err);
       res.status(500).json({ message: 'Failed to load characters', error: err.message });
@@ -104,7 +95,7 @@ async function handleCharactersList(req, res, method) {
     if (!session) return;
 
     const [newCharacter] = await db.insert(characters)
-      .values({ ...req.body, user_id: session.user_id })
+      .values({ ...req.body, user: session.user })
       .returning();
 
     return res.status(201).json(newCharacter);
@@ -119,7 +110,6 @@ async function handleSingleCharacter(req, res, method, characterId) {
     if (!session) return;
 
     
-    const secondaryArchetypes = alias(archetypes, 'secondaryArchetypes');
     let character;
     try {
       [character] = await db
@@ -127,32 +117,24 @@ async function handleSingleCharacter(req, res, method, characterId) {
           id: characters.id,
           name: characters.name,
           user_id: characters.user_id,
-          heritage_id: characters.heritage_id,
-          culture_id: characters.culture_id,
+          heritage: characters.heritage,
+          culture: characters.culture,
           archetype_id: characters.archetype_id,
-          secondary_archetype_id: characters.secondary_archetype_id,
-          body: characters.body,
-          mind: characters.mind,
-          spirit: characters.spirit,
-          purchasedSkills: characters.purchased_skills,
-          totalXpSpent: characters.total_xp_spent,
-          experience: characters.experience,
-          isActive: characters.is_active,
+          xp: characters.xp,
+          candles: characters.candles,
           created_at: characters.created_at,
           updated_at: characters.updated_at,
-          playerName: users.player_name,
+          player_name: users.player_name,
           email: users.email,
-          heritageName: heritages.name,
-          cultureName: cultures.name,
-          archetypeName: archetypes.name,
-          secondaryArchetypeName: secondaryArchetypes.name,
+          heritage_name: heritages.name,
+          culture_name: cultures.name,
+          archetype_name: archetypes.name,
         })
         .from(characters)
         .leftJoin(users, eq(characters.user_id, users.id))
-        .leftJoin(heritages, eq(characters.heritage_id, heritages.id))
-        .leftJoin(cultures, eq(characters.culture_id, cultures.id))
+        .leftJoin(heritages, eq(characters.heritage, heritages.id))
+        .leftJoin(cultures, eq(characters.culture, cultures.id))
         .leftJoin(archetypes, eq(characters.archetype_id, archetypes.id))
-        .leftJoin(secondaryArchetypes, eq(characters.secondary_archetype_id, secondaryArchetypes.id))
         .where(eq(characters.id, characterId));
     } catch (err) {
       console.error('Single Character API select error:', err);
@@ -221,7 +203,7 @@ async function handleCharacterExperience(req, res, method, characterId) {
       .values({
         ...req.body,
         character_id: characterId,
-        awarded_by: session.user_id
+        awarded_by: session.user
       })
       .returning();
 
@@ -243,8 +225,8 @@ async function handleAttendanceXp(req, res, method, characterId) {
         character_id: characterId,
         amount: req.body.amount,
         reason: `Attendance XP: ${req.body.eventName}`,
-        event_id: req.body.eventId,
-        awarded_by: session.user_id
+        eventId: req.body.event.id,
+        awarded_by: session.user
       })
       .returning();
 
