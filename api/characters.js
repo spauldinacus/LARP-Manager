@@ -21,8 +21,9 @@ export default async function handler(req, res) {
   }
 
   const pathParts = req.url?.split('/').filter(Boolean) || [];
-  const characterId = pathParts[1]; // characters/[id]
-  const action = pathParts[2]; // characters/[id]/[action]
+  // Expecting: ["api", "characters", "<id>", "<action>"]
+  const characterId = pathParts[2]; // api/characters/[id]
+  const action = pathParts[3];      // api/characters/[id]/[action]
 
   try {
     // Handle character list operations
