@@ -218,7 +218,6 @@ export const events = pgTable("events", {
   description: text("description"),
   event_date: timestamp("event_date").notNull(),
   location: text("location"),
-  max_attendees: integer("max_attendees"),
   registration_open: boolean("registration_open").default(true).notNull(),
   chapter_id: uuid("chapter_id").references(() => chapters.id).notNull(),
   created_by: uuid("created_by").references(() => users.id).notNull(),
