@@ -426,12 +426,19 @@ export default function XPProgressionTracker({
 
   // Combine static achievements with custom achievements
   const customAchievementsList = (customAchievements as any[]) || [];
+  // Ensure every achievement has a check function
+  function ensureCheck(achievement: any): any {
+    if (typeof achievement.check === 'function') return achievement;
+    // Default check: always false (locked)
+    return { ...achievement, check: () => false };
+  }
+
   const allAchievements = [
-    ...ACHIEVEMENTS.map(achievement => ({
+    ...ACHIEVEMENTS.map(achievement => ensureCheck({
       ...achievement,
       percentage: calculateAchievementPercentage(achievement)
     })),
-    ...customAchievementsList.map((custom: any) => ({
+    ...customAchievementsList.map((custom: any) => ensureCheck({
       id: custom.id,
       title: custom.title,
       description: custom.description,
