@@ -633,33 +633,36 @@ export default function XPProgressionTracker({
                   <div>
                     <h4 className="font-medium text-sm mb-2">Static Achievements (Editable)</h4>
                     <div className="space-y-2">
-                      {ACHIEVEMENTS.map((achievement, index) => (
-                        <div key={`static-${index}`} className="flex items-center justify-between p-2 border rounded">
-                          <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-full ${achievement.rarity === 'common' ? 'bg-gray-100' : achievement.rarity === 'rare' ? 'bg-blue-100' : achievement.rarity === 'epic' ? 'bg-purple-100' : 'bg-yellow-100'}`}>
-                              {React.createElement(achievement.icon, { className: "h-4 w-4" })}
+                      {ACHIEVEMENTS.map((achievement, index) => {
+                        const safeAchievement = ensureCheck(achievement);
+                        return (
+                          <div key={`static-${index}`} className="flex items-center justify-between p-2 border rounded">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${safeAchievement.rarity === 'common' ? 'bg-gray-100' : safeAchievement.rarity === 'rare' ? 'bg-blue-100' : safeAchievement.rarity === 'epic' ? 'bg-purple-100' : 'bg-yellow-100'}`}>
+                                {React.createElement(safeAchievement.icon, { className: "h-4 w-4" })}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm">{safeAchievement.title}</p>
+                                <p className="text-xs text-muted-foreground">{safeAchievement.description}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {calculateAchievementPercentage(safeAchievement)}% achieved • {safeAchievement.conditionType
+                                    ? safeAchievement.conditionType === 'manual'
+                                      ? 'Manual'
+                                      : `${safeAchievement.conditionValue} ${safeAchievement.conditionType.replace('_', ' ')}`
+                                    : 'Static Achievement'}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">{achievement.title}</p>
-                              <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType
-                                  ? achievement.conditionType === 'manual'
-                                    ? 'Manual'
-                                    : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`
-                                  : 'Static Achievement'}
-                              </p>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditStaticAchievement(safeAchievement, index)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditStaticAchievement(achievement, index)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -670,8 +673,8 @@ export default function XPProgressionTracker({
                     <h4 className="font-medium text-sm">Custom Achievements ({(adminAchievements as any[])?.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {(adminAchievements as any[])?.map((achievement: any) => {
-                // Ensure check function exists
-                const safeAchievement = typeof achievement.check === 'function' ? achievement : { ...achievement, check: () => false };
+                // Always wrap with ensureCheck to guarantee .check exists
+                const safeAchievement = ensureCheck(achievement);
                 return (
                   <div key={safeAchievement.id} className="flex items-center justify-between p-2 border rounded">
                     <div className="flex-1 min-w-0">
@@ -716,17 +719,20 @@ export default function XPProgressionTracker({
                   )}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {unlockedAchievements.map((achievement) => (
-                    <AchievementBadge
-                      key={achievement.id}
-                      title={achievement.title}
-                      description={achievement.description}
-                      icon={achievement.icon}
-                      isUnlocked={true}
-                      percentage={achievement.percentage}
-                      rarity={achievement.rarity}
-                    />
-                  ))}
+                  {unlockedAchievements.map((achievement) => {
+                    const safeAchievement = ensureCheck(achievement);
+                    return (
+                      <AchievementBadge
+                        key={safeAchievement.id}
+                        title={safeAchievement.title}
+                        description={safeAchievement.description}
+                        icon={safeAchievement.icon}
+                        isUnlocked={true}
+                        percentage={safeAchievement.percentage}
+                        rarity={safeAchievement.rarity}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -742,27 +748,30 @@ export default function XPProgressionTracker({
                   )}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {lockedAchievements.map((achievement) => (
-                    <div key={achievement.id} className="relative">
-                      <AchievementBadge
-                        title={achievement.title}
-                        description={achievement.description}
-                        icon={achievement.icon}
-                        isUnlocked={false}
-                        percentage={achievement.percentage}
-                        rarity={achievement.rarity}
-                      />
-                      {isAdmin && customAchievementsList.find(c => c.id === achievement.id)?.conditionType === 'manual' && (
-                        <Button
-                          size="sm"
-                          className="absolute top-2 right-2 h-6 w-6 p-0"
-                          onClick={() => unlockManualAchievement(achievement.id)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                  {lockedAchievements.map((achievement) => {
+                    const safeAchievement = ensureCheck(achievement);
+                    return (
+                      <div key={safeAchievement.id} className="relative">
+                        <AchievementBadge
+                          title={safeAchievement.title}
+                          description={safeAchievement.description}
+                          icon={safeAchievement.icon}
+                          isUnlocked={false}
+                          percentage={safeAchievement.percentage}
+                          rarity={safeAchievement.rarity}
+                        />
+                        {isAdmin && customAchievementsList.find(c => c.id === safeAchievement.id)?.conditionType === 'manual' && (
+                          <Button
+                            size="sm"
+                            className="absolute top-2 right-2 h-6 w-6 p-0"
+                            onClick={() => unlockManualAchievement(safeAchievement.id)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
