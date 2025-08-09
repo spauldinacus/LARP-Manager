@@ -1,7 +1,9 @@
+import { candleTransactions } from '../shared/schema.js';
 // Combined admin endpoints for Vercel
 import { db, users, characters, heritages, archetypes, skills, cultures, customAchievements, customMilestones, roles, permissions, rolePermissions, events, chapters } from '../lib/db.js';
 import { requireAdmin } from '../lib/session.js';
 import { eq, count, desc, sql } from 'drizzle-orm';
+import { candleTransactions } from '../shared/schema.js';
 
 export default async function handler(req, res) {
   // Ensure req.body is parsed for POST, PUT, PATCH requests (Vercel/Node.js serverless)
@@ -54,10 +56,56 @@ export default async function handler(req, res) {
       return await handleEvents(req, res, method, id);
     } else if (type === 'characters') {
       return await handleCharacters(req, res, method, id);
-
+    } else if (type === 'candle-transactions') {
+      return await handleCandleTransactions(req, res, method, url.searchParams.get('userId'), id);
     } else if (type === 'chapters') {
       return await handleChapters(req, res, method, id);
     }
+// Candle Transactions handler
+import { candleTransactions } from '../shared/schema.js';
+async function handleCandleTransactions(req, res, method, userId, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [transaction] = await db.select().from(candleTransactions).where(eq(candleTransactions.id, id));
+      if (!transaction) {
+        res.status(404).json({ message: 'Candle transaction not found' });
+        return;
+      }
+      res.status(200).json(transaction);
+      return;
+    } else if (userId) {
+      const transactions = await db.select().from(candleTransactions).where(eq(candleTransactions.user_id, userId));
+      return res.status(200).json(transactions);
+    } else {
+      const allTransactions = await db.select().from(candleTransactions);
+      return res.status(200).json(allTransactions);
+    }
+  }
+  if (method === 'POST') {
+    const [newTransaction] = await db.insert(candleTransactions).values(req.body).returning();
+    return res.status(201).json(newTransaction);
+  }
+  if (method === 'PUT' && id) {
+    const [updatedTransaction] = await db.update(candleTransactions)
+      .set(req.body)
+      .where(eq(candleTransactions.id, id))
+      .returning();
+    if (!updatedTransaction) {
+      return res.status(404).json({ message: 'Candle transaction not found' });
+    }
+    return res.status(200).json(updatedTransaction);
+  }
+  if (method === 'DELETE' && id) {
+    const [deletedTransaction] = await db.delete(candleTransactions)
+      .where(eq(candleTransactions.id, id))
+      .returning();
+    if (!deletedTransaction) {
+      return res.status(404).json({ message: 'Candle transaction not found' });
+    }
+    return res.status(200).json({ message: 'Candle transaction deleted successfully' });
+  }
+  return res.status(405).json({ message: 'Method not allowed' });
+}
   // End of query parameter based routing
 
   // Legacy path-based routing for backward compatibility
