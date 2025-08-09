@@ -110,7 +110,6 @@ async function handleChapters(req, res, method, id) {
   }
   return res.status(405).json({ message: 'Method not allowed' });
 }
-    }
 // ...existing code...
 
 // Achievements handlers
