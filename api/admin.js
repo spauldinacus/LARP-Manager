@@ -61,8 +61,63 @@ export default async function handler(req, res) {
     } else if (type === 'chapters') {
       return await handleChapters(req, res, method, id);
     }
+
+    // End of query parameter based routing
+
+    // Legacy path-based routing for backward compatibility
+    const path = req.url?.split('?')[0] || '';
+    if (path.includes('/stats')) {
+      return await handleStats(req, res, method);
+    }
+
+    return res.status(404).json({ message: 'Admin endpoint not found' });
+
+  } catch (error) {
+    console.error('Admin API error:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+    // --- BEGIN try block ---
+    const session = await requireAdmin(req, res);
+    if (!session) return;
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const type = url.searchParams.get('type');
+    const id = url.searchParams.get('id');
+
+    // Handle query parameter based routing
+    if (type === 'stats') {
+      return await handleStats(req, res, method);
+    } else if (type === 'skills') {
+      return await handleSkills(req, res, method, id);
+    } else if (type === 'heritages') {
+      return await handleHeritages(req, res, method, id);
+    } else if (type === 'cultures') {
+      return await handleCultures(req, res, method, id);
+    } else if (type === 'archetypes') {
+      return await handleArchetypes(req, res, method, id);
+    } else if (type === 'achievements') {
+      return await handleAchievements(req, res, method, id);
+    } else if (type === 'milestones') {
+      return await handleMilestones(req, res, method, id);
+    } else if (type === 'roles') {
+      return await handleRoles(req, res, method, id);
+    } else if (type === 'permissions') {
+      return await handlePermissions(req, res, method, id);
+    } else if (type === 'role-permissions') {
+      return await handleRolePermissions(req, res, method, id);
+    } else if (type === 'users') {
+      return await handleUsers(req, res, method, id);
+    } else if (type === 'events') {
+      return await handleEvents(req, res, method, id);
+    } else if (type === 'characters') {
+      return await handleCharacters(req, res, method, id);
+    } else if (type === 'candle-transactions') {
+      return await handleCandleTransactions(req, res, method, url.searchParams.get('userId'), id);
+    } else if (type === 'chapters') {
+      return await handleChapters(req, res, method, id);
+    }
+async function handleCandleTransactions(req, res, method, userId, id) {
 // Candle Transactions handler
-import { candleTransactions } from '../shared/schema.js';
 async function handleCandleTransactions(req, res, method, userId, id) {
   if (method === 'GET') {
     if (id) {
@@ -115,6 +170,7 @@ async function handleCandleTransactions(req, res, method, userId, id) {
   }
 
   return res.status(404).json({ message: 'Admin endpoint not found' });
+
 } catch (error) {
   console.error('Admin API error:', error);
   return res.status(500).json({ message: 'Internal server error', error: error.message });
