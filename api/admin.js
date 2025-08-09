@@ -54,8 +54,25 @@ export default async function handler(req, res) {
       return await handleEvents(req, res, method, id);
     } else if (type === 'characters') {
       return await handleCharacters(req, res, method, id);
+
     } else if (type === 'chapters') {
       return await handleChapters(req, res, method, id);
+    }
+  // End of query parameter based routing
+
+  // Legacy path-based routing for backward compatibility
+  const path = req.url?.split('?')[0] || '';
+  if (path.includes('/stats')) {
+    return await handleStats(req, res, method);
+  }
+
+  return res.status(404).json({ message: 'Admin endpoint not found' });
+} catch (error) {
+  console.error('Admin API error:', error);
+  return res.status(500).json({ message: 'Internal server error', error: error.message });
+}
+}
+
 // Characters handler (basic read-only)
 async function handleCharacters(req, res, method, id) {
   if (method === 'GET') {
@@ -94,19 +111,7 @@ async function handleChapters(req, res, method, id) {
   return res.status(405).json({ message: 'Method not allowed' });
 }
     }
-
-    // Legacy path-based routing for backward compatibility
-    const path = req.url?.split('?')[0] || '';
-    if (path.includes('/stats')) {
-      return await handleStats(req, res, method);
-    }
-
-    return res.status(404).json({ message: 'Admin endpoint not found' });
-  } catch (error) {
-    console.error('Admin API error:', error);
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
-}
+// ...existing code...
 
 // Achievements handlers
 async function handleAchievements(req, res, method, id) {
