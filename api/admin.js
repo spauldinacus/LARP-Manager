@@ -73,9 +73,11 @@ async function handleAchievements(req, res, method, id) {
     if (id) {
       const [achievement] = await db.select().from(customAchievements).where(eq(customAchievements.id, id));
       if (!achievement) {
-        return res.status(404).json({ message: 'Achievement not found' });
+        res.status(404).json({ message: 'Achievement not found' });
+        return;
       }
-      return res.status(200).json(achievement);
+      res.status(200).json(achievement);
+      return;
     } else {
       const allAchievements = await db.select().from(customAchievements);
       return res.status(200).json(allAchievements);
@@ -117,9 +119,11 @@ async function handleMilestones(req, res, method, id) {
     if (id) {
       const [milestone] = await db.select().from(customMilestones).where(eq(customMilestones.id, id));
       if (!milestone) {
-        return res.status(404).json({ message: 'Milestone not found' });
+        res.status(404).json({ message: 'Milestone not found' });
+        return;
       }
-      return res.status(200).json(milestone);
+      res.status(200).json(milestone);
+      return;
     } else {
       const allMilestones = await db.select().from(customMilestones);
       return res.status(200).json(allMilestones);
@@ -161,9 +165,11 @@ async function handleCultures(req, res, method, id) {
     if (id) {
       const [culture] = await db.select().from(cultures).where(eq(cultures.id, id));
       if (!culture) {
-        return res.status(404).json({ message: 'Culture not found' });
+        res.status(404).json({ message: 'Culture not found' });
+        return;
       }
-      return res.status(200).json(culture);
+      res.status(200).json(culture);
+      return;
     } else {
       const allCultures = await db.select().from(cultures).orderBy(cultures.name);
       return res.status(200).json(allCultures);
@@ -197,9 +203,11 @@ async function handleArchetypes(req, res, method, id) {
     if (id) {
       const [archetype] = await db.select().from(archetypes).where(eq(archetypes.id, id));
       if (!archetype) {
-        return res.status(404).json({ message: 'Archetype not found' });
+        res.status(404).json({ message: 'Archetype not found' });
+        return;
       }
-      return res.status(200).json(archetype);
+      res.status(200).json(archetype);
+      return;
     } else {
       const allArchetypes = await db.select().from(archetypes).orderBy(archetypes.name);
       return res.status(200).json(allArchetypes);
@@ -233,9 +241,11 @@ async function handleSkills(req, res, method, id) {
     if (id) {
       const [skill] = await db.select().from(skills).where(eq(skills.id, id));
       if (!skill) {
-        return res.status(404).json({ message: 'Skill not found' });
+        res.status(404).json({ message: 'Skill not found' });
+        return;
       }
-      return res.status(200).json(skill);
+      res.status(200).json(skill);
+      return;
     } else {
       // Only select columns that exist in the skills table
       const allSkills = await db.select().from(skills).orderBy(skills.name);
@@ -277,9 +287,11 @@ async function handleUsers(req, res, method, id) {
       });
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+        return;
       }
-      return res.status(200).json(user);
+      res.status(200).json(user);
+      return;
     } else {
       const allUsers = await db.query.users.findMany({
         with: {
@@ -325,9 +337,11 @@ async function handleRoles(req, res, method, id) {
     if (id) {
       const [role] = await db.select().from(roles).where(eq(roles.id, id));
       if (!role) {
-        return res.status(404).json({ message: 'Role not found' });
+        res.status(404).json({ message: 'Role not found' });
+        return;
       }
-      return res.status(200).json(role);
+      res.status(200).json(role);
+      return;
     } else {
       const allRoles = await db.select().from(roles).orderBy(roles.name);
       return res.status(200).json(allRoles);
@@ -506,9 +520,11 @@ async function handleEvents(req, res, method, id) {
       .where(eq(events.id, id));
 
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        res.status(404).json({ message: 'Event not found' });
+        return;
       }
-      return res.status(200).json(event);
+      res.status(200).json(event);
+      return;
     } else {
       const allEvents = await db.select({
         id: events.id,
@@ -588,9 +604,11 @@ async function handleHeritages(req, res, method, id) {
     if (id) {
       const [heritage] = await db.select().from(heritages).where(eq(heritages.id, id));
       if (!heritage) {
-        return res.status(404).json({ message: 'Heritage not found' });
+        res.status(404).json({ message: 'Heritage not found' });
+        return;
       }
-      return res.status(200).json(heritage);
+      res.status(200).json(heritage);
+      return;
     }
     const allHeritages = await db.select().from(heritages).orderBy(heritages.name);
     return res.status(200).json(allHeritages);
