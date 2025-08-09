@@ -200,7 +200,7 @@ export const characters = pgTable("characters", {
   // Added fields to match API usage
   body: integer("body"),
   stamina: integer("stamina"),
-  purchased_skills: text("purchased_skills").array().default([]),
+  skills: text("skills").array().default([]),
   total_xp_spent: integer("total_xp_spent").default(0),
   experience: integer("experience").default(0),
   is_active: boolean("is_active").default(true),
