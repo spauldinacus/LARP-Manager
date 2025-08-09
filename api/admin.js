@@ -52,6 +52,47 @@ export default async function handler(req, res) {
       return await handleUsers(req, res, method, id);
     } else if (type === 'events') {
       return await handleEvents(req, res, method, id);
+    } else if (type === 'characters') {
+      return await handleCharacters(req, res, method, id);
+    } else if (type === 'chapters') {
+      return await handleChapters(req, res, method, id);
+// Characters handler (basic read-only)
+async function handleCharacters(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [character] = await db.select().from(characters).where(eq(characters.id, id));
+      if (!character) {
+        res.status(404).json({ message: 'Character not found' });
+        return;
+      }
+      res.status(200).json(character);
+      return;
+    } else {
+      const allCharacters = await db.select().from(characters);
+      return res.status(200).json(allCharacters);
+    }
+  }
+  return res.status(405).json({ message: 'Method not allowed' });
+}
+
+// Chapters handler (basic read-only)
+async function handleChapters(req, res, method, id) {
+  if (method === 'GET') {
+    if (id) {
+      const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
+      if (!chapter) {
+        res.status(404).json({ message: 'Chapter not found' });
+        return;
+      }
+      res.status(200).json(chapter);
+      return;
+    } else {
+      const allChapters = await db.select().from(chapters);
+      return res.status(200).json(allChapters);
+    }
+  }
+  return res.status(405).json({ message: 'Method not allowed' });
+}
     }
 
     // Legacy path-based routing for backward compatibility
