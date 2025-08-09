@@ -450,8 +450,7 @@ export default function XPProgressionTracker({
     return Math.round((achieversCount / allCharacters.length) * 100);
   };
 
-  // Combine static achievements with custom achievements
-  const customAchievementsList = (customAchievements as any[]) || [];
+
   // Ensure every achievement has a check function
   function ensureCheck(achievement: any): any {
     if (typeof achievement.check === 'function') return achievement;
@@ -459,33 +458,18 @@ export default function XPProgressionTracker({
     return { ...achievement, check: () => false };
   }
 
+  // Always use safe arrays for admin and custom achievements
+  const customAchievementsList = ((customAchievements as any[]) || []).map(ensureCheck);
+  const safeAdminAchievements = ((adminAchievements as any[]) || []).map(ensureCheck);
+
   const allAchievements = [
     ...ACHIEVEMENTS.map(achievement => ensureCheck({
       ...achievement,
       percentage: calculateAchievementPercentage(achievement)
     })),
-    ...customAchievementsList.map((custom: any) => ensureCheck({
-      id: custom.id,
-      title: custom.title,
-      description: custom.description,
-      icon: getIconComponent(custom.iconName || 'trophy'),
-      rarity: custom.rarity,
+    ...customAchievementsList.map((custom: any) => ({
+      ...custom,
       percentage: calculateAchievementPercentage(custom),
-      check: (char: Character) => {
-        // Check based on condition type
-        switch (custom.conditionType) {
-          case 'xp_spent':
-            return (char.totalXpSpent || 0) >= (custom.conditionValue || 0);
-          case 'skill_count':
-            return (char.skills?.length || 0) >= (custom.conditionValue || 0);
-          case 'attribute_value':
-            return (char.body + char.stamina) >= (custom.conditionValue || 0);
-          case 'manual':
-          default:
-            // For manual achievements, check if character has unlocked it
-            return characterAchievements?.some((ca: any) => ca.achievementId === custom.id) || false;
-        }
-      }
     }))
   ];
 
@@ -667,40 +651,36 @@ export default function XPProgressionTracker({
                   </div>
                 </div>
               </CardContent>
-              {(adminAchievements as any[])?.length > 0 && (
+              {safeAdminAchievements.length > 0 && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Custom Achievements ({(adminAchievements as any[])?.length})</h4>
+                    <h4 className="font-medium text-sm">Custom Achievements ({safeAdminAchievements.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {(adminAchievements as any[])?.map((achievement: any) => {
-                // Always wrap with ensureCheck to guarantee .check exists
-                const safeAchievement = ensureCheck(achievement);
-                return (
-                  <div key={safeAchievement.id} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{safeAchievement.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{safeAchievement.description}</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEditAchievement(safeAchievement)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => deleteAchievementMutation.mutate(safeAchievement.id)}
-                        disabled={deleteAchievementMutation.isPending}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                      {safeAdminAchievements.map((safeAchievement: any) => (
+                        <div key={safeAchievement.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{safeAchievement.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{safeAchievement.description}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditAchievement(safeAchievement)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteAchievementMutation.mutate(safeAchievement.id)}
+                              disabled={deleteAchievementMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </CardContent>
