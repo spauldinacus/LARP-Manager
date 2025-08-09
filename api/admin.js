@@ -383,7 +383,7 @@ async function handleRolePermissions(req, res, method, id) {
       category: permissions.category,
     })
     .from(rolePermissions)
-    .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+    .innerJoin(permissions, eq(rolePermissions.permission_id, permissions.id))
     .where(eq(rolePermissions.role_id, id));
 
     return res.status(200).json(rolePerms);
@@ -486,7 +486,6 @@ async function handleEvents(req, res, method, id) {
         location: events.location,
         max_attendees: events.max_attendees,
         registration_open: events.registration_open,
-        is_active: events.is_active,
         chapter_id: events.chapter_id,
         created_by: events.created_by,
         created_at: events.created_at,
@@ -520,7 +519,6 @@ async function handleEvents(req, res, method, id) {
         location: events.location,
         max_attendees: events.max_attendees,
         registration_open: events.registration_open,
-        is_active: events.is_active,
         chapter_id: events.chapter_id,
         created_by: events.created_by,
         created_at: events.created_at,
