@@ -92,7 +92,9 @@ const ACHIEVEMENTS = [
     description: "Learn your first skill",
     icon: BookOpen,
     rarity: "common" as const,
-    check: (char: Character) => char.skills?.length > 0
+    check: (char: Character) => char.skills?.length > 0,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "skill_collector",
@@ -100,7 +102,9 @@ const ACHIEVEMENTS = [
     description: "Learn 5 different skills",
     icon: Star,
     rarity: "rare" as const,
-    check: (char: Character) => char.skills?.length >= 5
+    check: (char: Character) => char.skills?.length >= 5,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "skill_master",
@@ -108,7 +112,9 @@ const ACHIEVEMENTS = [
     description: "Learn 10 different skills",
     icon: Trophy,
     rarity: "epic" as const,
-    check: (char: Character) => char.skills?.length >= 10
+    check: (char: Character) => char.skills?.length >= 10,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "skill_legend",
@@ -116,7 +122,9 @@ const ACHIEVEMENTS = [
     description: "Learn 15+ different skills",
     icon: Crown,
     rarity: "legendary" as const,
-    check: (char: Character) => char.skills?.length >= 15
+    check: (char: Character) => char.skills?.length >= 15,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "body_builder",
@@ -124,7 +132,9 @@ const ACHIEVEMENTS = [
     description: "Reach 15+ Body points",
     icon: Heart,
     rarity: "rare" as const,
-    check: (char: Character) => char.body >= 15
+    check: (char: Character) => char.body >= 15,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "stamina_runner",
@@ -132,7 +142,9 @@ const ACHIEVEMENTS = [
     description: "Reach 15+ Stamina points",
     icon: Zap,
     rarity: "rare" as const,
-    check: (char: Character) => char.stamina >= 15
+    check: (char: Character) => char.stamina >= 15,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "balanced_fighter",
@@ -140,7 +152,9 @@ const ACHIEVEMENTS = [
     description: "Have both Body and Stamina at 12+",
     icon: Shield,
     rarity: "epic" as const,
-    check: (char: Character) => char.body >= 12 && char.stamina >= 12
+    check: (char: Character) => char.body >= 12 && char.stamina >= 12,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "tank_build",
@@ -148,7 +162,9 @@ const ACHIEVEMENTS = [
     description: "Reach 20+ Body points",
     icon: Shield,
     rarity: "epic" as const,
-    check: (char: Character) => char.body >= 20
+    check: (char: Character) => char.body >= 20,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "speed_demon",
@@ -156,7 +172,9 @@ const ACHIEVEMENTS = [
     description: "Reach 20+ Stamina points",
     icon: Zap,
     rarity: "epic" as const,
-    check: (char: Character) => char.stamina >= 20
+    check: (char: Character) => char.stamina >= 20,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "xp_spender",
@@ -164,7 +182,9 @@ const ACHIEVEMENTS = [
     description: "Spend 100+ XP on improvements",
     icon: Target,
     rarity: "common" as const,
-    check: (char: Character) => (char.totalXpSpent || 0) >= 100
+    check: (char: Character) => (char.totalXpSpent || 0) >= 100,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "veteran_spender",
@@ -172,7 +192,9 @@ const ACHIEVEMENTS = [
     description: "Spend 250+ XP on improvements",
     icon: Brain,
     rarity: "rare" as const,
-    check: (char: Character) => (char.totalXpSpent || 0) >= 250
+    check: (char: Character) => (char.totalXpSpent || 0) >= 250,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "master_spender",
@@ -180,7 +202,9 @@ const ACHIEVEMENTS = [
     description: "Spend 500+ XP on improvements",
     icon: Wand2,
     rarity: "epic" as const,
-    check: (char: Character) => (char.totalXpSpent || 0) >= 500
+    check: (char: Character) => (char.totalXpSpent || 0) >= 500,
+    conditionType: undefined,
+    conditionValue: undefined,
   },
   {
     id: "legend_spender",
@@ -188,7 +212,9 @@ const ACHIEVEMENTS = [
     description: "Spend 1000+ XP on improvements",
     icon: Crown,
     rarity: "legendary" as const,
-    check: (char: Character) => (char.totalXpSpent || 0) >= 1000
+    check: (char: Character) => (char.totalXpSpent || 0) >= 1000,
+    conditionType: undefined,
+    conditionValue: undefined,
   }
 ];
 
@@ -371,13 +397,13 @@ export default function XPProgressionTracker({
   });
 
   // Fetch character achievements
-  const { data: characterAchievements } = useQuery({
+  const { data: characterAchievements = [] } = useQuery<any[]>({
     queryKey: ["/api/characters", characterId, "achievements"],
     enabled: !!characterId,
   });
 
   // Fetch all characters for achievement percentage calculation
-  const { data: allCharacters = [] } = useQuery({
+  const { data: allCharacters = [] } = useQuery<Character[]>({
     queryKey: ["/api/characters"],
     enabled: !!characterId,
   });
@@ -617,7 +643,11 @@ export default function XPProgressionTracker({
                               <p className="font-medium text-sm">{achievement.title}</p>
                               <p className="text-xs text-muted-foreground">{achievement.description}</p>
                               <p className="text-xs text-muted-foreground">
-                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType === 'manual' ? 'Manual' : achievement.conditionType ? `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}` : 'Static Achievement'}
+                                {calculateAchievementPercentage(achievement)}% achieved • {achievement.conditionType
+                                  ? achievement.conditionType === 'manual'
+                                    ? 'Manual'
+                                    : `${achievement.conditionValue} ${achievement.conditionType.replace('_', ' ')}`
+                                  : 'Static Achievement'}
                               </p>
                             </div>
                           </div>
