@@ -199,8 +199,7 @@ export const characters = pgTable("characters", {
   secondary_archetype_id: uuid("secondary_archetype_id").references(() => archetypes.id),
   // Added fields to match API usage
   body: integer("body"),
-  mind: integer("mind"),
-  spirit: integer("spirit"),
+  stamina: integer("stamina"),
   purchased_skills: text("purchased_skills").array().default([]),
   total_xp_spent: integer("total_xp_spent").default(0),
   experience: integer("experience").default(0),
